@@ -2,6 +2,32 @@
    TomaChef Supabase Client Configuration
    ============================================================ */
 
+// ============================================================
+// Cache Layer — avoids re-fetching on every page navigation
+// ============================================================
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function cacheGet(key) {
+  try {
+    const item = localStorage.getItem('tc_' + key);
+    if (!item) return null;
+    const { data, ts } = JSON.parse(item);
+    if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem('tc_' + key); return null; }
+    return data;
+  } catch (e) { return null; }
+}
+
+function cacheSet(key, data) {
+  try { localStorage.setItem('tc_' + key, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
+}
+
+function cacheClear(prefix) {
+  try {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('tc_' + prefix));
+    keys.forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+}
+
 // ⚠️ Replace these with your actual Supabase project credentials
 // You can find them in: Supabase Dashboard → Settings → API
 const SUPABASE_URL = 'https://jtrhzphdttralmvdhtva.supabase.co';
@@ -79,6 +105,11 @@ async function requireAuth() {
 // ============================================================
 
 async function fetchProducts(category = null, lang = 'en') {
+  // Check cache first
+  const cacheKey = category ? 'products_' + category : 'products_all';
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
+
   const sb = initSupabase();
   if (!sb) return [];
 
@@ -96,6 +127,7 @@ async function fetchProducts(category = null, lang = 'en') {
     return [];
   }
   // Return raw data — localization is handled by getLocalizedName/getLocalizedDesc at render time
+  cacheSet(cacheKey, data);
   return data;
 }
 
@@ -345,6 +377,11 @@ async function deleteSocialLink(id) {
 // ============================================================
 
 async function fetchRecipes(category = null, productId = null) {
+  // Check cache first
+  const cacheKey = productId ? 'recipes_product_' + productId : (category ? 'recipes_cat_' + category : 'recipes_all');
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
+
   const sb = initSupabase();
   if (!sb) return [];
   let query = sb.from('recipes').select('*, products(name)').eq('is_active', true);
@@ -353,6 +390,7 @@ async function fetchRecipes(category = null, productId = null) {
   query = query.order('display_order', { ascending: true });
   const { data, error } = await query;
   if (error) { console.error('Error fetching recipes:', error); return []; }
+  cacheSet(cacheKey, data);
   return data;
 }
 
