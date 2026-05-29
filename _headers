@@ -1,0 +1,23 @@
+/*
+  # --- 安全响应头 ---
+
+  # 1. 强制 HTTPS（有效期 1 年，包含子域名）
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+  # 2. 内容安全策略（限制资源加载来源）
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https://jtrhzphdttralmvdhtva.supabase.co https://img.youtube.com https://i.vimeocdn.com; frame-src https://www.youtube.com https://player.vimeo.com; connect-src 'self' https://jtrhzphdttralmvdhtva.supabase.co https://www.google.com https://www.gstatic.com; font-src 'self'; media-src 'self' https://jtrhzphdttralmvdhtva.supabase.co; form-action 'self'; base-uri 'self'; object-src 'none'
+
+  # 3. 防点击劫持
+  X-Frame-Options: SAMEORIGIN
+
+  # 4. MIME 类型嗅探保护
+  X-Content-Type-Options: nosniff
+
+  # 5. XSS 过滤
+  X-XSS-Protection: 1; mode=block
+
+  # 6. 引荐来源策略
+  Referrer-Policy: no-referrer-when-downgrade
+
+  # 7. 权限策略
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
