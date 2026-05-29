@@ -5,28 +5,37 @@
 // ============================================================
 // Cache Layer — avoids re-fetching on every page navigation
 // ============================================================
+const CACHE_VERSION = 'v2'; // bump to invalidate all old caches
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function cacheGet(key) {
   try {
-    const item = localStorage.getItem('tc_' + key);
+    const item = localStorage.getItem(CACHE_VERSION + '_' + key);
     if (!item) return null;
     const { data, ts } = JSON.parse(item);
-    if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem('tc_' + key); return null; }
+    if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem(CACHE_VERSION + '_' + key); return null; }
     return data;
   } catch (e) { return null; }
 }
 
 function cacheSet(key, data) {
-  try { localStorage.setItem('tc_' + key, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
+  try { localStorage.setItem(CACHE_VERSION + '_' + key, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
 }
 
 function cacheClear(prefix) {
   try {
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('tc_' + prefix));
+    const keys = Object.keys(localStorage).filter(k => k.startsWith(CACHE_VERSION + '_' + prefix));
     keys.forEach(k => localStorage.removeItem(k));
   } catch (e) {}
 }
+
+// Also clean up old v1 caches on first load
+(function cleanupOldCaches() {
+  try {
+    const old = Object.keys(localStorage).filter(k => k.startsWith('tc_') && !k.startsWith(CACHE_VERSION + '_'));
+    old.forEach(k => localStorage.removeItem(k));
+  } catch(e) {}
+})();
 
 // ⚠️ Replace these with your actual Supabase project credentials
 // You can find them in: Supabase Dashboard → Settings → API

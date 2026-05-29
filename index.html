@@ -309,27 +309,28 @@
   <script src="js/main.js"></script>
   <script src="js/social.js"></script>
   <script>
-    /* Dynamic Home Recipes - uses Supabase with fallback */
+    /* Dynamic Home Recipes - uses Supabase, fallback only on error */
     (async function loadHomeRecipes() {
       const grid = document.getElementById('homeRecipeGrid');
       if (!grid) return;
 
       let recipes = [];
+      let supabaseFailed = false;
       try {
         if (typeof fetchRecipes === 'function') {
           recipes = await fetchRecipes();
         }
       } catch(e) {
         console.error('Home recipes fetch failed:', e);
+        supabaseFailed = true;
       }
 
-      // Use fallback recipes if Supabase returns empty
+      // Only use FALLBACK_RECIPES when Supabase is unreachable, not when it's just empty
       if (!recipes || !recipes.length) {
-        if (typeof FALLBACK_RECIPES !== 'undefined' && FALLBACK_RECIPES.length) {
+        if (supabaseFailed && typeof FALLBACK_RECIPES !== 'undefined' && FALLBACK_RECIPES.length) {
           recipes = FALLBACK_RECIPES;
         } else {
-          // No recipes at all — clear loading and show nothing
-          grid.innerHTML = '';
+          grid.innerHTML = '<div class="text-center py-5 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;font-size:1.1rem;">No recipes yet. Stay tuned!</p></div>';
           return;
         }
       }

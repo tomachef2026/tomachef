@@ -37,8 +37,8 @@ const FALLBACK_RECIPES = [
     is_active:true, display_order:3 }
 ];
 
-// Expose products globally
-let products = [...FALLBACK_PRODUCTS];
+// Expose products globally — start empty, loaded from Supabase or fallback
+let products = [];
 
 // Get localized name for a product
 function getLocalizedName(product, lang) {
@@ -169,6 +169,11 @@ function escapeHtml(str) {
 function renderProductSections(lang) {
   const container = document.getElementById('productSections');
   if (!container) return;
+
+  if (products.length === 0) {
+    container.innerHTML = '<div class="text-center py-5"><div class="empty-state" style="font-size:3rem;margin-bottom:1rem;">📦</div><h4 style="color:#94a3b8;">' + ((typeof translations !== 'undefined' && translations[lang] && translations[lang].prod_no_results) || 'No products yet') + '</h4><p style="color:#cbd5e1;">' + ((typeof translations !== 'undefined' && translations[lang] && translations[lang].prod_coming_soon) || 'New products coming soon. Stay tuned!') + '</p></div>';
+    return;
+  }
 
   const categories = [
     { key: 'airfryer', icon: '🍟' },
@@ -356,9 +361,13 @@ async function initProducts() {
         });
         console.log('Loaded ' + products.length + ' products from Supabase (translations merged from fallback)');
       }
+      // If Supabase returns empty, products stays [] — no fallback
     } catch (e) {
       console.log('Supabase not available, using fallback data');
+      products = [...FALLBACK_PRODUCTS];
     }
+  } else {
+    products = [...FALLBACK_PRODUCTS];
   }
 
   // Render based on which layout is on this page
