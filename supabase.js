@@ -5,7 +5,7 @@
 // ⚠️ Replace these with your actual Supabase project credentials
 // You can find them in: Supabase Dashboard → Settings → API
 const SUPABASE_URL = 'https://jtrhzphdttralmvdhtva.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0cmh6cGhkdHRyYWxtdmRodHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NDAyMTQsImV4cCI6MjA5NTQxNjIxNH0.8J8gA9roNrlLTrMMp1ixkjw5-WeFqNZXn7XlA8hIZGo';
+const SUPABASE_ANON_KEY = 'sb_publishable_X30tdyeHkou-T0BA2UuhHA_2ERiLvxM';
 
 // Initialize Supabase client (loaded from CDN)
 let supabase = null;
