@@ -307,41 +307,57 @@
   <script src="js/main.js"></script>
   <script src="js/social.js"></script>
   <script>
-    /* Dynamic Home Recipes from Supabase */
+    /* Dynamic Home Recipes - uses Supabase with fallback */
     (async function loadHomeRecipes() {
+      const grid = document.getElementById('homeRecipeGrid');
+      if (!grid) return;
+
+      let recipes = [];
       try {
-        const recipes = await fetchRecipes();
-        const grid = document.getElementById('homeRecipeGrid');
-        if (!grid) return;
-        if (!recipes.length) {
+        if (typeof fetchRecipes === 'function') {
+          recipes = await fetchRecipes();
+        }
+      } catch(e) {
+        console.error('Home recipes fetch failed:', e);
+      }
+
+      // Use fallback recipes if Supabase returns empty
+      if (!recipes || !recipes.length) {
+        if (typeof FALLBACK_RECIPES !== 'undefined' && FALLBACK_RECIPES.length) {
+          recipes = FALLBACK_RECIPES;
+        } else {
+          // No recipes at all — clear loading and show nothing
           grid.innerHTML = '';
           return;
         }
-        window._homeRecipes = recipes; // Store for language switching
-        const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'en';
-        const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
-        if (typeof translations !== 'undefined') {
-          const t = translations[lang] || {};
-          if (t.recipe_tag_airfryer) catLabels.airfryer = t.recipe_tag_airfryer;
-          if (t.recipe_tag_oven) catLabels.airfryeroven = t.recipe_tag_oven;
-          if (t.recipe_tag_toaster) catLabels.toaster = t.recipe_tag_toaster;
-        }
-        const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
-          ? translations[lang].recipe_view : 'View Recipe →';
-        grid.innerHTML = recipes.map(r => {
-          const trData = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
-          const tr = trData[lang] || trData.en || {};
-          const imgHtml = r.image_url
-            ? '<img src="' + r.image_url + '" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">'
-            : '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>';
-          return '<div class="recipe-card fade-in">' +
-            '<div class="recipe-img" style="position:relative;">' + imgHtml +
-            '<span class="recipe-badge" style="z-index:1;">' + (catLabels[r.category] || r.category) + '</span></div>' +
-            '<div class="recipe-body"><h5>' + (tr.title || '') + '</h5>' +
-            '<p>' + (tr.description || '') + '</p>' +
-            '<a href="recipes.html" class="recipe-btn">' + viewText + '</a></div></div>';
-        }).join('');
-      } catch(e) { console.error('Home recipes failed:', e); }
+      }
+
+      window._homeRecipes = recipes; // Store for language switching
+      const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'en';
+      const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
+      if (typeof translations !== 'undefined') {
+        const t = translations[lang] || {};
+        if (t.recipe_tag_airfryer) catLabels.airfryer = t.recipe_tag_airfryer;
+        if (t.recipe_tag_oven) catLabels.airfryeroven = t.recipe_tag_oven;
+        if (t.recipe_tag_toaster) catLabels.toaster = t.recipe_tag_toaster;
+      }
+      const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
+        ? translations[lang].recipe_view : 'View Recipe →';
+      grid.innerHTML = recipes.slice(0, 3).map(r => {
+        const trData = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
+        const tr = trData[lang] || trData.en || {};
+        const imgHtml = r.image_url && typeof r.image_url === 'string' && r.image_url.trim()
+          ? '<img src="' + r.image_url + '" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">'
+          : '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>';
+        const title = typeof escapeHtml === 'function' ? escapeHtml(tr.title || '') : (tr.title || '');
+        const desc = typeof escapeHtml === 'function' ? escapeHtml(tr.description || '') : (tr.description || '');
+        return '<div class="recipe-card fade-in">' +
+          '<div class="recipe-img" style="position:relative;">' + imgHtml +
+          '<span class="recipe-badge" style="z-index:1;">' + (catLabels[r.category] || r.category) + '</span></div>' +
+          '<div class="recipe-body"><h5>' + title + '</h5>' +
+          '<p>' + desc + '</p>' +
+          '<a href="recipes.html" class="recipe-btn">' + viewText + '</a></div></div>';
+      }).join('');
     })();
   </script>
 </body>
