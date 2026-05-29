@@ -303,9 +303,9 @@ function updateHomeRecipeCards(lang) {
       ? translations[lang].recipe_view : 'View Recipe →';
     return '<div class="recipe-card fade-in">' +
       '<div class="recipe-img" style="position:relative;">' + imgHtml +
-      '<span class="recipe-badge" style="z-index:1;">' + (catLabels[r.category] || r.category) + '</span></div>' +
-      '<div class="recipe-body"><h5>' + (tr.title || '') + '</h5>' +
-      '<p>' + (tr.description || '') + '</p>' +
+      '<span class="recipe-badge" style="z-index:1;">' + escapeHtml(catLabels[r.category] || r.category) + '</span></div>' +
+      '<div class="recipe-body"><h5>' + escapeHtml(tr.title || '') + '</h5>' +
+      '<p>' + escapeHtml(tr.description || '') + '</p>' +
       '<a href="recipes.html" class="recipe-btn">' + viewText + '</a></div></div>';
   }).join('');
 }

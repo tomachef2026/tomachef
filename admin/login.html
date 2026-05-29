@@ -108,8 +108,8 @@
 // Check if already logged in
 (async () => {
   initSupabase();
-  const session = await getSession();
-  if (session) {
+  const admin = await isAdmin();
+  if (admin) {
     window.location.href = 'dashboard.html';
   }
 })();
@@ -137,6 +137,18 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     loginBtn.disabled = false;
     loginText.style.display = 'inline';
     loginSpinner.style.display = 'none';
+    return;
+  }
+
+  // 检查管理员权限
+  const admin = await isAdmin();
+  if (!admin) {
+    errorMsg.textContent = '登录失败：您没有管理员权限。';
+    errorMsg.style.display = 'block';
+    loginBtn.disabled = false;
+    loginText.style.display = 'inline';
+    loginSpinner.style.display = 'none';
+    await signOut();
     return;
   }
 

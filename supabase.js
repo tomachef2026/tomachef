@@ -51,9 +51,23 @@ async function getSession() {
   return session;
 }
 
+async function isAdmin() {
+  const user = await getCurrentUser();
+  if (!user) return false;
+  return user.app_metadata?.role === 'admin';
+}
+
 async function requireAuth() {
   const session = await getSession();
   if (!session) {
+    window.location.href = 'login.html';
+    return null;
+  }
+  // 检查是否为管理员（双重防护：RLS + 客户端校验）
+  const admin = await isAdmin();
+  if (!admin) {
+    alert('您没有管理员权限，请联系网站管理员。');
+    await signOut();
     window.location.href = 'login.html';
     return null;
   }
