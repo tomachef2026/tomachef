@@ -188,6 +188,7 @@
         const desc = tr.description || '';
         const content = tr.content || '';
         const badge = catLabels[r.category] || r.category;
+        const productName = (r.products && r.products.name) || '';
 
         const imgHtml = r.image_url
           ? `<img src="${r.image_url}" alt="${escapeHtml(title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">`
@@ -200,6 +201,7 @@
           </div>
           <div class="recipe-body">
             <h5>${escapeHtml(title)}</h5>
+            ${productName ? '<p style="font-size:0.8rem;color:#b91c1c;margin-bottom:6px;">' + escapeHtml(productName) + '</p>' : ''}
             <p>${escapeHtml(desc)}</p>
             <span class="recipe-btn" onclick="showRecipeDetail('${escapeHtml(title).replace(/'/g, "\\'")}','${escapeHtml(desc).replace(/'/g, "\\'")}','${escapeHtml(content).replace(/'/g, "\\'").replace(/\n/g, '<br>')}')">${viewText}</span>
           </div>

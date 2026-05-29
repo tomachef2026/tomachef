@@ -344,11 +344,12 @@ async function deleteSocialLink(id) {
 // Recipe API
 // ============================================================
 
-async function fetchRecipes(category = null) {
+async function fetchRecipes(category = null, productId = null) {
   const sb = initSupabase();
   if (!sb) return [];
-  let query = sb.from('recipes').select('*').eq('is_active', true);
+  let query = sb.from('recipes').select('*, products(name)').eq('is_active', true);
   if (category && category !== 'all') query = query.eq('category', category);
+  if (productId) query = query.eq('product_id', productId);
   query = query.order('display_order', { ascending: true });
   const { data, error } = await query;
   if (error) { console.error('Error fetching recipes:', error); return []; }
@@ -358,7 +359,7 @@ async function fetchRecipes(category = null) {
 async function fetchAllRecipesAdmin() {
   const sb = initSupabase();
   if (!sb) return [];
-  const { data, error } = await sb.from('recipes').select('*').order('display_order', { ascending: true });
+  const { data, error } = await sb.from('recipes').select('*, products(name)').order('display_order', { ascending: true });
   if (error) { console.error('Error fetching recipes admin:', error); return []; }
   return data;
 }

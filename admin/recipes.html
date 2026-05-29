@@ -164,13 +164,14 @@
             <th style="width:60px">图片</th>
             <th style="width:50px">图标</th>
             <th>标题 (EN)</th>
-            <th style="width:120px">分类</th>
+            <th style="width:100px">分类</th>
+            <th style="width:130px">关联产品</th>
             <th style="width:70px">状态</th>
             <th style="width:120px">操作</th>
           </tr>
         </thead>
         <tbody id="recipeTbody">
-          <tr><td colspan="7" class="text-center text-muted py-4">加载中…</td></tr>
+          <tr><td colspan="8" class="text-center text-muted py-4">加载中…</td></tr>
         </tbody>
       </table>
     </div>
@@ -198,6 +199,12 @@
           <option value="airfryer">Air Fryer</option>
           <option value="airfryeroven">Air Fryer Oven</option>
           <option value="toaster">Toaster</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">关联产品</label>
+        <select class="form-control" id="recipeProduct">
+          <option value="">— 无 —</option>
         </select>
       </div>
       <div class="col-md-2">
@@ -250,6 +257,7 @@
 
 <script>
   let editingId = null;
+  let allProducts = [];
 
   // === Modal helpers ===
   function openModal() { document.getElementById('recipeModal').classList.add('show'); }
@@ -259,6 +267,17 @@
   async function init() {
     const session = await requireAuth();
     if (!session) return;
+    // Load products for dropdown
+    try {
+      allProducts = await fetchAllProductsAdmin();
+      const sel = document.getElementById('recipeProduct');
+      allProducts.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = (p.name || p.name_en || 'Product #' + p.id);
+        sel.appendChild(opt);
+      });
+    } catch (e) { console.warn('Failed to load products for dropdown', e); }
     loadRecipes();
   }
 
@@ -302,10 +321,10 @@
   // === Load ===
   async function loadRecipes() {
     const tbody = document.getElementById('recipeTbody');
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">加载中…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">加载中…</td></tr>';
     const recipes = await fetchAllRecipesAdmin();
     if (!recipes.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">暂无食谱，点击「+ 添加食谱」创建</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无食谱，点击「+ 添加食谱」创建</td></tr>';
       return;
     }
     const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
@@ -316,12 +335,15 @@
       const imgHtml = r.image_url
         ? '<img class="img-thumb" src="'+escHtml(r.image_url)+'" alt="" onerror="this.style.display=\'none\'">'
         : '<span class="text-muted" style="font-size:0.75rem">—</span>';
+      // Product name from join or stored product_id
+      const productName = (r.products && r.products.name) || (r.product_id ? '#' + r.product_id : '—');
       return `<tr>
         <td class="text-muted">${r.display_order ?? 0}</td>
         <td>${imgHtml}</td>
         <td><span class="emoji-display">${r.emoji || '🍳'}</span></td>
         <td>${escHtml(title)}</td>
         <td><span class="badge-cat ${catClasses[r.category] || ''}">${catLabels[r.category] || r.category}</span></td>
+        <td><small>${escHtml(productName)}</small></td>
         <td>${r.is_active ? '✅' : '❌'}</td>
         <td>
           <a class="btn-edit me-3" onclick="openEditModal('${r.id}')">编辑</a>
@@ -340,6 +362,7 @@
     document.getElementById('recipeImageUrl').value = '';
     document.getElementById('recipeEmoji').value = '';
     document.getElementById('recipeCat').value = 'airfryer';
+    document.getElementById('recipeProduct').value = '';
     document.getElementById('recipeOrder').value = '0';
     document.getElementById('recipeActive').value = 'true';
     document.querySelectorAll('.lang-title, .lang-desc, .lang-content').forEach(el => el.value = '');
@@ -360,6 +383,7 @@
     document.getElementById('recipeId').value = id;
     document.getElementById('recipeEmoji').value = r.emoji || '';
     document.getElementById('recipeCat').value = r.category || 'airfryer';
+    document.getElementById('recipeProduct').value = r.product_id || '';
     document.getElementById('recipeOrder').value = r.display_order ?? 0;
     document.getElementById('recipeActive').value = r.is_active ? 'true' : 'false';
 
@@ -407,6 +431,7 @@
       id,
       translations,
       category: document.getElementById('recipeCat').value,
+      product_id: parseInt(document.getElementById('recipeProduct').value) || null,
       emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
       image_url: imageUrl,
       display_order: parseInt(document.getElementById('recipeOrder').value) || 0,

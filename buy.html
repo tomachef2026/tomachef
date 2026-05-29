@@ -293,21 +293,39 @@
       return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // Wait for products to load
-    const waitForProducts = setInterval(() => {
-      if (typeof products !== 'undefined' && products.length > 0) {
-        clearInterval(waitForProducts);
-        if (productId) {
-          showProductDetail(productId);
-        } else {
-          showProductSelector();
+    // Wait for products to load — try fallback first, retry when Supabase data arrives
+    let detailShown = false;
+
+    function tryShowProductDetail() {
+      if (detailShown) return;
+      if (typeof products === 'undefined' || products.length === 0) return;
+
+      if (productId) {
+        const found = showProductDetail(productId);
+        if (found) {
+          detailShown = true;
+          clearInterval(waitForProducts);
         }
+      } else {
+        showProductSelector();
+        detailShown = true;
+        clearInterval(waitForProducts);
       }
+    }
+
+    const waitForProducts = setInterval(() => {
+      tryShowProductDetail();
+      if (detailShown) clearInterval(waitForProducts);
     }, 200);
+
+    // Retry when Supabase data finishes loading (catches products not in FALLBACK)
+    window.addEventListener('productsReady', () => {
+      tryShowProductDetail();
+    });
 
     function showProductDetail(pid) {
       const p = products.find(pr => String(pr.id) === String(pid));
-      if (!p) { showProductSelector(); return; }
+      if (!p) { return false; }
       currentProduct = p;
 
       document.getElementById('productSelectorSection').classList.add('d-none');
@@ -358,6 +376,7 @@
 
       // Bulk inquiry
       document.getElementById('wsProductId').value = pid;
+      return true;
     }
 
     function showProductSelector() {

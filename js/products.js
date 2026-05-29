@@ -26,13 +26,13 @@ const FALLBACK_PRODUCTS = [
 
 // Fallback recipe data (shown when Supabase has no recipes)
 const FALLBACK_RECIPES = [
-  { id:1, title:'Crispy Air Fryer Chicken Wings', category:'airfryer', emoji:'🍗',
+  { id:1, title:'Crispy Air Fryer Chicken Wings', category:'airfryer', emoji:'🍗', product_id: null,
     translations: { en:{title:'Crispy Air Fryer Chicken Wings',description:'Golden and crunchy in just 20 minutes — no oil needed.'}, zh:{title:'香脆空气炸鸡翅',description:'20分钟金黄酥脆，无需一滴油。'}, es:{title:'Alitas Crujientes en Freidora de Aire',description:'Doradas y crujientes en solo 20 minutos.'}, fr:{title:'Ailes de Poulet Croustillantes',description:'Dorées et croustillantes en 20 minutes.'}, ja:{title:'カリカリエアフライヤーチキン',description:'20分で黄金色にカリッと。'}, pt:{title:'Asinhas Crocantes na Air Fryer',description:'Douradas e crocantes em 20 minutos.'} },
     is_active:true, display_order:1 },
-  { id:2, title:'Perfect Air Fryer Oven Pizza', category:'airfryeroven', emoji:'🍕',
+  { id:2, title:'Perfect Air Fryer Oven Pizza', category:'airfryeroven', emoji:'🍕', product_id: null,
     translations: { en:{title:'Perfect Air Fryer Oven Pizza',description:'Restaurant-quality pizza from your air fryer oven in 15 minutes.'}, zh:{title:'空气炸烤箱披萨',description:'15分钟做出餐厅级披萨。'}, es:{title:'Pizza Perfecta en Horno Freidor',description:'Pizza calidad restaurante en 15 minutos.'}, fr:{title:'Pizza Parfaite au Four Friteuse',description:'Pizza qualité restaurant en 15 minutes.'}, ja:{title:'完璧なエアフライヤーオーブンピザ',description:'15分でレストラン品質のピザ。'}, pt:{title:'Pizza Perfeita no Forno Fritadeira',description:'Pizza qualidade restaurante em 15 minutos.'} },
     is_active:true, display_order:2 },
-  { id:3, title:'Avocado Toast 3 Ways', category:'toaster', emoji:'🥑',
+  { id:3, title:'Avocado Toast 3 Ways', category:'toaster', emoji:'🥑', product_id: null,
     translations: { en:{title:'Avocado Toast 3 Ways',description:'Elevate your breakfast with these three gourmet avocado toast recipes.'}, zh:{title:'牛油果吐司三吃',description:'三种精致牛油果吐司，开启美好早晨。'}, es:{title:'Tostada de Aguacate 3 Estilos',description:'Eleva tu desayuno con estas tres recetas gourmet.'}, fr:{title:'Tartine Avocat 3 Façons',description:'Sublimez votre petit-déjeuner avec ces recettes gourmandes.'}, ja:{title:'アボカドトースト3種',description:'3つのグルメレシピで朝食をワンランクアップ。'}, pt:{title:'Torrada de Abacate 3 Estilos',description:'Eleve seu café da manhã com estas três receitas gourmet.'} },
     is_active:true, display_order:3 }
 ];
@@ -314,10 +314,12 @@ function updateHomeRecipeCards(lang) {
       : '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>';
     const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
       ? translations[lang].recipe_view : 'View Recipe →';
+    const productName = (r.products && r.products.name) || '';
     return '<div class="recipe-card fade-in">' +
       '<div class="recipe-img" style="position:relative;">' + imgHtml +
       '<span class="recipe-badge" style="z-index:1;">' + escapeHtml(catLabels[r.category] || r.category) + '</span></div>' +
       '<div class="recipe-body"><h5>' + escapeHtml(tr.title || '') + '</h5>' +
+      (productName ? '<p style="font-size:0.8rem;color:#b91c1c;margin-bottom:6px;">' + escapeHtml(productName) + '</p>' : '') +
       '<p>' + escapeHtml(tr.description || '') + '</p>' +
       '<a href="recipes.html" class="recipe-btn">' + viewText + '</a></div></div>';
   }).join('');
@@ -389,6 +391,9 @@ async function initProducts() {
   if (homeGrid) {
     renderHomeProducts('all', lang);
   }
+
+  // Notify any listeners that products are fully loaded (including Supabase data)
+  window.dispatchEvent(new CustomEvent('productsReady'));
 }
 
 // ================================================================

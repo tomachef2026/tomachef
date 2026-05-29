@@ -351,10 +351,12 @@
           : '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>';
         const title = typeof escapeHtml === 'function' ? escapeHtml(tr.title || '') : (tr.title || '');
         const desc = typeof escapeHtml === 'function' ? escapeHtml(tr.description || '') : (tr.description || '');
+        const productName = (r.products && r.products.name) || '';
         return '<div class="recipe-card fade-in">' +
           '<div class="recipe-img" style="position:relative;">' + imgHtml +
           '<span class="recipe-badge" style="z-index:1;">' + (catLabels[r.category] || r.category) + '</span></div>' +
           '<div class="recipe-body"><h5>' + title + '</h5>' +
+          (productName ? '<p style="font-size:0.8rem;color:#b91c1c;margin-bottom:6px;">' + (typeof escapeHtml === 'function' ? escapeHtml(productName) : productName) + '</p>' : '') +
           '<p>' + desc + '</p>' +
           '<a href="recipes.html" class="recipe-btn">' + viewText + '</a></div></div>';
       }).join('');
