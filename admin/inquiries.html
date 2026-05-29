@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inquiries - TomaChef Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js"></script>
+  <style>
+    :root {
+      --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
+      --amber-500: #f59e0b; --amber-600: #d97706;
+    }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .admin-sidebar {
+      background: var(--tomato-950);
+      min-height: 100vh;
+      padding: 24px 0;
+      position: fixed;
+      width: 240px;
+    }
+    .admin-sidebar .brand { color: white; font-weight: 800; font-size: 1.2rem; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .admin-sidebar .brand span { color: var(--amber-500); }
+    .admin-sidebar .nav-link {
+      color: rgba(255,255,255,0.6);
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      display: block; text-decoration: none;
+    }
+    .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border-left-color: var(--amber-500);
+    }
+    .admin-main { margin-left: 240px; padding: 32px; }
+    .admin-header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .admin-header h4 { font-weight: 700; color: var(--tomato-800); margin: 0; }
+    .btn-signout { color: #64748b; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+    .btn-signout:hover { color: #dc2626; }
+    .content-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+    }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600;
+      cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+    }
+    .btn-outline {
+      background: white; border: 1px solid #e2e8f0; color: #1e293b;
+    }
+    .btn-outline:hover { border-color: var(--tomato-700); color: var(--tomato-700); }
+    .btn-danger { background: #fee2e2; color: #b91c1c; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th {
+      text-align: left; padding: 12px; background: #fef2f2; color: var(--tomato-700);
+      font-weight: 600; border-bottom: 2px solid var(--tomato-700); white-space: nowrap;
+    }
+    td { padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    tr:hover { background: #f8fafc; }
+    tr.unread { background: #fef2f2; }
+    tr.unread:hover { background: #fee2e2; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
+    .badge-new { background: #fee2e2; color: var(--tomato-700); }
+    .badge-read { background: #f1f5f9; color: #64748b; }
+    .summary-cards { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .summary-card {
+      flex: 1; min-width: 140px; background: white; border: 1px solid #e2e8f0;
+      border-radius: 12px; padding: 20px; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .summary-card .num { font-size: 2rem; font-weight: 700; color: var(--tomato-700); }
+    .summary-card .label { font-size: 0.78rem; color: #94a3b8; margin-top: 4px; }
+    .refresh-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .auto-refresh { font-size: 0.78rem; color: #94a3b8; }
+    /* Toast */
+    .toast-msg {
+      position: fixed; top: 24px; right: 24px; z-index: 9999;
+      padding: 14px 24px; border-radius: 10px; color: white;
+      font-weight: 600; font-size: 0.9rem; display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
+    }
+    .toast-msg.show { display: block; }
+    @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @media (max-width: 768px) {
+      .admin-sidebar { display: none; }
+      .admin-main { margin-left: 0; padding: 12px; }
+      .summary-cards { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-sidebar">
+  <div class="brand"><img src="../images/logo.jpg" alt="TomaChef" style="height:36px;width:auto;margin-bottom:8px;"><br>TomaChef Admin</div>
+  <nav class="nav flex-column">
+    <a class="nav-link" href="dashboard.html">📊 仪表盘</a>
+    <a class="nav-link" href="products.html">📦 产品管理</a>
+    <a class="nav-link active" href="inquiries.html">📧 订购咨询</a>
+    <a class="nav-link" href="channels.html">🛒 购买渠道</a>
+    <a class="nav-link" href="recipes.html">🍳 食谱管理</a>
+    <a class="nav-link" href="contact.html">📇 联系信息</a>
+    <a class="nav-link" href="social.html">📱 社交媒体</a>
+    <a class="nav-link" href="settings.html">⚙️ 系统设置</a>
+    <a class="nav-link" href="../index.html" target="_blank">🌐 查看网站</a>
+  </nav>
+</div>
+
+<div class="admin-main">
+  <div class="admin-header">
+    <h4>📧 订购咨询</h4>
+    <div>
+      <span class="me-3 text-muted" id="userEmail" style="font-size:0.85rem;"></span>
+      <a class="btn-signout" href="#" onclick="handleSignOut()">退出登录</a>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-cards" id="summaryCards"></div>
+
+  <div class="content-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <h5 style="margin:0;font-weight:700;">📥 Wholesale Inquiries & Orders</h5>
+        <p style="margin:4px 0 0;font-size:0.82rem;color:#94a3b8;">查询客户提交的批发订购单，邮件通知将发送至 <a href="settings.html" style="color:var(--tomato-700);">系统设置</a> 中配置的邮箱。</p>
+      </div>
+    </div>
+
+    <div class="refresh-bar">
+      <button class="btn btn-outline btn-sm" onclick="refresh()">🔄 刷新数据</button>
+      <span class="auto-refresh">⏱ 每 60 秒自动刷新</span>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>状态</th>
+            <th>日期</th>
+            <th>产品</th>
+            <th>姓名</th>
+            <th>邮箱</th>
+            <th>公司</th>
+            <th>电话</th>
+            <th>数量</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTable">
+          <tr><td colspan="10" style="padding:40px;text-align:center;color:#94a3b8;">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-msg" id="toast"></div>
+
+<script>
+let orders = [];
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function loadData() {
+  initSupabase();
+  const session = await requireAuth();
+  if (!session) return;
+  const user = await getCurrentUser();
+  document.getElementById('userEmail').textContent = user?.email || '';
+  await refresh();
+}
+
+async function refresh() {
+  if (typeof fetchOrders === 'function') {
+    try {
+      const data = await fetchOrders();
+      if (data && data.length > 0) orders = data;
+    } catch(e) { console.log('Supabase orders fetch failed:', e); }
+  }
+  render();
+}
+
+function render() {
+  const unread = orders.filter(o => !o.is_read).length;
+  const total = orders.length;
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="summary-card">
+      <div class="num">${unread}</div>
+      <div class="label">🆕 未读</div>
+    </div>
+    <div class="summary-card">
+      <div class="num">${total}</div>
+      <div class="label">📊 总计</div>
+    </div>
+    <div class="summary-card">
+      <div class="num">${total - unread}</div>
+      <div class="label">✅ 已读</div>
+    </div>
+  `;
+
+  const tbody = document.getElementById('ordersTable');
+  if (orders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="padding:40px;text-align:center;color:#94a3b8;">暂无订购咨询。客户提交批发表单后将在此显示。</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = orders.map(o => `
+    <tr class="${o.is_read ? '' : 'unread'}">
+      <td><span class="badge ${o.is_read ? 'badge-read' : 'badge-new'}">${o.is_read ? '已读' : '新'}</span></td>
+      <td style="white-space:nowrap;">${formatDate(o.created_at)}</td>
+      <td>${escapeHtml(o.product_name || '—')}</td>
+      <td><strong>${escapeHtml(o.name || '—')}</strong></td>
+      <td><a href="mailto:${escapeHtml(o.email || '')}" style="color:var(--tomato-700);">${escapeHtml(o.email || '—')}</a></td>
+      <td>${escapeHtml(o.company || '—')}</td>
+      <td>${escapeHtml(o.phone || '—')}</td>
+      <td>${o.quantity || '—'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(o.notes || '')}">${escapeHtml(o.notes || '—')}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="toggleRead(${o.id}, ${!o.is_read})">${o.is_read ? '标记未读' : '标记已读'}</button>
+        <button class="btn btn-danger btn-sm" onclick="delOrder(${o.id})" style="margin-top:4px;">删除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+async function toggleRead(id, isRead) {
+  if (typeof markOrderRead === 'function') {
+    await markOrderRead(id, isRead);
+    showToast(isRead ? '已标记为已读' : '已标记为未读');
+  }
+  await refresh();
+}
+
+async function delOrder(id) {
+  if (!confirm('确认删除此订购咨询？此操作不可撤销。')) return;
+  if (typeof deleteOrder === 'function') {
+    await deleteOrder(id);
+    showToast('已删除');
+  }
+  await refresh();
+}
+
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+async function handleSignOut() {
+  await signOut();
+  window.location.href = 'login.html';
+}
+
+// Auto-refresh every 60s
+setInterval(refresh, 60000);
+
+loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - TomaChef</title>
+  <meta name="description" content="Contact TomaChef for product inquiries, pricing, OEM solutions, and partnership opportunities.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><img src="images/logo.jpg" alt="TomaChef"></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link" href="index.html" data-i18n="nav_home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="products.html" data-i18n="nav_products">Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="recipes.html" data-i18n="nav_recipes">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html" data-i18n="nav_about">About Us</a></li>
+          <li class="nav-item"><a class="nav-link active" href="contact.html" data-i18n="nav_contact">Contact Us</a></li>
+          <li class="nav-item nav-search-item ms-lg-2 d-flex align-items-center">
+            <div class="nav-search-wrap">
+              <input type="text" id="navSearchInput" class="nav-search-input" placeholder="Search products..." autocomplete="off">
+              <span class="nav-search-icon">🔍</span>
+              <div id="navSearchResults" class="nav-search-dropdown"></div>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="lang-switcher ms-lg-2">
+              <select id="langSelect" aria-label="Language">
+                <option value="en">English</option>
+                <option value="zh">中文(简体)</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ja">日本語</option>
+                <option value="pt">Português</option>
+              </select>
+            </div>
+          </li>
+          <li class="nav-item ms-lg-2">
+            <a class="nav-link nav-cta" href="buy.html" data-i18n="nav_inquiry">Buy Now</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== PAGE HEADER ========== -->
+  <section class="about-hero" style="padding: 60px 0;">
+    <div class="container">
+      <h1 data-i18n="contact_title">Contact Us</h1>
+      <p class="mt-3 opacity-75" data-i18n="contact_subtitle">We'd love to hear from you. Reach out for inquiries, pricing, or partnerships.</p>
+    </div>
+  </section>
+
+  <!-- ========== CONTACT CONTENT ========== -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="row g-5">
+        <!-- Contact Form -->
+        <div class="col-lg-7 fade-in">
+          <div class="contact-form-wrap">
+            <h3 data-i18n="contact_form_title">Send Us a Message</h3>
+            <form id="contactForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" data-i18n="form_name">Full Name</label>
+                  <input type="text" id="formName" class="form-control" required data-i18n-placeholder="form_name">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" data-i18n="form_email">Email Address</label>
+                  <input type="email" id="formEmail" class="form-control" required data-i18n-placeholder="form_email">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" data-i18n="form_phone">Phone Number</label>
+                  <input type="tel" id="formPhone" class="form-control" data-i18n-placeholder="form_phone">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" data-i18n="form_company">Company</label>
+                  <input type="text" id="formCompany" class="form-control" data-i18n-placeholder="form_company">
+                </div>
+                <div class="col-12">
+                  <label class="form-label" data-i18n="form_product">Product Interest</label>
+                  <select id="formProduct" class="form-control">
+                    <option value="">-- Select --</option>
+                    <option value="airfryer">Air Fryer</option>
+                    <option value="airfryeroven">Air Fryer Oven</option>
+                    <option value="toaster">Toaster</option>
+                    <option value="multiple">Multiple / All</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" data-i18n="form_message">Message</label>
+                  <textarea id="formMsg" class="form-control" rows="5" required data-i18n-placeholder="form_message"></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" data-i18n="captcha_label">Verification</label>
+                  <div class="g-recaptcha" data-sitekey="6LeL4P4sAAAAAMuXJwzKDmpT52mymhxRvU2quNKI"></div>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn-submit" data-i18n="form_submit">Send Inquiry</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="col-lg-5 fade-in">
+          <h3 class="mb-4 fw-bold" style="color: var(--tomato-800);" data-i18n="contact_info_title">Contact Information</h3>
+
+          <div class="contact-info-card">
+            <div class="info-icon">📍</div>
+            <h6 data-i18n="contact_address_label">Head Office</h6>
+            <p id="contactAddress" data-i18n="contact_address">244 Madison Avenue, Suite 1666<br>New York, NY 10016, United States</p>
+          </div>
+
+          <div class="contact-info-card">
+            <div class="info-icon">📧</div>
+            <h6 data-i18n="contact_email_label">Email</h6>
+            <p id="contactEmail" data-i18n="contact_email">info@tomachefappliance.com</p>
+          </div>
+
+          <div class="contact-info-card">
+            <div class="info-icon">📞</div>
+            <h6 data-i18n="contact_phone_label">Phone</h6>
+            <p id="contactPhone" data-i18n="contact_phone">+1 (857) 396-6897</p>
+          </div>
+
+          <!-- Business Hours -->
+          <div class="contact-info-card">
+            <div class="info-icon">🕐</div>
+            <h6>Business Hours</h6>
+            <p id="contactHours">Monday – Friday<br>9:00 AM – 6:00 PM (EST)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SOCIAL MEDIA BAR ========== -->
+  <section class="social-bar" id="socialBar">
+    <div class="container">
+      <p class="social-bar-title" data-i18n="social_follow">Follow Us</p>
+      <div class="social-bar-icons" id="socialIcons">
+        <a href="#" class="social-icon-link social-fallback" data-platform="instagram" title="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="facebook"  title="Facebook"  target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="youtube"   title="YouTube"   target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 00.5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 002.12 2.14c1.87.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 002.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="tiktok"    title="TikTok"    target="_blank" rel="noopener"><svg viewBox="0 0 448 512" fill="currentColor"><path d="M448 209.91a210.06 210.06 0 01-122.77-39.25V349.38A162.55 162.55 0 11185 188.31V278.2a74.62 74.62 0 1052.23 71.18V0h88a121.18 121.18 0 001.86 22.17A122.18 122.18 0 00381 102.39a121.43 121.43 0 0067 20.14z"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <a href="index.html" class="footer-brand">Toma<span>Chef</span></a>
+          <p data-i18n="footer_about">TomaChef is a professional kitchen appliance brand specializing in air fryers, air fryer ovens, and toasters for global trade.</p>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h5 data-i18n="footer_products">Products</h5>
+          <ul class="footer-links">
+            <li><a href="products.html?cat=airfryer" data-i18n="cat_airfryer">Air Fryer</a></li>
+            <li><a href="products.html?cat=airfryeroven" data-i18n="cat_airfryeroven">Air Fryer Oven</a></li>
+            <li><a href="products.html?cat=toaster" data-i18n="cat_toaster">Toaster</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h5 data-i18n="footer_quick">Quick Links</h5>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+            <li><a href="about.html" data-i18n="nav_about">About Us</a></li>
+            <li><a href="contact.html" data-i18n="nav_contact">Contact Us</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-4">
+          <h5 data-i18n="footer_contact">Contact</h5>
+          <p id="footerEmail">📧 info@tomachefappliance.com</p>
+          <p id="footerPhone">📞 +1 (857) 396-6897</p>
+          <p id="footerAddress">📍 244 Madison Avenue, Suite 1666<br>New York, NY 10016, USA</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-i18n="footer_copyright">© 2026 TomaChef International Inc. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="supabase.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- Load contact info from Supabase -->
+  <script>
+  (async function loadContactInfo() {
+    initSupabase();
+    const info = await fetchContactInfo();
+
+    // If we have Supabase data, override the defaults
+    if (info.email) {
+      document.getElementById('contactEmail').textContent = info.email;
+      const fe = document.getElementById('footerEmail');
+      if (fe) fe.innerHTML = '📧 ' + info.email;
+    }
+    if (info.phone) {
+      document.getElementById('contactPhone').textContent = info.phone;
+      const fp = document.getElementById('footerPhone');
+      if (fp) fp.innerHTML = '📞 ' + info.phone;
+    }
+    if (info.address) {
+      document.getElementById('contactAddress').innerHTML = info.address.replace(/\n/g, '<br>');
+      const fa = document.getElementById('footerAddress');
+      if (fa) fa.innerHTML = '📍 ' + info.address.replace(/\n/g, '<br>');
+    }
+    if (info.business_hours) {
+      document.getElementById('contactHours').innerHTML = info.business_hours.replace(/\n/g, '<br>');
+    }
+  })();
+  </script>
+
+  <!-- Contact form submission to Supabase -->
+  <script>
+  document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const lang = getCurrentLang();
+    const t = translations[lang] || translations['en'];
+
+    // Check reCAPTCHA
+    const recaptchaToken = grecaptcha.getResponse();
+    if (!recaptchaToken) {
+      showToast(t['captcha_error'] || 'Please complete the verification.');
+      return;
+    }
+
+    const inquiry = {
+      name: document.getElementById('formName')?.value || '',
+      email: document.getElementById('formEmail')?.value || '',
+      phone: document.getElementById('formPhone')?.value || '',
+      company: document.getElementById('formCompany')?.value || '',
+      product_interest: document.getElementById('formProduct')?.value || '',
+      message: document.getElementById('formMsg')?.value || ''
+    };
+
+    // Try Supabase first
+    if (typeof submitInquiry === 'function') {
+      const { error } = await submitInquiry(inquiry);
+      if (!error) {
+        showToast(t['toast_success'] || 'Your inquiry has been sent! We will get back to you within 24 hours.');
+        form.reset();
+        grecaptcha.reset();
+        return;
+      }
+    }
+
+    // Fallback: just show success
+    showToast(t['toast_success'] || 'Your inquiry has been sent! We will get back to you within 24 hours.');
+    form.reset();
+    grecaptcha.reset();
+  });
+  </script>
+  <script src="js/social.js"></script>
+</body>
+</html>

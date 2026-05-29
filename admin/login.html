@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - TomaChef</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js"></script>
+  <style>
+    :root {
+      --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
+      --amber-500: #f59e0b; --amber-600: #d97706;
+    }
+    body {
+      background: linear-gradient(135deg, var(--tomato-950), var(--tomato-800));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-card h2 { font-weight: 800; color: var(--tomato-800); margin-bottom: 4px; }
+    .login-card .subtitle { color: #64748b; margin-bottom: 32px; font-size: 0.95rem; }
+    .login-card .form-control {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+    }
+    .login-card .form-control:focus {
+      border-color: var(--tomato-700);
+      box-shadow: 0 0 0 3px rgba(185,28,28,0.1);
+    }
+    .login-card .btn-login {
+      background: var(--amber-500);
+      color: white;
+      font-weight: 700;
+      border: none;
+      padding: 14px;
+      border-radius: 50px;
+      width: 100%;
+      font-size: 1rem;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .login-card .btn-login:hover {
+      background: var(--amber-600);
+      box-shadow: 0 6px 20px rgba(245,158,11,0.35);
+    }
+    .login-card .error-msg {
+      background: #fef2f2;
+      color: #dc2626;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+      margin-bottom: 16px;
+    }
+    .login-card .back-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .login-card .back-link a { color: #94a3b8; font-size: 0.85rem; text-decoration: none; }
+    .login-card .back-link a:hover { color: var(--tomato-700); }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <img src="../images/logo.jpg" alt="TomaChef" style="height:50px;margin-bottom:16px;"><br>
+  <h2>🔐 TomaChef 管理后台</h2>
+  <p class="subtitle">登录以管理您的产品</p>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <form id="loginForm">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">邮箱</label>
+      <input type="email" class="form-control" id="email" placeholder="请输入管理员邮箱" required>
+    </div>
+    <div class="mb-4">
+      <label class="form-label fw-semibold">密码</label>
+      <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+    </div>
+    <button type="submit" class="btn-login" id="loginBtn">
+      <span id="loginText">登录</span>
+      <span id="loginSpinner" style="display:none;">登录中...</span>
+    </button>
+  </form>
+
+  <div class="back-link">
+    <a href="../index.html">← 返回 TomaChef 网站</a>
+  </div>
+</div>
+
+<script>
+// Check if already logged in
+(async () => {
+  initSupabase();
+  const session = await getSession();
+  if (session) {
+    window.location.href = 'dashboard.html';
+  }
+})();
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errorMsg = document.getElementById('errorMsg');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginText = document.getElementById('loginText');
+  const loginSpinner = document.getElementById('loginSpinner');
+
+  errorMsg.style.display = 'none';
+  loginBtn.disabled = true;
+  loginText.style.display = 'none';
+  loginSpinner.style.display = 'inline';
+
+  const { data, error } = await signIn(email, password);
+
+  if (error) {
+    errorMsg.textContent = '登录失败：' + error.message;
+    errorMsg.style.display = 'block';
+    loginBtn.disabled = false;
+    loginText.style.display = 'inline';
+    loginSpinner.style.display = 'none';
+    return;
+  }
+
+  window.location.href = 'dashboard.html';
+});
+</script>
+
+</body>
+</html>

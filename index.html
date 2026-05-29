@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TomaChef - Premium Kitchen Appliances for Global Trade</title>
+  <meta name="description" content="TomaChef offers premium air fryers, air fryer ovens, and toasters for global distributors and retailers. Certified quality, competitive pricing.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><img src="images/logo.jpg" alt="TomaChef"></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link active" href="index.html" data-i18n="nav_home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="products.html" data-i18n="nav_products">Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="recipes.html" data-i18n="nav_recipes">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html" data-i18n="nav_about">About Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html" data-i18n="nav_contact">Contact Us</a></li>
+          <li class="nav-item nav-search-item ms-lg-2 d-flex align-items-center">
+            <div class="nav-search-wrap">
+              <input type="text" id="navSearchInput" class="nav-search-input" placeholder="Search products..." autocomplete="off">
+              <span class="nav-search-icon">🔍</span>
+              <div id="navSearchResults" class="nav-search-dropdown"></div>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="lang-switcher ms-lg-2">
+              <select id="langSelect" aria-label="Language">
+                <option value="en">English</option>
+                <option value="zh">中文(简体)</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ja">日本語</option>
+                <option value="pt">Português</option>
+              </select>
+            </div>
+          </li>
+          <li class="nav-item ms-lg-2">
+            <a class="nav-link nav-cta" href="buy.html" data-i18n="nav_inquiry">Buy Now</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== HERO ========== -->
+  <section class="hero">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6 fade-in">
+          <h1 data-i18n="hero_title">Premium Kitchen Appliances for <span>Global Trade</span></h1>
+          <p class="lead" data-i18n="hero_subtitle">TomaChef delivers high-quality air fryers, air fryer ovens, and toasters to distributors and retailers worldwide. Certified, reliable, and competitively priced.</p>
+          <a href="products.html" class="btn-hero" data-i18n="hero_btn_products">Explore Products</a>
+          <a href="contact.html" class="btn-outline-hero" data-i18n="hero_btn_contact">Contact Us</a>
+        </div>
+        <div class="col-lg-6 mt-4 mt-lg-0 fade-in">
+          <div class="hero-image">
+            <div class="placeholder-img">🍳</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CATEGORIES ========== -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="cat_title">Our Product Categories</h2>
+        <p class="subtitle" data-i18n="cat_subtitle">Three specialized lines designed for modern kitchens and global markets</p>
+        <div class="divider"></div>
+      </div>
+      <div class="row g-4">
+        <!-- Air Fryer -->
+        <div class="col-md-4 fade-in">
+          <a href="products.html?cat=airfryer" class="text-decoration-none">
+            <div class="category-card">
+              <div class="card-img-wrap">🍟</div>
+              <div class="card-body">
+                <h5 data-i18n="cat_airfryer">Air Fryer</h5>
+                <p data-i18n="cat_airfryer_desc">Healthy frying with rapid air circulation technology. Multiple capacities for every kitchen.</p>
+                <span class="btn-cat">Learn More →</span>
+              </div>
+            </div>
+          </a>
+        </div>
+        <!-- Air Fryer Oven -->
+        <div class="col-md-4 fade-in">
+          <a href="products.html?cat=airfryeroven" class="text-decoration-none">
+            <div class="category-card">
+              <div class="card-img-wrap">🔥</div>
+              <div class="card-body">
+                <h5 data-i18n="cat_airfryeroven">Air Fryer Oven</h5>
+                <p data-i18n="cat_airfryeroven_desc">Multi-function cooking: air fry, bake, roast, dehydrate — all in one appliance.</p>
+                <span class="btn-cat">Learn More →</span>
+              </div>
+            </div>
+          </a>
+        </div>
+        <!-- Toaster -->
+        <div class="col-md-4 fade-in">
+          <a href="products.html?cat=toaster" class="text-decoration-none">
+            <div class="category-card">
+              <div class="card-img-wrap">🍞</div>
+              <div class="card-body">
+                <h5 data-i18n="cat_toaster">Toaster</h5>
+                <p data-i18n="cat_toaster_desc">Reliable, sleek toasters for perfect results every morning. 2-slice & 4-slice options.</p>
+                <span class="btn-cat">Learn More →</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FEATURED PRODUCTS ========== -->
+  <section class="section-padding" style="background: var(--bg-light);">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="featured_title">Featured Products</h2>
+        <p class="subtitle" data-i18n="featured_subtitle">Our most popular models trusted by distributors worldwide</p>
+        <div class="divider"></div>
+      </div>
+      <div class="row g-4" id="homeProductGrid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="text-center mt-4 fade-in">
+        <a href="products.html" class="btn-hero" data-i18n="btn_view_all">View All Products</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== RECIPES ========== -->
+  <section class="section-padding" id="recipes">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="recipes_title">Recipes & Inspiration</h2>
+        <p class="subtitle" data-i18n="recipes_subtitle">Delicious ideas to get the most out of your TomaChef appliances</p>
+        <div class="divider"></div>
+      </div>
+      <div class="recipe-grid" id="homeRecipeGrid">
+        <div class="text-center py-4 w-100" style="grid-column: 1 / -1;">
+          <div class="spinner-border spinner-border-sm text-muted me-2" role="status"></div>
+          <span class="text-muted">Loading…</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== WHY CHOOSE US ========== -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="why_title">Why Choose TomaChef</h2>
+        <p class="subtitle" data-i18n="why_subtitle">We are more than a supplier — we are your long-term manufacturing partner</p>
+        <div class="divider"></div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4 fade-in">
+          <div class="feature-item">
+            <div class="feature-icon">⭐</div>
+            <h5 data-i18n="why_1_title">Premium Quality</h5>
+            <p data-i18n="why_1_desc">Every product undergoes rigorous quality control and meets international standards.</p>
+          </div>
+        </div>
+        <div class="col-md-4 fade-in">
+          <div class="feature-item">
+            <div class="feature-icon">✅</div>
+            <h5 data-i18n="why_2_title">Global Certifications</h5>
+            <p data-i18n="why_2_desc">UL, ETL, CE, FDA, RoHS certified — compliant with major markets worldwide.</p>
+          </div>
+        </div>
+        <div class="col-md-4 fade-in">
+          <div class="feature-item">
+            <div class="feature-icon">💰</div>
+            <h5 data-i18n="why_3_title">Competitive Pricing</h5>
+            <p data-i18n="why_3_desc">Direct factory partnerships ensure the best value without compromising on quality.</p>
+          </div>
+        </div>
+        <div class="col-md-4 fade-in">
+          <div class="feature-item">
+            <div class="feature-icon">🏭</div>
+            <h5 data-i18n="why_4_title">OEM / ODM Service</h5>
+            <p data-i18n="why_4_desc">Custom branding, packaging, and design — we build products that carry your name.</p>
+          </div>
+        </div>
+        <div class="col-md-4 fade-in">
+          <div class="feature-item">
+            <div class="feature-icon">🚚</div>
+            <h5 data-i18n="why_5_title">Fast Delivery</h5>
+            <p data-i18n="why_5_desc">Efficient logistics network ensures timely delivery to North America, Europe, and beyond.</p>
+          </div>
+        </div>
+        <div class="col-md-4 fade-in">
+          <div class="feature-item">
+            <div class="feature-icon">🤝</div>
+            <h5 data-i18n="why_6_title">Dedicated Support</h5>
+            <p data-i18n="why_6_desc">From inquiry to after-sales, our team provides responsive, professional service.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CERTIFICATIONS ========== -->
+  <section class="section-padding-sm cert-section">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="cert_title">Certifications & Compliance</h2>
+        <p class="subtitle" data-i18n="cert_subtitle">Our products meet the most stringent international safety and quality standards</p>
+        <div class="divider"></div>
+      </div>
+      <div class="d-flex flex-wrap justify-content-center gap-4 fade-in">
+        <div class="cert-badge"><div class="cert-icon">UL</div><span>UL Listed</span></div>
+        <div class="cert-badge"><div class="cert-icon">ETL</div><span>ETL Certified</span></div>
+        <div class="cert-badge"><div class="cert-icon">CE</div><span>CE Marked</span></div>
+        <div class="cert-badge"><div class="cert-icon">FDA</div><span>FDA Approved</span></div>
+        <div class="cert-badge"><div class="cert-icon">RoHS</div><span>RoHS Compliant</span></div>
+        <div class="cert-badge"><div class="cert-icon">ISO</div><span>ISO 9001</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA ========== -->
+  <section class="cta-section">
+    <div class="container fade-in">
+      <h2 data-i18n="cta_title">Ready to Partner with TomaChef?</h2>
+      <p data-i18n="cta_subtitle">Get in touch today for product catalogs, pricing, and OEM solutions.</p>
+      <a href="buy.html" class="btn-cta" data-i18n="cta_btn">Place Order</a>
+    </div>
+  </section>
+
+  <!-- ========== SOCIAL MEDIA BAR ========== -->
+  <section class="social-bar" id="socialBar">
+    <div class="container">
+      <p class="social-bar-title" data-i18n="social_follow">Follow Us</p>
+      <div class="social-bar-icons" id="socialIcons">
+        <!-- Populated by JS from Supabase; fallback static icons below -->
+        <a href="#" class="social-icon-link social-fallback" data-platform="instagram" title="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="facebook"  title="Facebook"  target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="youtube"   title="YouTube"   target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 00.5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 002.12 2.14c1.87.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 002.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="tiktok"    title="TikTok"    target="_blank" rel="noopener"><svg viewBox="0 0 448 512" fill="currentColor"><path d="M448 209.91a210.06 210.06 0 01-122.77-39.25V349.38A162.55 162.55 0 11185 188.31V278.2a74.62 74.62 0 1052.23 71.18V0h88a121.18 121.18 0 001.86 22.17A122.18 122.18 0 00381 102.39a121.43 121.43 0 0067 20.14z"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <a href="index.html" class="footer-brand">Toma<span>Chef</span></a>
+          <p data-i18n="footer_about">TomaChef is a professional kitchen appliance brand specializing in air fryers, air fryer ovens, and toasters for global trade.</p>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h5 data-i18n="footer_products">Products</h5>
+          <ul class="footer-links">
+            <li><a href="products.html?cat=airfryer" data-i18n="cat_airfryer">Air Fryer</a></li>
+            <li><a href="products.html?cat=airfryeroven" data-i18n="cat_airfryeroven">Air Fryer Oven</a></li>
+            <li><a href="products.html?cat=toaster" data-i18n="cat_toaster">Toaster</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h5 data-i18n="nav_recipes">Recipes</h5>
+          <ul class="footer-links">
+            <li><a href="recipes.html" data-i18n="recipe_1_title">Crispy Air Fryer Chicken Wings</a></li>
+            <li><a href="recipes.html" data-i18n="recipe_2_title">Roasted Seasonal Vegetables</a></li>
+            <li><a href="recipes.html" data-i18n="recipe_4_title">Herb-Crusted Baked Salmon</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h5 data-i18n="footer_quick">Quick Links</h5>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+            <li><a href="about.html" data-i18n="nav_about">About Us</a></li>
+            <li><a href="contact.html" data-i18n="nav_contact">Contact Us</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-4">
+          <h5 data-i18n="footer_contact">Contact</h5>
+          <p>📧 info@tomachefappliance.com</p>
+          <p>📞 +1 (857) 396-6897</p>
+          <p>📍 244 Madison Avenue, Suite 1666<br>New York, NY 10016, USA</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-i18n="footer_copyright">© 2026 TomaChef International Inc. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="supabase.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/social.js"></script>
+  <script>
+    /* Dynamic Home Recipes from Supabase */
+    (async function loadHomeRecipes() {
+      try {
+        const recipes = await fetchRecipes();
+        const grid = document.getElementById('homeRecipeGrid');
+        if (!grid) return;
+        if (!recipes.length) {
+          grid.innerHTML = '';
+          return;
+        }
+        window._homeRecipes = recipes; // Store for language switching
+        const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'en';
+        const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
+        if (typeof translations !== 'undefined') {
+          const t = translations[lang] || {};
+          if (t.recipe_tag_airfryer) catLabels.airfryer = t.recipe_tag_airfryer;
+          if (t.recipe_tag_oven) catLabels.airfryeroven = t.recipe_tag_oven;
+          if (t.recipe_tag_toaster) catLabels.toaster = t.recipe_tag_toaster;
+        }
+        const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
+          ? translations[lang].recipe_view : 'View Recipe →';
+        grid.innerHTML = recipes.map(r => {
+          const trData = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
+          const tr = trData[lang] || trData.en || {};
+          const imgHtml = r.image_url
+            ? '<img src="' + r.image_url + '" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">'
+            : '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>';
+          return '<div class="recipe-card fade-in">' +
+            '<div class="recipe-img" style="position:relative;">' + imgHtml +
+            '<span class="recipe-badge" style="z-index:1;">' + (catLabels[r.category] || r.category) + '</span></div>' +
+            '<div class="recipe-body"><h5>' + (tr.title || '') + '</h5>' +
+            '<p>' + (tr.description || '') + '</p>' +
+            '<a href="recipes.html" class="recipe-btn">' + viewText + '</a></div></div>';
+        }).join('');
+      } catch(e) { console.error('Home recipes failed:', e); }
+    })();
+  </script>
+</body>
+</html>

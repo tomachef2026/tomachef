@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Media Management - TomaChef Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js"></script>
+  <style>
+    :root {
+      --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
+      --amber-500: #f59e0b; --amber-600: #d97706;
+    }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .admin-sidebar {
+      background: var(--tomato-950);
+      min-height: 100vh;
+      padding: 24px 0;
+      position: fixed;
+      width: 240px;
+    }
+    .admin-sidebar .brand { color: white; font-weight: 800; font-size: 1.2rem; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .admin-sidebar .brand span { color: var(--amber-500); }
+    .admin-sidebar .nav-link {
+      color: rgba(255,255,255,0.6);
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      display: block; text-decoration: none;
+    }
+    .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border-left-color: var(--amber-500);
+    }
+    .admin-main { margin-left: 240px; padding: 32px; }
+    .admin-header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .admin-header h4 { font-weight: 700; color: var(--tomato-800); margin: 0; }
+    .btn-signout { color: #64748b; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+    .btn-signout:hover { color: #dc2626; }
+    .content-card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+    }
+    .btn-save {
+      background: var(--tomato-700); color: white; font-weight: 600;
+      border: none; border-radius: 8px; padding: 10px 24px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-save:hover { background: var(--tomato-800); }
+    .btn-add {
+      background: var(--amber-500); color: white; font-weight: 600;
+      border: none; border-radius: 8px; padding: 10px 24px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-add:hover { background: var(--amber-600); }
+    /* Social link row */
+    .social-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .social-row:hover { border-color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .social-row .platform-emoji { width: 44px; height: 44px; text-align: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .social-row .platform-emoji svg { width: 28px; height: 28px; }
+    .social-row .row-fields { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+    .social-row .row-fields input, .social-row .row-fields select {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      background: white;
+    }
+    .social-row .row-fields input:focus, .social-row .row-fields select:focus {
+      outline: none;
+      border-color: var(--amber-500);
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+    }
+    .row-platform { width: 150px; }
+    .row-url { flex: 1; min-width: 200px; }
+    .row-label { width: 130px; }
+    .row-order { width: 70px; }
+    .row-active { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .row-active label { font-size: 0.85rem; color: #64748b; margin: 0; cursor: pointer; }
+    .btn-delete {
+      background: none; border: none; color: #94a3b8; font-size: 1.1rem;
+      cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-delete:hover { background: #fee2e2; color: #dc2626; }
+    .platform-preview {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 16px;
+      background: #0f172a;
+      border-radius: 10px;
+      margin-top: 12px;
+      min-height: 64px;
+      align-items: center;
+    }
+    .preview-icon {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .preview-icon svg { width: 22px; height: 22px; }
+    /* Toast */
+    .toast-msg {
+      position: fixed; top: 24px; right: 24px; z-index: 9999;
+      padding: 14px 24px; border-radius: 10px; color: white;
+      font-weight: 600; font-size: 0.9rem; display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
+    }
+    .toast-msg.success { background: #16a34a; }
+    .toast-msg.error { background: #dc2626; }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    /* SQL hint */
+    .sql-hint {
+      background: #1e293b; color: #94a3b8; font-family: monospace;
+      border-radius: 8px; padding: 16px; font-size: 0.8rem;
+      white-space: pre-wrap; overflow-x: auto; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="admin-sidebar">
+  <div class="brand"><img src="../images/logo.jpg" alt="TomaChef" style="height:36px;width:auto;margin-bottom:8px;"><br>TomaChef Admin</div>
+  <nav class="nav flex-column">
+    <a class="nav-link" href="dashboard.html">📊 仪表盘</a>
+    <a class="nav-link" href="products.html">📦 产品管理</a>
+    <a class="nav-link" href="inquiries.html">📧 订购咨询</a>
+    <a class="nav-link" href="channels.html">🛒 购买渠道</a>
+    <a class="nav-link" href="recipes.html">🍳 食谱管理</a>
+    <a class="nav-link" href="contact.html">📇 联系信息</a>
+    <a class="nav-link active" href="social.html">📱 社交媒体</a>
+    <a class="nav-link" href="settings.html">⚙️ 系统设置</a>
+    <a class="nav-link" href="../index.html" target="_blank">🌐 查看网站</a>
+  </nav>
+</div>
+
+<!-- Main -->
+<div class="admin-main">
+  <div class="admin-header">
+    <h4>📱 社交媒体管理</h4>
+    <div>
+      <span class="me-3 text-muted" id="userEmail" style="font-size:0.85rem;"></span>
+      <a class="btn-signout" href="#" onclick="handleSignOut()">退出登录</a>
+    </div>
+  </div>
+
+  <!-- DB Setup hint (shown if table missing) -->
+  <div id="setupHint" class="content-card" style="display:none; border-left: 4px solid var(--amber-500);">
+    <h6 style="color:var(--tomato-800);font-weight:700;">⚠️ 数据库表尚未创建</h6>
+    <p class="text-muted mb-2" style="font-size:0.9rem;">请先在 Supabase SQL Editor 中执行以下 SQL，创建 <code>social_links</code> 表：</p>
+    <div class="sql-hint" id="sqlHint"></div>
+    <button class="btn-save mt-3" onclick="copySql()">📋 复制 SQL</button>
+  </div>
+
+  <!-- Main card -->
+  <div class="content-card" id="mainCard">
+    <p class="text-muted mb-3" style="font-size:0.9rem;">
+      管理网站底部社交媒体图标栏。启用的链接会自动显示在所有页面底部。
+    </p>
+
+    <!-- Links list -->
+    <div id="linksList"></div>
+
+    <!-- Add button -->
+    <button class="btn-add mt-2" onclick="addRow()">＋ 添加平台</button>
+
+    <!-- Preview -->
+    <div class="mt-4">
+      <p class="text-muted mb-2" style="font-size:0.85rem;font-weight:600;">实时预览（网站底部效果）</p>
+      <div class="platform-preview" id="preview"></div>
+    </div>
+
+    <!-- Save -->
+    <div class="mt-4 d-flex justify-content-end">
+      <button class="btn-save" id="saveBtn" onclick="saveAll()">💾 保存所有修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-msg" id="toast"></div>
+
+<script>
+const PLATFORM_SVGS = {
+  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>',
+  facebook:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+  youtube:   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 00.5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 002.12 2.14c1.87.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 002.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg>',
+  tiktok:    '<svg viewBox="0 0 448 512" fill="currentColor"><path d="M448 209.91a210.06 210.06 0 01-122.77-39.25V349.38A162.55 162.55 0 11185 188.31V278.2a74.62 74.62 0 1052.23 71.18V0h88a121.18 121.18 0 001.86 22.17A122.18 122.18 0 00381 102.39a121.43 121.43 0 0067 20.14z"/></svg>',
+  twitter:   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+  linkedin:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>',
+  pinterest: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.36-.719-.36-1.782c0-1.668.967-2.914 2.172-2.914 1.026 0 1.52.77 1.52 1.688 0 1.027-.65 2.567-.996 3.998-.287 1.195.602 2.172 1.777 2.172 2.132 0 3.772-2.249 3.772-5.495 0-2.873-2.063-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.045.183-.206.29-.393.236-1.89-.83-2.99-3.438-2.99-5.533 0-4.503 3.271-8.64 9.434-8.64 4.954 0 8.8 3.528 8.8 8.245 0 4.919-3.1 8.879-7.405 8.879-1.443 0-2.802-.75-3.267-1.636l-.889 3.378c-.322 1.236-1.189 2.786-1.768 3.732A12.04 12.04 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>',
+  whatsapp:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>',
+  wechat:    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348z"/></svg>',
+  weibo:     '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.098 20.323c-3.977.391-7.414-1.406-7.672-4.02-.259-2.609 2.759-5.047 6.74-5.441 3.979-.394 7.413 1.404 7.671 4.018.259 2.6-2.759 5.049-6.739 5.443zM19 6a3 3 0 11-6 0 3 3 0 016 0zm-1.5 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z"/></svg>',
+  line:      '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12" fill="#00C300"/><path d="M17.5 7.5h-3l-2.5 6-2.5-6h-3v9h2.5v-5.5L11.5 16h1l2.5-5.5v5.5h2.5v-9z" fill="white"/></svg>',
+};
+
+const PLATFORMS = {
+  instagram : { label: 'Instagram' },
+  facebook  : { label: 'Facebook' },
+  youtube   : { label: 'YouTube' },
+  tiktok    : { label: 'TikTok' },
+  twitter   : { label: 'Twitter/X' },
+  linkedin  : { label: 'LinkedIn' },
+  pinterest : { label: 'Pinterest' },
+  whatsapp  : { label: 'WhatsApp' },
+  wechat    : { label: 'WeChat' },
+  weibo     : { label: 'Weibo' },
+  line      : { label: 'LINE' },
+};
+
+function platSvg(p) { return PLATFORM_SVGS[p] || '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>'; }
+
+const CREATE_SQL = `-- 在 Supabase SQL Editor 中执行此 SQL
+CREATE TABLE IF NOT EXISTS public.social_links (
+  id            BIGSERIAL PRIMARY KEY,
+  platform      TEXT NOT NULL,           -- instagram / facebook / youtube / tiktok ...
+  label         TEXT,                    -- 自定义显示名称
+  url           TEXT NOT NULL DEFAULT '',
+  icon          TEXT,                    -- emoji icon (可选，留空使用默认)
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_active     BOOLEAN NOT NULL DEFAULT true,
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  updated_at    TIMESTAMPTZ DEFAULT now()
+);
+
+-- RLS
+ALTER TABLE public.social_links ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can read active social links"
+  ON public.social_links FOR SELECT
+  USING (is_active = true);
+CREATE POLICY "Admins can manage social links"
+  ON public.social_links FOR ALL
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- Sample data
+INSERT INTO public.social_links (platform, label, url, display_order, is_active)
+VALUES
+  ('instagram', 'Instagram', 'https://instagram.com/tomachef', 1, true),
+  ('facebook',  'Facebook',  'https://facebook.com/tomachef',  2, true),
+  ('youtube',   'YouTube',   'https://youtube.com/@tomachef',  3, true),
+  ('tiktok',    'TikTok',    'https://tiktok.com/@tomachef',   4, true);`;
+
+let rows = [];   // local state
+let nextTempId = -1;
+
+(async () => {
+  initSupabase();
+  const session = await requireAuth();
+  if (!session) return;
+  const user = await getCurrentUser();
+  document.getElementById('userEmail').textContent = user?.email || '';
+
+  document.getElementById('sqlHint').textContent = CREATE_SQL;
+
+  await loadLinks();
+})();
+
+async function loadLinks() {
+  try {
+    const data = await fetchAllSocialLinksAdmin();
+    rows = data || [];
+    renderRows();
+    updatePreview();
+
+    if (rows.length === 0) {
+      // Could be table missing or just empty — show SQL hint
+      document.getElementById('setupHint').style.display = 'block';
+    }
+  } catch (e) {
+    document.getElementById('setupHint').style.display = 'block';
+    console.error(e);
+  }
+}
+
+function renderRows() {
+  const list = document.getElementById('linksList');
+  list.innerHTML = '';
+  rows.forEach((row, idx) => {
+    const div = document.createElement('div');
+    div.className = 'social-row';
+    div.setAttribute('data-idx', idx);
+    div.innerHTML = `
+      <div class="platform-emoji">${platSvg(row.platform)}</div>
+      <div class="row-fields">
+        <select class="row-platform" onchange="onPlatformChange(${idx},this)">
+          ${Object.entries(PLATFORMS).map(([k,v]) =>
+            `<option value="${k}" ${row.platform===k?'selected':''}>${v.label}</option>`
+          ).join('')}
+        </select>
+        <input class="row-label" type="text" placeholder="显示名称" value="${esc(row.label||'')}" oninput="rows[${idx}].label=this.value">
+        <input class="row-url" type="url" placeholder="https://..." value="${esc(row.url||'')}" oninput="rows[${idx}].url=this.value;updatePreview()">
+        <input class="row-order" type="number" placeholder="排序" value="${row.display_order||0}" min="0" oninput="rows[${idx}].display_order=parseInt(this.value)||0">
+      </div>
+      <div class="row-active">
+        <input type="checkbox" id="active_${idx}" ${row.is_active?'checked':''} onchange="rows[${idx}].is_active=this.checked;updatePreview()">
+        <label for="active_${idx}">启用</label>
+      </div>
+      <button class="btn-delete" onclick="deleteRow(${idx})">🗑️</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function esc(str) {
+  return String(str).replace(/"/g, '&quot;');
+}
+
+function onPlatformChange(idx, sel) {
+  rows[idx].platform = sel.value;
+  renderRows();
+  updatePreview();
+}
+
+function addRow() {
+  rows.push({
+    id: nextTempId--,
+    platform: 'instagram',
+    label: '',
+    url: '',
+    icon: '',
+    display_order: rows.length,
+    is_active: true,
+    _new: true,
+  });
+  renderRows();
+  updatePreview();
+  document.getElementById('setupHint').style.display = 'none';
+}
+
+async function deleteRow(idx) {
+  const row = rows[idx];
+  if (!row._new && row.id > 0) {
+    const { error } = await deleteSocialLink(row.id);
+    if (error) { showToast('删除失败：' + error.message, 'error'); return; }
+  }
+  rows.splice(idx, 1);
+  renderRows();
+  updatePreview();
+  showToast('已删除', 'success');
+}
+
+async function saveAll() {
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '⏳ 保存中...';
+  btn.disabled = true;
+
+  let hasError = false;
+  for (const row of rows) {
+    const payload = {
+      platform: row.platform,
+      label: row.label || PLATFORMS[row.platform]?.label || row.platform,
+      url: row.url,
+      icon: '',
+      display_order: row.display_order || 0,
+      is_active: row.is_active,
+      updated_at: new Date().toISOString(),
+    };
+    if (!row._new && row.id > 0) payload.id = row.id;
+
+    const { data, error } = await upsertSocialLink(payload);
+    if (error) {
+      showToast('保存失败：' + (error.message || JSON.stringify(error)), 'error');
+      hasError = true;
+      break;
+    }
+    // Update local id if it was new
+    if (row._new && data && data[0]) {
+      row.id = data[0].id;
+      delete row._new;
+    }
+  }
+
+  btn.textContent = '💾 保存所有修改';
+  btn.disabled = false;
+
+  if (!hasError) {
+    showToast('✅ 社交媒体链接已更新！网站同步生效。', 'success');
+    document.getElementById('setupHint').style.display = 'none';
+    renderRows();
+  }
+}
+
+function updatePreview() {
+  const preview = document.getElementById('preview');
+  const active = rows.filter(r => r.is_active);
+  if (active.length === 0) {
+    preview.innerHTML = '<span style="color:#475569;font-size:0.85rem;">（无启用的社交媒体）</span>';
+    return;
+  }
+  preview.innerHTML = active.map(r => `
+    <div class="preview-icon" title="${esc(r.label||r.platform)}">
+      ${platSvg(r.platform)}
+    </div>
+  `).join('');
+}
+
+function copySql() {
+  navigator.clipboard.writeText(CREATE_SQL).then(() => {
+    showToast('SQL 已复制到剪贴板', 'success');
+  });
+}
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast-msg ' + type;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
+async function handleSignOut() {
+  await signOut();
+  window.location.href = 'login.html';
+}
+</script>
+
+</body>
+</html>

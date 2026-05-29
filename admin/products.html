@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products Management - TomaChef Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js"></script>
+  <style>
+    :root {
+      --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
+      --amber-500: #f59e0b; --amber-600: #d97706;
+    }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .admin-sidebar {
+      background: var(--tomato-950);
+      min-height: 100vh;
+      padding: 24px 0;
+      position: fixed;
+      width: 240px;
+    }
+    .admin-sidebar .brand { color: white; font-weight: 800; font-size: 1.2rem; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .admin-sidebar .brand span { color: var(--amber-500); }
+    .admin-sidebar .nav-link {
+      color: rgba(255,255,255,0.6);
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      display: block; text-decoration: none;
+    }
+    .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border-left-color: var(--amber-500);
+    }
+    .admin-main { margin-left: 240px; padding: 32px; }
+    .admin-header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .admin-header h4 { font-weight: 700; color: var(--tomato-800); margin: 0; }
+    .btn-signout { color: #64748b; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+    .btn-signout:hover { color: #dc2626; }
+    .content-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .btn-add { background: var(--amber-500); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
+    .btn-add:hover { background: var(--amber-600); }
+    .btn-save { background: var(--tomato-700); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
+    .btn-save:hover { background: var(--tomato-800); }
+    .btn-edit { color: var(--tomato-700); cursor: pointer; font-size: 0.85rem; }
+    .btn-edit:hover { color: var(--amber-500); }
+    .btn-del { color: #dc2626; cursor: pointer; font-size: 0.85rem; }
+    .btn-del:hover { color: #991b1b; }
+    .category-airfryer { background: #fee2e2; color: #b91c1c; }
+    .category-airfryeroven { background: #fef3c7; color: #b45309; }
+    .category-toaster { background: #dcfce7; color: #166534; }
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-content {
+      background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 800px;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal-content h5 { font-weight: 700; color: var(--tomato-800); margin-bottom: 20px; }
+    /* Channel management in modal */
+    .channel-section { border-top: 2px solid #e2e8f0; margin-top: 20px; padding-top: 16px; }
+    .channel-section h6 { font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; }
+    .channel-row { display: flex; gap: 8px; align-items: center; background: #f8fafc; padding: 8px 10px; border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .channel-row input { padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.82rem; }
+    .channel-row input:focus { border-color: var(--tomato-700); outline: none; }
+    .channel-row .ch-platform { width: 190px; }
+    .channel-row .ch-platform select { padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.82rem; width: 100%; }
+    .channel-row .ch-platform select:focus { border-color: var(--tomato-700); outline: none; }
+    .channel-row .ch-price { width: 90px; }
+    .channel-row .ch-url { flex: 1; min-width: 160px; }
+    .channel-row .ch-order { width: 55px; }
+    .btn-ch-save { background: #22c55e; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.78rem; cursor: pointer; font-weight: 600; }
+    .btn-ch-save:hover { background: #16a34a; }
+    .btn-ch-del { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; padding: 6px 10px; font-size: 0.78rem; cursor: pointer; }
+    .btn-ch-del:hover { background: #fecaca; }
+    .btn-ch-add { background: var(--amber-500); color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer; font-weight: 600; }
+    .btn-ch-add:hover { background: var(--amber-600); }
+    .ch-new-row { background: #fff7ed; border: 1px dashed var(--amber-500); }
+    /* Platform icon circle */
+    .platform-badge { display: inline-flex; align-items: center; gap: 6px; }
+    .platform-circle { width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<div class="admin-sidebar">
+  <div class="brand"><img src="../images/logo.jpg" alt="TomaChef" style="height:36px;width:auto;margin-bottom:8px;"><br>TomaChef Admin</div>
+  <nav class="nav flex-column">
+    <a class="nav-link" href="dashboard.html">📊 仪表盘</a>
+    <a class="nav-link active" href="products.html">📦 产品管理</a>
+    <a class="nav-link" href="inquiries.html">📧 订购咨询</a>
+    <a class="nav-link" href="channels.html">🛒 购买渠道</a>
+    <a class="nav-link" href="recipes.html">🍳 食谱管理</a>
+    <a class="nav-link" href="contact.html">📇 联系信息</a>
+    <a class="nav-link" href="social.html">📱 社交媒体</a>
+    <a class="nav-link" href="settings.html">⚙️ 系统设置</a>
+    <a class="nav-link" href="../index.html" target="_blank">🌐 查看网站</a>
+  </nav>
+</div>
+
+<div class="admin-main">
+  <div class="admin-header">
+    <h4>📦 产品管理</h4>
+    <div>
+      <button class="btn-add me-3" onclick="openProductModal()">+ 添加产品</button>
+      <button class="btn btn-outline-secondary me-3" onclick="toggleFaqSection()">📋 常见问题管理</button>
+      <a class="btn-signout" href="#" onclick="handleSignOut()">退出登录</a>
+    </div>
+  </div>
+
+  <!-- Category Filter -->
+  <div class="mb-3">
+    <button class="btn btn-sm btn-outline-secondary me-2 active" onclick="filterTable('all', this)">全部</button>
+    <button class="btn btn-sm btn-outline-secondary me-2" onclick="filterTable('airfryer', this)">空气炸锅</button>
+    <button class="btn btn-sm btn-outline-secondary me-2" onclick="filterTable('airfryeroven', this)">空气炸烤箱</button>
+    <button class="btn btn-sm btn-outline-secondary" onclick="filterTable('toaster', this)">烤面包机</button>
+  </div>
+
+  <!-- Product Table -->
+  <div class="content-card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th style="width:60px;">#</th>
+            <th>产品名称</th>
+            <th>分类</th>
+            <th>标签</th>
+            <th>状态</th>
+            <th style="width:120px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody">
+          <tr><td colspan="6" class="text-center text-muted py-4">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FAQ Management Section -->
+  <div class="content-card mt-4" id="faqSection" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 style="margin:0;font-weight:700;color:var(--tomato-800);">📋 常见问题解答</h5>
+      <button class="btn-add" onclick="openFaqModal()">+ 添加问题</button>
+    </div>
+    <div id="faqList">
+      <p class="text-muted py-3 text-center">加载中...</p>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ Edit Modal -->
+<div class="modal-overlay" id="faqModal">
+  <div class="modal-content" style="max-width:700px;">
+    <h5 id="faqModalTitle">添加常见问题</h5>
+    <form id="faqForm">
+      <input type="hidden" id="faqId">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">问题 (English) *</label>
+        <input class="form-control" id="faqQuestion" required placeholder="What is the minimum order quantity?">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">答案 (English) *</label>
+        <textarea class="form-control" id="faqAnswer" rows="3" required placeholder="Our standard MOQ varies by product..."></textarea>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold" style="font-size:0.82rem;">排序</label>
+          <input type="number" class="form-control" id="faqSort" value="0" min="0">
+        </div>
+        <div class="col-md-6">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" id="faqActive" checked>
+            <label class="form-check-label fw-semibold" style="font-size:0.85rem;">前台可见</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other languages (collapsible) -->
+      <details class="mb-3" style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;">
+        <summary style="font-weight:600;cursor:pointer;font-size:0.9rem;color:var(--tomato-700);">🌐 其他语言翻译 (可选)</summary>
+        <div class="mt-3">
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:0.8rem;">中文 问题</label>
+            <input class="form-control" id="faqQzh" placeholder="最小起订量是多少？" style="font-size:0.85rem;">
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:0.8rem;">中文 答案</label>
+            <textarea class="form-control" id="faqAzh" rows="2" style="font-size:0.85rem;"></textarea>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">Español 问题</label>
+              <input class="form-control" id="faqQes" style="font-size:0.85rem;">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">Español 答案</label>
+              <input class="form-control" id="faqAes" style="font-size:0.85rem;">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">Français 问题</label>
+              <input class="form-control" id="faqQfr" style="font-size:0.85rem;">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">Français 答案</label>
+              <input class="form-control" id="faqAfr" style="font-size:0.85rem;">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">日本語 問題</label>
+              <input class="form-control" id="faqQja" style="font-size:0.85rem;">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">日本語 回答</label>
+              <input class="form-control" id="faqAja" style="font-size:0.85rem;">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">Português 问题</label>
+              <input class="form-control" id="faqQpt" style="font-size:0.85rem;">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.8rem;">Português 答案</label>
+              <input class="form-control" id="faqApt" style="font-size:0.85rem;">
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-outline-secondary" onclick="closeFaqModal()">取消</button>
+        <button type="submit" class="btn-save">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Product Edit Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-content">
+    <h5 id="modalTitle">Add Product</h5>
+    <form id="productForm">
+      <input type="hidden" id="productId">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">分类</label>
+          <select class="form-control" id="category">
+            <option value="airfryer">Air Fryer</option>
+            <option value="airfryeroven">Air Fryer Oven</option>
+            <option value="toaster">Toaster</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">标签</label>
+          <select class="form-control" id="badge">
+            <option value="">None</option>
+            <option value="Bestseller">Bestseller</option>
+            <option value="New">New</option>
+            <option value="Hot">Hot</option>
+            <option value="Premium">Premium</option>
+            <option value="Smart">Smart</option>
+            <option value="XL">XL</option>
+            <option value="Retro">Retro</option>
+            <option value="Digital">Digital</option>
+            <option value="Commercial">Commercial</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">图标(emoji)</label>
+          <input class="form-control" id="icon" placeholder="🍟">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">排序</label>
+          <input type="number" class="form-control" id="sort_order" value="0">
+        </div>
+
+        <!-- Name & Description (English, primary language) -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">产品名称 *</label>
+          <input class="form-control" id="name_en" required>
+          <label class="form-label fw-semibold mt-2">产品描述</label>
+          <textarea class="form-control" id="description_en" rows="2"></textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">规格(JSON)</label>
+          <textarea class="form-control" id="specs" rows="3" placeholder='{"capacity":"5.8 QT","power":"1700W"}' style="font-size:0.8rem;font-family:monospace;"></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">图片链接</label>
+          <input class="form-control" id="image_url" placeholder="https://...">
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="active" checked>
+            <label class="form-check-label fw-semibold">已上架(网站可见)</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Purchase Channels -->
+      <div class="channel-section" id="channelSection">
+        <h6>🛒 购买渠道 <span style="font-weight:400;color:#94a3b8;font-size:0.78rem;">(添加后显示在产品详情页)</span></h6>
+        <div id="channelList"></div>
+        <button type="button" class="btn-ch-add mt-2" onclick="addChannelRow()" id="btnAddChannel" style="display:none;">+ 添加渠道</button>
+        <p id="chHint" style="font-size:0.8rem;color:#94a3b8;margin-top:8px;"></p>
+      </div>
+
+      <!-- Product Videos -->
+      <div class="channel-section" id="videoSection" style="margin-top:24px;">
+        <h6>🎬 产品视频 <span style="font-weight:400;color:#94a3b8;font-size:0.78rem;">(显示在产品详情页，最多6个)</span></h6>
+        <div id="videoList"></div>
+        <button type="button" class="btn-ch-add mt-2" onclick="addVideoRow()" id="btnAddVideo" style="display:none;">+ 添加视频</button>
+        <p id="videoHint" style="font-size:0.8rem;color:#94a3b8;margin-top:8px;"></p>
+      </div>
+
+      <div class="mt-4 d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-outline-secondary" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn-save" id="saveBtn">保存产品</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let allProducts = [];
+let editingChannels = [];
+let editingVideos = [];
+let editingProductId = null;
+
+(async () => {
+  initSupabase();
+  const session = await requireAuth();
+  if (!session) return;
+  await loadProducts();
+})();
+
+async function loadProducts() {
+  allProducts = await fetchAllProductsAdmin();
+  renderProductTable(allProducts);
+}
+
+function renderProductTable(products) {
+  const tbody = document.getElementById('productTableBody');
+  if (products.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">暂无产品，点击"+ 添加产品"创建</td></tr>';
+    return;
+  }
+  tbody.innerHTML = products.map((p, idx) => `
+    <tr data-cat="${p.category}">
+      <td>${p.sort_order || idx + 1}</td>
+      <td>
+        <strong>${escapeHtml(p.name)}</strong>
+        <br><small class="text-muted">${escapeHtml(p.description || '')}</small>
+      </td>
+      <td><span class="badge category-${p.category}">${p.category}</span></td>
+      <td>${p.badge ? `<span class="badge bg-secondary">${p.badge}</span>` : '-'}</td>
+      <td>
+        <span class="badge ${p.active ? 'bg-success' : 'bg-secondary'}">
+          ${p.active ? '已上架' : '已隐藏'}
+        </span>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-edit me-2" onclick="editProduct(${p.id})">✏️ 编辑</button>
+        <button class="btn btn-sm btn-del" onclick="deleteProductConfirm(${p.id})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterTable(cat, btn) {
+  document.querySelectorAll('.btn-outline-secondary').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (cat === 'all') {
+    renderProductTable(allProducts);
+  } else {
+    renderProductTable(allProducts.filter(p => p.category === cat));
+  }
+}
+
+function openProductModal(product = null) {
+  const modal = document.getElementById('productModal');
+  const title = document.getElementById('modalTitle');
+  const form = document.getElementById('productForm');
+
+  form.reset();
+  document.getElementById('productId').value = '';
+  document.getElementById('active').checked = true;
+  editingChannels = [];
+  renderChannelList();
+  editingVideos = [];
+  renderVideoList();
+
+  if (product) {
+    title.textContent = '编辑产品';
+    editingProductId = product.id;
+    document.getElementById('productId').value = product.id;
+    document.getElementById('name_en').value = product.name || '';
+    document.getElementById('category').value = product.category || 'airfryer';
+    document.getElementById('badge').value = product.badge || '';
+    document.getElementById('icon').value = product.icon || '';
+    document.getElementById('sort_order').value = product.sort_order || 0;
+    document.getElementById('description_en').value = product.description || '';
+    document.getElementById('specs').value = JSON.stringify(product.specs || {}, null, 2);
+    document.getElementById('image_url').value = product.image_url || '';
+    document.getElementById('active').checked = product.active !== false;
+    loadChannelsForProduct(product.id);
+    loadVideosForProduct(product.id);
+  } else {
+    title.textContent = '添加产品';
+    editingProductId = null;
+    document.getElementById('chHint').textContent = '保存产品后可添加购买渠道';
+    document.getElementById('btnAddChannel').style.display = 'none';
+    document.getElementById('videoHint').textContent = '保存产品后可添加视频';
+    document.getElementById('btnAddVideo').style.display = 'none';
+  }
+
+  modal.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('productModal').classList.remove('show');
+}
+
+function editProduct(id) {
+  const product = allProducts.find(p => p.id === id);
+  if (product) openProductModal(product);
+}
+
+async function deleteProductConfirm(id) {
+  if (!confirm('确定要删除这个产品吗？此操作不可撤销。')) return;
+  const { error } = await deleteProduct(id);
+  if (error) {
+    alert('删除失败：' + error.message);
+    return;
+  }
+  await loadProducts();
+}
+
+document.getElementById('productForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const id = document.getElementById('productId').value;
+  let specs = {};
+  try {
+    specs = JSON.parse(document.getElementById('specs').value || '{}');
+  } catch (err) {
+    alert('规格字段JSON格式错误');
+    return;
+  }
+
+  const data = {
+    name: document.getElementById('name_en').value,
+    category: document.getElementById('category').value,
+    badge: document.getElementById('badge').value,
+    icon: document.getElementById('icon').value,
+    sort_order: parseInt(document.getElementById('sort_order').value) || 0,
+    description: document.getElementById('description_en').value,
+    specs: specs,
+    image_url: document.getElementById('image_url').value,
+    active: document.getElementById('active').checked,
+  };
+
+  if (id) {
+    const { error } = await updateProduct(parseInt(id), data);
+    if (error) { alert('更新失败：' + error.message); return; }
+  } else {
+    const { error } = await createProduct(data);
+    if (error) { alert('创建失败：' + error.message); return; }
+  }
+
+  closeModal();
+  await loadProducts();
+});
+
+// ---- Predefined Platforms ----
+const PLATFORMS = [
+  { name: 'Amazon',        icon: '🅰',  color: '#FF9900', domain: 'amazon.com' },
+  { name: 'Walmart',       icon: '🅆',  color: '#0071DC', domain: 'walmart.com' },
+  { name: 'Home Depot',    icon: '🄷',  color: '#F96302', domain: 'homedepot.com' },
+  { name: 'Wayfair',       icon: 'Ⓦ',  color: '#7F187F', domain: 'wayfair.com' },
+  { name: 'Target',        icon: 'Ⓣ',  color: '#CC0000', domain: 'target.com' },
+  { name: 'eBay',          icon: '🅴',  color: '#E53238', domain: 'ebay.com' },
+  { name: 'Costco',        icon: '🄲',  color: '#AE1F23', domain: 'costco.com' },
+  { name: 'Best Buy',      icon: '🅱',  color: '#0046BE', domain: 'bestbuy.com' },
+  { name: 'Lowe\'s',       icon: '🄻',  color: '#004990', domain: 'lowes.com' },
+  { name: 'Alibaba',       icon: '🄰',  color: '#FF6A00', domain: 'alibaba.com' },
+  { name: 'AliExpress',    icon: '🄰',  color: '#E62E04', domain: 'aliexpress.com' },
+  { name: 'Shopify Store', icon: '🅂',  color: '#96BF48', domain: 'myshopify.com' },
+  { name: 'TikTok Shop',   icon: '🎵',  color: '#000000', domain: 'tiktok.com' },
+];
+
+function platformOptionHtml(selected = '') {
+  return PLATFORMS.map(p =>
+    `<option value="${p.name}" data-icon="${p.icon}" data-color="${p.color}" ${p.name === selected ? 'selected' : ''}>${p.icon} ${p.name}</option>`
+  ).join('');
+}
+
+// ---- Channel Management in Modal ----
+async function loadChannelsForProduct(productId) {
+  document.getElementById('btnAddChannel').style.display = 'inline-block';
+  document.getElementById('chHint').textContent = '';
+  editingChannels = [];
+
+  if (typeof fetchAllChannelsAdmin === 'function') {
+    try {
+      const all = await fetchAllChannelsAdmin();
+      editingChannels = all.filter(c => String(c.product_id) === String(productId));
+    } catch(e) { console.log('Channels load failed:', e); }
+  }
+  renderChannelList();
+}
+
+function renderChannelList() {
+  const list = document.getElementById('channelList');
+  if (editingChannels.length === 0) {
+    list.innerHTML = '<p style="font-size:0.82rem;color:#94a3b8;">暂无渠道，点击下方按钮添加</p>';
+    return;
+  }
+  list.innerHTML = editingChannels.map((ch, i) => {
+    const pf = PLATFORMS.find(p => p.name === ch.channel_name);
+    const icon = pf ? pf.icon : (ch.channel_icon || '🛒');
+    const color = pf ? pf.color : '#666';
+    return `
+    <div class="channel-row" id="chRow${i}">
+      <div class="ch-platform">
+        <select id="chPlatform${i}" onchange="onPlatformChange(${i})">
+          <option value="">-- 选择平台 --</option>
+          ${platformOptionHtml(ch.channel_name)}
+        </select>
+      </div>
+      <input class="ch-price" value="${escapeHtml(ch.channel_price || '')}" id="chPrice${i}" placeholder="价格: $49.99">
+      <input class="ch-url" value="${escapeHtml(ch.channel_url || '')}" id="chUrl${i}" placeholder="购买链接: https://...">
+      <input class="ch-order" type="number" value="${ch.display_order || i+1}" id="chOrder${i}" placeholder="排序" min="0">
+      <button type="button" class="btn-ch-save" onclick="saveChannelRow(${i}, ${ch.id})">💾 保存</button>
+      <button type="button" class="btn-ch-del" onclick="deleteChannelRow(${i}, ${ch.id})">🗑</button>
+    </div>
+  `}).join('');
+}
+
+function onPlatformChange(idx) {
+  const sel = document.getElementById('chPlatform' + idx);
+  const opt = sel?.selectedOptions[0];
+  if (opt && opt.value) {
+    const icon = opt.dataset.icon || '🛒';
+    const color = opt.dataset.color || '#666';
+    const badge = document.getElementById('platformBadge' + idx);
+    if (badge) {
+      badge.innerHTML = `<span class="platform-circle" style="background:${color}">${icon}</span>`;
+    }
+  }
+}
+
+function addChannelRow() {
+  const newIdx = editingChannels.length;
+  editingChannels.push({
+    id: null,
+    product_id: editingProductId,
+    channel_name: '',
+    channel_icon: '',
+    channel_price: '',
+    channel_url: '',
+    display_order: newIdx + 1,
+    is_active: true
+  });
+  renderChannelList();
+}
+
+async function saveChannelRow(idx, channelId) {
+  const sel = document.getElementById('chPlatform' + idx);
+  const platformName = sel?.value || '';
+  const opt = sel?.selectedOptions[0];
+  const platformIcon = opt?.dataset?.icon || '';
+  const platformColor = opt?.dataset?.color || '';
+
+  if (!platformName) {
+    alert('请选择平台');
+    return;
+  }
+
+  const ch = {
+    id: channelId || undefined,
+    product_id: editingProductId,
+    channel_name: platformName,
+    channel_icon: platformIcon,
+    channel_price: document.getElementById('chPrice' + idx)?.value || '',
+    channel_url: document.getElementById('chUrl' + idx)?.value || '',
+    display_order: parseInt(document.getElementById('chOrder' + idx)?.value) || idx + 1,
+    is_active: true
+  };
+
+  if (!ch.channel_price || !ch.channel_url) {
+    alert('价格和链接不能为空');
+    return;
+  }
+
+  if (typeof upsertPurchaseChannel === 'function') {
+    const obj = channelId ? { ...ch } : {
+      product_id: ch.product_id,
+      channel_name: ch.channel_name,
+      channel_icon: ch.channel_icon,
+      channel_price: ch.channel_price,
+      channel_url: ch.channel_url,
+      display_order: ch.display_order,
+      is_active: true
+    };
+    const { error, data } = await upsertPurchaseChannel(obj);
+    if (error) { alert('保存失败: ' + error.message); return; }
+    await loadChannelsForProduct(editingProductId);
+  } else {
+    if (channelId) {
+      const i = editingChannels.findIndex(c => c.id === channelId);
+      if (i >= 0) editingChannels[i] = { ...editingChannels[i], ...ch };
+    } else {
+      editingChannels[idx] = { ...ch, id: Date.now() };
+    }
+    renderChannelList();
+  }
+}
+
+async function deleteChannelRow(idx, channelId) {
+  if (!confirm('删除这个购买渠道？')) return;
+  if (channelId && typeof deletePurchaseChannel === 'function') {
+    const { error } = await deletePurchaseChannel(channelId);
+    if (error) { alert('删除失败: ' + error.message); return; }
+    await loadChannelsForProduct(editingProductId);
+  } else {
+    editingChannels.splice(idx, 1);
+    renderChannelList();
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---- Predefined Video Platforms ----
+const VIDEO_PLATFORMS = [
+  { name: 'YouTube', icon: '▶️', color: '#FF0000', embedPrefix: 'https://www.youtube.com/embed/' },
+  { name: 'Vimeo',   icon: '🎬', color: '#1AB7EA', embedPrefix: 'https://player.vimeo.com/video/' },
+  { name: '本地上传', icon: '📁', color: '#10b981', embedPrefix: '' },
+  { name: 'Other',   icon: '🎥', color: '#666',    embedPrefix: '' },
+];
+
+function videoPlatformOptionHtml(selected = '') {
+  return VIDEO_PLATFORMS.map(p =>
+    `<option value="${p.name}" ${p.name === selected ? 'selected' : ''}>${p.icon} ${p.name}</option>`
+  ).join('');
+}
+
+function videoIframeUrl(videoUrl, platform) {
+  if (!videoUrl) return '';
+  // YouTube: handle both youtube.com/watch?v= and youtu.be/ formats
+  if (platform === 'youtube' || platform === 'YouTube') {
+    const match = videoUrl.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})(?:&|$)/) ||
+                  videoUrl.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+    return match ? 'https://www.youtube.com/embed/' + match[1] : videoUrl;
+  }
+  // Vimeo
+  if (platform === 'vimeo' || platform === 'Vimeo') {
+    const match = videoUrl.match(/vimeo\.com\/(\d+)/);
+    return match ? 'https://player.vimeo.com/video/' + match[1] : videoUrl;
+  }
+  return videoUrl;
+}
+
+// ---- Video Management in Modal ----
+async function loadVideosForProduct(productId) {
+  document.getElementById('btnAddVideo').style.display = 'inline-block';
+  document.getElementById('videoHint').textContent = '';
+  editingVideos = [];
+
+  if (typeof fetchProductVideos === 'function') {
+    try {
+      editingVideos = await fetchProductVideos(productId);
+    } catch(e) { console.log('Videos load failed:', e); }
+  }
+  renderVideoList();
+}
+
+function renderVideoList() {
+  const list = document.getElementById('videoList');
+  if (editingVideos.length === 0) {
+    list.innerHTML = '<p style="font-size:0.82rem;color:#94a3b8;">暂无视频，点击下方按钮添加</p>';
+    return;
+  }
+  list.innerHTML = editingVideos.map((v, i) => {
+    const pf = VIDEO_PLATFORMS.find(p => p.name === v.platform);
+    const icon = pf ? pf.icon : '🎥';
+    const isUpload = v.platform === '本地上传';
+    const isUploaded = isUpload && v.video_url && v.video_url.includes('tomachef-assets');
+    return `
+    <div class="channel-row" id="vidRow${i}">
+      <div class="ch-platform">
+        <select id="vidPlatform${i}" onchange="onVideoPlatformChange(${i})">
+          <option value="">-- 选择平台 --</option>
+          ${videoPlatformOptionHtml(v.platform)}
+        </select>
+      </div>
+      ${isUpload ? `
+      <div style="flex:1;min-width:200px;">
+        <input type="file" id="vidFile${i}" accept="video/*" onchange="handleVideoFile(${i})" style="font-size:0.8rem;">
+        ${isUploaded ? `<div style="font-size:0.72rem;color:#10b981;margin-top:2px;">✅ 已上传</div>` : ''}
+        <input type="hidden" id="vidUrl${i}" value="${escapeHtml(v.video_url || '')}">
+      </div>
+      ` : `
+      <input id="vidUrl${i}" value="${escapeHtml(v.video_url || '')}" placeholder="视频链接 https://..." style="flex:1;min-width:180px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:0.82rem;">
+      `}
+      <input id="vidTitle${i}" value="${escapeHtml(v.title || '')}" placeholder="标题" style="width:130px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:0.82rem;">
+      <input id="vidOrder${i}" type="number" value="${v.sort_order || i+1}" placeholder="排序" style="width:55px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:0.82rem;" min="0">
+      <button type="button" class="btn-ch-save" onclick="saveVideoRow(${i}, ${v.id||'null'})">💾 保存</button>
+      <button type="button" class="btn-ch-del" onclick="deleteVideoRow(${i}, ${v.id||'null'})">🗑</button>
+    </div>
+  `}).join('');
+}
+
+function addVideoRow() {
+  const newIdx = editingVideos.length;
+  editingVideos.push({
+    id: null,
+    product_id: editingProductId,
+    title: '',
+    video_url: '',
+    platform: 'YouTube',
+    sort_order: newIdx + 1,
+  });
+  renderVideoList();
+}
+
+function onVideoPlatformChange(idx) {
+  const sel = document.getElementById('vidPlatform' + idx);
+  if (!sel) return;
+  editingVideos[idx].platform = sel.value;
+  renderVideoList();
+}
+
+async function handleVideoFile(idx) {
+  const fileInput = document.getElementById('vidFile' + idx);
+  if (!fileInput || !fileInput.files[0]) return;
+
+  const file = fileInput.files[0];
+  const maxSize = 50 * 1024 * 1024; // 50MB
+  if (file.size > maxSize) {
+    alert('文件不能超过 50MB，请压缩后再上传');
+    fileInput.value = '';
+    return;
+  }
+
+  const btn = document.querySelector(`#vidRow${idx} .btn-ch-save`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 上传中…'; }
+
+  if (typeof uploadProductVideo === 'function') {
+    const result = await uploadProductVideo(file);
+    if (result.error) {
+      alert('上传失败: ' + (result.error.message || result.error));
+    } else {
+      editingVideos[idx].video_url = result.url;
+      // Update hidden field
+      const hiddenUrl = document.getElementById('vidUrl' + idx);
+      if (hiddenUrl) hiddenUrl.value = result.url;
+      // Show uploaded indicator
+      const row = document.getElementById('vidRow' + idx);
+      if (row) {
+        const indicator = row.querySelector('div[style]');
+        if (indicator) indicator.innerHTML = '✅ 已上传';
+      }
+    }
+  } else {
+    alert('上传功能未初始化，请刷新页面重试');
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '💾 保存'; }
+  fileInput.value = '';
+}
+
+async function saveVideoRow(idx, videoId) {
+  const platform = document.getElementById('vidPlatform' + idx)?.value || 'YouTube';
+  const isUpload = platform === '本地上传';
+  const videoUrl = isUpload
+    ? (document.getElementById('vidUrl' + idx)?.value || '')
+    : (document.getElementById('vidUrl' + idx)?.value?.trim() || '');
+
+  if (!videoUrl) {
+    alert(isUpload ? '请先选择视频文件上传' : '请输入视频链接');
+    return;
+  }
+
+  const v = {
+    id: videoId && videoId !== 'null' ? parseInt(videoId) : undefined,
+    product_id: editingProductId,
+    title: document.getElementById('vidTitle' + idx)?.value?.trim() || '',
+    video_url: videoUrl,
+    platform: platform,
+    sort_order: parseInt(document.getElementById('vidOrder' + idx)?.value) || idx + 1,
+  };
+
+  if (typeof upsertProductVideo === 'function') {
+    const { error, data } = await upsertProductVideo(v);
+    if (error) { alert('保存失败: ' + error.message); return; }
+    await loadVideosForProduct(editingProductId);
+  } else {
+    if (videoId && videoId !== 'null') {
+      const i = editingVideos.findIndex(c => c.id === parseInt(videoId));
+      if (i >= 0) editingVideos[i] = { ...editingVideos[i], ...v };
+    } else {
+      editingVideos[idx] = { ...v, id: Date.now() };
+    }
+    renderVideoList();
+  }
+}
+
+async function deleteVideoRow(idx, videoId) {
+  if (!confirm('删除这个视频？')) return;
+  if (videoId && videoId !== 'null' && typeof deleteProductVideo === 'function') {
+    const { error } = await deleteProductVideo(parseInt(videoId));
+    if (error) { alert('删除失败: ' + error.message); return; }
+    await loadVideosForProduct(editingProductId);
+  } else {
+    editingVideos.splice(idx, 1);
+    renderVideoList();
+  }
+}
+
+// ---- FAQ Management ----
+let allFaqs = [];
+
+async function loadFaqs() {
+  if (typeof fetchAllFaqsAdmin === 'function') {
+    try { allFaqs = await fetchAllFaqsAdmin(); } catch(e) { console.log('FAQ load failed:', e); }
+  }
+  renderFaqList();
+}
+
+function renderFaqList() {
+  const list = document.getElementById('faqList');
+  if (allFaqs.length === 0) {
+    list.innerHTML = '<p class="text-muted py-3 text-center">暂无常见问题，点击"+ 添加问题"创建</p>';
+    return;
+  }
+  list.innerHTML = allFaqs.map(f => `
+    <div class="channel-row" style="justify-content:space-between;">
+      <div style="flex:1;min-width:0;">
+        <strong style="font-size:0.9rem;">#${f.sort_order || '-'}</strong>
+        <span style="margin-left:8px;font-size:0.9rem;">${escapeHtml(f.question || '')}</span>
+        ${f.active === false ? '<span class="badge bg-secondary ms-2" style="font-size:0.7rem;">隐藏</span>' : ''}
+      </div>
+      <div style="flex-shrink:0;display:flex;gap:6px;">
+        <button type="button" class="btn-ch-save" onclick="editFaq(${f.id})" style="font-size:0.78rem;">✏️ 编辑</button>
+        <button type="button" class="btn-ch-del" onclick="deleteFaqConfirm(${f.id})" style="font-size:0.78rem;">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openFaqModal(faq = null) {
+  const modal = document.getElementById('faqModal');
+  const form = document.getElementById('faqForm');
+  form.reset();
+  document.getElementById('faqId').value = '';
+
+  if (faq) {
+    document.getElementById('faqModalTitle').textContent = '编辑常见问题';
+    document.getElementById('faqId').value = faq.id;
+    document.getElementById('faqQuestion').value = faq.question || '';
+    document.getElementById('faqAnswer').value = faq.answer || '';
+    document.getElementById('faqSort').value = faq.sort_order || 0;
+    document.getElementById('faqActive').checked = faq.active !== false;
+    document.getElementById('faqQzh').value = faq.question_zh || '';
+    document.getElementById('faqAzh').value = faq.answer_zh || '';
+    document.getElementById('faqQes').value = faq.question_es || '';
+    document.getElementById('faqAes').value = faq.answer_es || '';
+    document.getElementById('faqQfr').value = faq.question_fr || '';
+    document.getElementById('faqAfr').value = faq.answer_fr || '';
+    document.getElementById('faqQja').value = faq.question_ja || '';
+    document.getElementById('faqAja').value = faq.answer_ja || '';
+    document.getElementById('faqQpt').value = faq.question_pt || '';
+    document.getElementById('faqApt').value = faq.answer_pt || '';
+  } else {
+    document.getElementById('faqModalTitle').textContent = '添加常见问题';
+  }
+
+  modal.classList.add('show');
+}
+
+function closeFaqModal() {
+  document.getElementById('faqModal').classList.remove('show');
+}
+
+function editFaq(id) {
+  const faq = allFaqs.find(f => f.id === id);
+  if (faq) openFaqModal(faq);
+}
+
+async function deleteFaqConfirm(id) {
+  if (!confirm('确定要删除这条FAQ吗？')) return;
+  if (typeof deleteFaq === 'function') {
+    const { error } = await deleteFaq(id);
+    if (error) { alert('删除失败：' + error.message); return; }
+    await loadFaqs();
+  }
+}
+
+function toggleFaqSection() {
+  const section = document.getElementById('faqSection');
+  if (!section) { console.error('faqSection not found'); return; }
+  const isHidden = section.style.display === 'none' || section.style.display === '';
+  if (isHidden) {
+    section.style.display = 'block';
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (allFaqs.length === 0) loadFaqs();
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+// FAQ form submit
+document.getElementById('faqForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('faqId').value;
+  const faq = {
+    question: document.getElementById('faqQuestion').value,
+    answer: document.getElementById('faqAnswer').value,
+    sort_order: parseInt(document.getElementById('faqSort').value) || 0,
+    active: document.getElementById('faqActive').checked,
+    question_zh: document.getElementById('faqQzh').value || null,
+    answer_zh: document.getElementById('faqAzh').value || null,
+    question_es: document.getElementById('faqQes').value || null,
+    answer_es: document.getElementById('faqAes').value || null,
+    question_fr: document.getElementById('faqQfr').value || null,
+    answer_fr: document.getElementById('faqAfr').value || null,
+    question_ja: document.getElementById('faqQja').value || null,
+    answer_ja: document.getElementById('faqAja').value || null,
+    question_pt: document.getElementById('faqQpt').value || null,
+    answer_pt: document.getElementById('faqApt').value || null,
+  };
+  if (id) faq.id = parseInt(id);
+
+  if (typeof upsertFaq === 'function') {
+    const { error } = await upsertFaq(faq);
+    if (error) { alert('保存失败：' + error.message); return; }
+    closeFaqModal();
+    await loadFaqs();
+  }
+});
+
+// Close FAQ modal on overlay click
+document.getElementById('faqModal').addEventListener('click', function(e) {
+  if (e.target === this) closeFaqModal();
+});
+
+async function handleSignOut() {
+  await signOut();
+  window.location.href = 'login.html';
+}
+
+// Close modal on overlay click
+document.getElementById('productModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+
+</body>
+</html>

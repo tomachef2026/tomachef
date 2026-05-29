@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchase Channels - TomaChef Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js"></script>
+  <script src="../js/products.js"></script>
+  <style>
+    :root {
+      --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
+      --amber-500: #f59e0b; --amber-600: #d97706;
+    }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .admin-sidebar {
+      background: var(--tomato-950);
+      min-height: 100vh;
+      padding: 24px 0;
+      position: fixed;
+      width: 240px;
+    }
+    .admin-sidebar .brand { color: white; font-weight: 800; font-size: 1.2rem; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .admin-sidebar .brand span { color: var(--amber-500); }
+    .admin-sidebar .nav-link {
+      color: rgba(255,255,255,0.6);
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      display: block; text-decoration: none;
+    }
+    .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border-left-color: var(--amber-500);
+    }
+    .admin-main { margin-left: 240px; padding: 32px; }
+    .admin-header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .admin-header h4 { font-weight: 700; color: var(--tomato-800); margin: 0; }
+    .btn-signout { color: #64748b; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+    .btn-signout:hover { color: #dc2626; }
+    .content-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+    }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600;
+      cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--amber-500); color: white; }
+    .btn-primary:hover { background: var(--amber-600); }
+    .btn-outline {
+      background: white; border: 1px solid #e2e8f0; color: #1e293b;
+    }
+    .btn-outline:hover { border-color: var(--tomato-700); color: var(--tomato-700); }
+    .btn-danger { background: #fee2e2; color: #b91c1c; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th {
+      text-align: left; padding: 12px; background: #fef2f2; color: var(--tomato-700);
+      font-weight: 600; border-bottom: 2px solid var(--tomato-700); white-space: nowrap;
+    }
+    td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+    tr:hover { background: #f8fafc; }
+    .form-control, .form-select {
+      width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0;
+      border-radius: 8px; font-size: 0.88rem; transition: border-color 0.2s; background: white;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--tomato-700); outline: none;
+      box-shadow: 0 0 0 3px rgba(185,28,28,0.1);
+    }
+    .form-label { font-weight: 600; font-size: 0.82rem; color: #1e293b; margin-bottom: 4px; display: block; }
+    .row { display: flex; flex-wrap: wrap; gap: 16px; }
+    .col { flex: 1; min-width: 180px; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
+    .badge-active { background: #dcfce7; color: #15803d; }
+    .badge-inactive { background: #f1f5f9; color: #64748b; }
+    .flex { display: flex; gap: 8px; }
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: white; border-radius: 16px; padding: 32px; width: 100%;
+      max-width: 600px; max-height: 85vh; overflow-y: auto;
+    }
+    .modal-box h5 { font-weight: 700; color: var(--tomato-800); margin: 0 0 20px; }
+    /* Toast */
+    .toast-msg {
+      position: fixed; top: 24px; right: 24px; z-index: 9999;
+      padding: 14px 24px; border-radius: 10px; color: white;
+      font-weight: 600; font-size: 0.9rem; display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
+    }
+    .toast-msg.show { display: block; }
+    @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .sql-hint {
+      background: #1e293b; color: #94a3b8; font-family: monospace;
+      border-radius: 8px; padding: 16px; font-size: 0.8rem;
+      white-space: pre-wrap; overflow-x: auto; margin-top: 8px;
+    }
+    @media (max-width: 768px) {
+      .admin-sidebar { display: none; }
+      .admin-main { margin-left: 0; padding: 12px; }
+      .row { flex-direction: column; }
+      .col { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-sidebar">
+  <div class="brand"><img src="../images/logo.jpg" alt="TomaChef" style="height:36px;width:auto;margin-bottom:8px;"><br>TomaChef Admin</div>
+  <nav class="nav flex-column">
+    <a class="nav-link" href="dashboard.html">📊 仪表盘</a>
+    <a class="nav-link" href="products.html">📦 产品管理</a>
+    <a class="nav-link" href="inquiries.html">📧 订购咨询</a>
+    <a class="nav-link active" href="channels.html">🛒 购买渠道</a>
+    <a class="nav-link" href="recipes.html">🍳 食谱管理</a>
+    <a class="nav-link" href="contact.html">📇 联系信息</a>
+    <a class="nav-link" href="social.html">📱 社交媒体</a>
+    <a class="nav-link" href="settings.html">⚙️ 系统设置</a>
+    <a class="nav-link" href="../index.html" target="_blank">🌐 查看网站</a>
+  </nav>
+</div>
+
+<div class="admin-main">
+  <div class="admin-header">
+    <h4>🛒 购买渠道管理</h4>
+    <div>
+      <span class="me-3 text-muted" id="userEmail" style="font-size:0.85rem;"></span>
+      <a class="btn-signout" href="#" onclick="handleSignOut()">退出登录</a>
+    </div>
+  </div>
+
+  <div class="content-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <h5 style="margin:0;font-weight:700;">Purchase Channels Management</h5>
+        <p style="margin:4px 0 0;font-size:0.82rem;color:#94a3b8;">管理产品在各线上销售平台的购买链接和价格（Amazon、Walmart、TikTok Shop 等）</p>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">＋ 添加渠道</button>
+    </div>
+
+    <!-- Filter -->
+    <div class="row" style="margin-bottom:16px;">
+      <div class="col" style="max-width:320px;">
+        <label class="form-label">筛选产品</label>
+        <select class="form-select" id="filterProduct" onchange="renderChannels()">
+          <option value="">全部产品</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>产品</th>
+            <th>渠道</th>
+            <th>Logo/Icon</th>
+            <th>网址</th>
+            <th>价格</th>
+            <th>排序</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="channelsTable">
+          <tr><td colspan="8" style="padding:40px;text-align:center;color:#94a3b8;">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SQL Setup Card -->
+  <div class="content-card" style="border-left: 4px solid var(--amber-500);">
+    <h5 style="margin:0 0 12px;font-weight:700;color:var(--tomato-800);">⚠️ Supabase 数据库设置</h5>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:12px;">
+      如果购买渠道功能无法使用，请在 Supabase SQL Editor 中执行以下 SQL：
+    </p>
+    <div class="sql-hint" id="sqlText"></div>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="copySql()">📋 复制 SQL</button>
+  </div>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this) closeModal()">
+  <div class="modal-box">
+    <h5 id="modalTitle">添加购买渠道</h5>
+    <form id="channelForm" onsubmit="saveChannel(event)">
+      <input type="hidden" id="channelId">
+      <div class="row">
+        <div class="col">
+          <label class="form-label">产品 *</label>
+          <select class="form-select" id="chProductId" required></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label class="form-label">平台 *</label>
+          <select class="form-select" id="chName" required onchange="onPlatformPick()">
+            <option value="">-- 选择平台 --</option>
+          </select>
+        </div>
+        <div class="col">
+          <label class="form-label">价格 *</label>
+          <input class="form-control" id="chPrice" placeholder="$49.99" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label class="form-label">购买链接 *</label>
+          <input class="form-control" id="chUrl" type="url" placeholder="https://..." required>
+        </div>
+        <div class="col">
+          <label class="form-label">排序</label>
+          <input class="form-control" id="chOrder" type="number" value="1" min="0">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label class="form-label">状态</label>
+          <select class="form-select" id="chActive">
+            <option value="true">启用</option>
+            <option value="false">停用</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex" style="justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-msg" id="toast"></div>
+
+<script>
+// ---- Predefined Platforms ----
+const PLATFORMS = [
+  { name: 'Amazon',        icon: '🅰',  color: '#FF9900', domain: 'amazon.com' },
+  { name: 'Walmart',       icon: '🅆',  color: '#0071DC', domain: 'walmart.com' },
+  { name: 'Home Depot',    icon: '🄷',  color: '#F96302', domain: 'homedepot.com' },
+  { name: 'Wayfair',       icon: 'Ⓦ',  color: '#7F187F', domain: 'wayfair.com' },
+  { name: 'Target',        icon: 'Ⓣ',  color: '#CC0000', domain: 'target.com' },
+  { name: 'eBay',          icon: '🅴',  color: '#E53238', domain: 'ebay.com' },
+  { name: 'Costco',        icon: '🄲',  color: '#AE1F23', domain: 'costco.com' },
+  { name: 'Best Buy',      icon: '🅱',  color: '#0046BE', domain: 'bestbuy.com' },
+  { name: "Lowe's",        icon: '🄻',  color: '#004990', domain: 'lowes.com' },
+  { name: 'Alibaba',       icon: '🄰',  color: '#FF6A00', domain: 'alibaba.com' },
+  { name: 'AliExpress',    icon: '🄰',  color: '#E62E04', domain: 'aliexpress.com' },
+  { name: 'Shopify Store', icon: '🅂',  color: '#96BF48', domain: 'myshopify.com' },
+  { name: 'TikTok Shop',   icon: '🎵',  color: '#000000', domain: 'tiktok.com' },
+];
+
+function populatePlatformSelect(selectEl, selectedVal) {
+  selectEl.innerHTML = '<option value="">-- 选择平台 --</option>' +
+    PLATFORMS.map(p => {
+      const sel = p.name === selectedVal ? ' selected' : '';
+      return `<option value="${p.name}" data-icon="${p.icon}" data-color="${p.color}"${sel}>${p.icon} ${p.name}</option>`;
+    }).join('');
+}
+
+function onPlatformPick() {
+  // Icon is saved from opt.dataset.icon when form submits — no separate field needed
+}
+
+let channels = [];
+let editingId = null;
+
+const SQL = `-- Create purchase_channels table
+CREATE TABLE IF NOT EXISTS purchase_channels (
+  id BIGSERIAL PRIMARY KEY,
+  product_id TEXT NOT NULL,
+  channel_name TEXT NOT NULL,
+  channel_icon TEXT DEFAULT '🛒',
+  channel_price TEXT NOT NULL,
+  channel_url TEXT NOT NULL,
+  display_order INTEGER DEFAULT 1,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS: allow anonymous read, authenticated write
+ALTER TABLE purchase_channels ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read active channels"
+  ON purchase_channels FOR SELECT
+  USING (true);
+
+CREATE POLICY "Authenticated users can insert channels"
+  ON purchase_channels FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can update channels"
+  ON purchase_channels FOR UPDATE
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can delete channels"
+  ON purchase_channels FOR DELETE
+  USING (auth.role() = 'authenticated');`;
+
+document.getElementById('sqlText').textContent = SQL;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function copySql() {
+  navigator.clipboard.writeText(SQL).then(() => showToast('SQL 已复制到剪贴板'));
+}
+
+async function loadData() {
+  initSupabase();
+  const session = await requireAuth();
+  if (!session) return;
+  const user = await getCurrentUser();
+  document.getElementById('userEmail').textContent = user?.email || '';
+
+  // Wait for products
+  if (typeof products === 'undefined' || products.length === 0) {
+    await new Promise((resolve) => {
+      const iv = setInterval(() => {
+        if (typeof products !== 'undefined' && products.length > 0) { clearInterval(iv); resolve(); }
+      }, 200);
+    });
+  }
+
+  // Populate product filter dropdown
+  const select = document.getElementById('filterProduct');
+  const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
+  const cats = {};
+  products.forEach(p => {
+    if (!cats[p.category]) { cats[p.category] = []; }
+    cats[p.category].push(p);
+  });
+  let opts = '<option value="">全部产品</option>';
+  Object.entries(cats).forEach(([catKey, catProds]) => {
+    opts += `<optgroup label="${catLabels[catKey] || catKey}">`;
+    catProds.forEach(p => { opts += `<option value="${p.id}">#${p.id} ${p.name}</option>`; });
+    opts += '</optgroup>';
+  });
+  select.innerHTML = opts;
+
+  // Populate modal product dropdown
+  document.getElementById('chProductId').innerHTML = opts;
+
+  // Populate platform dropdown in modal
+  populatePlatformSelect(document.getElementById('chName'), '');
+
+  // Load channels
+  await refreshChannels();
+}
+
+async function refreshChannels() {
+  if (typeof fetchAllChannelsAdmin === 'function') {
+    try {
+      const data = await fetchAllChannelsAdmin();
+      if (data && data.length > 0) channels = data;
+    } catch(e) { console.log('Supabase channels not available'); }
+  }
+  renderChannels();
+}
+
+function getProductName(pid) {
+  const p = products.find(pr => String(pr.id) === String(pid));
+  return p ? `#${p.id} ${p.name}` : `#${pid}`;
+}
+
+function getProductCat(pid) {
+  const p = products.find(pr => String(pr.id) === String(pid));
+  if (!p) return '';
+  const map = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
+  return map[p.category] || p.category;
+}
+
+function renderChannels() {
+  const filter = document.getElementById('filterProduct').value;
+  const filtered = filter ? channels.filter(c => String(c.product_id) === String(filter)) : channels;
+
+  const tbody = document.getElementById('channelsTable');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="padding:40px;text-align:center;color:#94a3b8;">暂无购买渠道，点击"＋ 添加渠道"创建。</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => {
+    const pf = PLATFORMS.find(p => p.name === c.channel_name);
+    const icon = pf ? pf.icon : (c.channel_icon || '🛒');
+    const color = pf ? pf.color : '#666';
+    return `
+    <tr>
+      <td>
+        <span style="font-weight:600;">${getProductName(c.product_id)}</span>
+        <br><small style="color:#94a3b8;">${getProductCat(c.product_id)}</small>
+      </td>
+      <td>
+        <span style="display:inline-flex;align-items:center;gap:5px;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:${color};color:#fff;font-size:0.7rem;font-weight:700;">${icon}</span>
+          <strong>${escapeHtml(c.channel_name)}</strong>
+        </span>
+      </td>
+      <td>
+        <a href="${escapeHtml(c.channel_url)}" target="_blank" style="font-size:0.8rem;max-width:220px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tomato-700);">${escapeHtml(c.channel_url)}</a>
+      </td>
+      <td style="font-weight:700;color:var(--tomato-700);">${escapeHtml(c.channel_price)}</td>
+      <td>${c.display_order || 1}</td>
+      <td><span class="badge ${c.is_active ? 'badge-active' : 'badge-inactive'}">${c.is_active ? '启用' : '停用'}</span></td>
+      <td>
+        <div class="flex">
+          <button class="btn btn-outline btn-sm" onclick="openEditModal(${c.id})">编辑</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteChannel(${c.id})">删除</button>
+        </div>
+      </td>
+    </tr>
+  `}).join('');
+}
+
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '添加购买渠道';
+  document.getElementById('channelId').value = '';
+  populatePlatformSelect(document.getElementById('chName'), '');
+  document.getElementById('chPrice').value = '';
+  document.getElementById('chUrl').value = '';
+  document.getElementById('chOrder').value = channels.length + 1;
+  document.getElementById('chActive').value = 'true';
+  document.getElementById('modal').classList.add('show');
+}
+
+function openEditModal(id) {
+  const c = channels.find(ch => ch.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = '编辑购买渠道';
+  document.getElementById('channelId').value = c.id;
+  document.getElementById('chProductId').value = c.product_id;
+  populatePlatformSelect(document.getElementById('chName'), c.channel_name);
+  document.getElementById('chPrice').value = c.channel_price;
+  document.getElementById('chUrl').value = c.channel_url;
+  document.getElementById('chOrder').value = c.display_order || 1;
+  document.getElementById('chActive').value = String(c.is_active);
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+async function saveChannel(e) {
+  e.preventDefault();
+  const sel = document.getElementById('chName');
+  const opt = sel?.selectedOptions[0];
+  const channel = {
+    product_id: document.getElementById('chProductId').value,
+    channel_name: sel?.value || '',
+    channel_icon: opt?.dataset?.icon || '',
+    channel_price: document.getElementById('chPrice').value.trim(),
+    channel_url: document.getElementById('chUrl').value.trim(),
+    display_order: parseInt(document.getElementById('chOrder').value) || 1,
+    is_active: document.getElementById('chActive').value === 'true'
+  };
+
+  if (!channel.channel_name) { showToast('请选择平台'); return; }
+  if (editingId) { channel.id = editingId; }
+
+  if (typeof upsertPurchaseChannel === 'function') {
+    const { error } = await upsertPurchaseChannel(channel);
+    if (error) { showToast('保存失败：' + error.message); return; }
+    showToast(editingId ? '渠道已更新！' : '渠道已创建！');
+  } else {
+    // Local fallback
+    if (editingId) {
+      const idx = channels.findIndex(c => c.id === editingId);
+      if (idx >= 0) channels[idx] = { ...channels[idx], ...channel };
+    } else {
+      channel.id = channels.length > 0 ? Math.max(...channels.map(c => c.id)) + 1 : 1;
+      channels.push(channel);
+    }
+    showToast('渠道已保存（本地模式）');
+  }
+
+  closeModal();
+  await refreshChannels();
+}
+
+async function deleteChannel(id) {
+  if (!confirm('确认删除此购买渠道？')) return;
+  if (typeof deletePurchaseChannel === 'function') {
+    const { error } = await deletePurchaseChannel(id);
+    if (error) { showToast('删除失败：' + error.message); return; }
+    showToast('渠道已删除！');
+  } else {
+    channels = channels.filter(ch => ch.id !== id);
+    showToast('渠道已删除（本地模式）');
+  }
+  await refreshChannels();
+}
+
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+async function handleSignOut() {
+  await signOut();
+  window.location.href = 'login.html';
+}
+
+// Init
+loadData();
+</script>
+</body>
+</html>

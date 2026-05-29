@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - TomaChef Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js"></script>
+  <style>
+    :root {
+      --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
+      --amber-500: #f59e0b; --amber-600: #d97706;
+    }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .admin-sidebar {
+      background: var(--tomato-950);
+      min-height: 100vh;
+      padding: 24px 0;
+      position: fixed;
+      width: 240px;
+    }
+    .admin-sidebar .brand { color: white; font-weight: 800; font-size: 1.2rem; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .admin-sidebar .brand span { color: var(--amber-500); }
+    .admin-sidebar .nav-link {
+      color: rgba(255,255,255,0.6);
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      display: block; text-decoration: none;
+    }
+    .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border-left-color: var(--amber-500);
+    }
+    .admin-main { margin-left: 240px; padding: 32px; }
+    .admin-header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .admin-header h4 { font-weight: 700; color: var(--tomato-800); margin: 0; }
+    .btn-signout { color: #64748b; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+    .btn-signout:hover { color: #dc2626; }
+    .content-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+    }
+    .content-card h5 { font-weight: 700; color: var(--tomato-800); margin-bottom: 16px; }
+    .form-label { font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 6px; }
+    .form-control {
+      width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+      font-size: 0.9rem; transition: border-color 0.2s; background: white;
+    }
+    .form-control:focus { border-color: var(--tomato-700); outline: none; box-shadow: 0 0 0 3px rgba(185,28,28,0.1); }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; transition: all 0.2s; }
+    .btn-primary { background: var(--tomato-700); color: white; }
+    .btn-primary:hover { background: var(--tomato-800); }
+    .btn-outline { background: white; border: 1px solid #e2e8f0; color: #1e293b; }
+    .btn-outline:hover { border-color: var(--tomato-700); color: var(--tomato-700); }
+    .hint { font-size: 0.8rem; color: #94a3b8; margin-top: 6px; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status-dot.green { background: #22c55e; }
+    .status-dot.gray { background: #94a3b8; }
+    .sql-block {
+      background: #1e293b; color: #e2e8f0; padding: 16px;
+      border-radius: 8px; font-family: monospace; font-size: 0.8rem;
+      overflow-x: auto; white-space: pre-wrap; margin-top: 12px;
+    }
+    .toast-msg {
+      position: fixed; top: 24px; right: 24px; z-index: 9999;
+      padding: 14px 24px; border-radius: 10px; color: white;
+      font-weight: 600; font-size: 0.9rem; display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .toast-msg.success { background: #16a34a; }
+    .toast-msg.error { background: #dc2626; }
+  </style>
+</head>
+<body>
+
+<div class="admin-sidebar">
+  <div class="brand"><img src="../images/logo.jpg" alt="TomaChef" style="height:36px;width:auto;margin-bottom:8px;"><br>TomaChef Admin</div>
+  <nav class="nav flex-column">
+    <a class="nav-link" href="dashboard.html">📊 仪表盘</a>
+    <a class="nav-link" href="products.html">📦 产品管理</a>
+    <a class="nav-link" href="inquiries.html">📧 订购咨询</a>
+    <a class="nav-link" href="channels.html">🛒 购买渠道</a>
+    <a class="nav-link" href="recipes.html">🍳 食谱管理</a>
+    <a class="nav-link" href="contact.html">📇 联系信息</a>
+    <a class="nav-link" href="social.html">📱 社交媒体</a>
+    <a class="nav-link active" href="settings.html">⚙️ 系统设置</a>
+    <a class="nav-link" href="../index.html" target="_blank">🌐 查看网站</a>
+  </nav>
+</div>
+
+<div class="admin-main">
+  <div class="admin-header">
+    <h4>⚙️ 系统设置</h4>
+    <div>
+      <span class="me-3 text-muted" id="userEmail" style="font-size:0.85rem;"></span>
+      <a class="btn-signout" href="#" onclick="handleSignOut()">退出登录</a>
+    </div>
+  </div>
+
+  <!-- Notification Email -->
+  <div class="content-card">
+    <h5>📧 通知邮箱</h5>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:16px;">
+      客户提交批发询价或订单时，通知将发送至此邮箱。也可在 <a href="inquiries.html">订购咨询</a> 页面查看所有提交。
+    </p>
+    <form id="emailForm" onsubmit="saveEmail(event)">
+      <div style="margin-bottom:16px;">
+        <label class="form-label">接收通知的邮箱地址</label>
+        <input type="email" class="form-control" id="notificationEmail" placeholder="例如 sales@tomachef.com" required>
+        <div class="hint" id="emailHint"></div>
+      </div>
+      <button type="submit" class="btn btn-primary">💾 保存设置</button>
+    </form>
+  </div>
+
+  <!-- SQL Setup -->
+  <div class="content-card">
+    <h5>🛢️ 数据库初始化</h5>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:12px;">
+      在 Supabase SQL Editor 中运行以下 SQL 来创建所需的数据表：
+    </p>
+    <div class="sql-block" id="sqlBlock"></div>
+    <button class="btn btn-outline" style="margin-top:12px;" onclick="copySQL()">📋 复制 SQL</button>
+  </div>
+</div>
+
+<div class="toast-msg" id="toast"></div>
+
+<script>
+const SQL = `-- Site settings table (key-value store)
+CREATE TABLE IF NOT EXISTS site_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Default notification email
+INSERT INTO site_settings (key, value)
+VALUES ('notification_email', '')
+ON CONFLICT (key) DO NOTHING;
+
+-- RLS
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read settings"
+  ON site_settings FOR SELECT
+  USING (true);
+
+CREATE POLICY "Authenticated users can update settings"
+  ON site_settings FOR UPDATE
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can insert settings"
+  ON site_settings FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- Orders table (wholesale inquiries)
+CREATE TABLE IF NOT EXISTS orders (
+  id BIGSERIAL PRIMARY KEY,
+  product_id TEXT,
+  product_name TEXT,
+  quantity INTEGER,
+  notes TEXT,
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  company TEXT,
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can insert orders"
+  ON orders FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can read orders"
+  ON orders FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can update orders"
+  ON orders FOR UPDATE
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can delete orders"
+  ON orders FOR DELETE
+  USING (auth.role() = 'authenticated');`;
+
+document.getElementById('sqlBlock').textContent = SQL;
+
+(async () => {
+  initSupabase();
+  const session = await requireAuth();
+  if (!session) return;
+
+  const user = await getCurrentUser();
+  document.getElementById('userEmail').textContent = user?.email || '';
+  loadSettings();
+})();
+
+async function loadSettings() {
+  if (typeof fetchSiteSettings === 'function') {
+    try {
+      const settings = await fetchSiteSettings();
+      const email = settings['notification_email'] || '';
+      document.getElementById('notificationEmail').value = email;
+      const hint = document.getElementById('emailHint');
+      if (email) {
+        hint.innerHTML = '<span class="status-dot green"></span> 邮箱已配置 — 询价将发送至此地址';
+      } else {
+        hint.innerHTML = '<span class="status-dot gray"></span> 未设置邮箱。询价仍会保存在数据库中。';
+      }
+    } catch(e) {
+      console.log('Settings not available from Supabase');
+    }
+  }
+}
+
+async function saveEmail(e) {
+  e.preventDefault();
+  const email = document.getElementById('notificationEmail').value.trim();
+  if (!email) { showToast('请输入邮箱地址', 'error'); return; }
+
+  if (typeof updateSiteSetting === 'function') {
+    const { error } = await updateSiteSetting('notification_email', email);
+    if (error) { showToast('保存失败：' + error.message, 'error'); return; }
+    showToast('✅ 通知邮箱已保存！', 'success');
+    loadSettings();
+  } else {
+    showToast('⚠️ Supabase 未连接', 'error');
+  }
+}
+
+function copySQL() {
+  navigator.clipboard.writeText(SQL).then(() => showToast('✅ SQL 已复制！', 'success'));
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast-msg ' + type;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+async function handleSignOut() {
+  await signOut();
+  window.location.href = 'login.html';
+}
+</script>
+</body>
+</html>

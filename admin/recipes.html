@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Management - TomaChef Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js"></script>
+  <style>
+    :root {
+      --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
+      --amber-500: #f59e0b; --amber-600: #d97706;
+    }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .admin-sidebar {
+      background: var(--tomato-950);
+      min-height: 100vh;
+      padding: 24px 0;
+      position: fixed;
+      width: 240px;
+    }
+    .admin-sidebar .brand { color: white; font-weight: 800; font-size: 1.2rem; padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .admin-sidebar .brand span { color: var(--amber-500); }
+    .admin-sidebar .nav-link {
+      color: rgba(255,255,255,0.6);
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      display: block; text-decoration: none;
+    }
+    .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border-left-color: var(--amber-500);
+    }
+    .admin-main { margin-left: 240px; padding: 32px; }
+    .admin-header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .admin-header h4 { font-weight: 700; color: var(--tomato-800); margin: 0; }
+    .btn-signout { color: #64748b; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+    .btn-signout:hover { color: #dc2626; }
+    .content-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .btn-add { background: var(--amber-500); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
+    .btn-add:hover { background: var(--amber-600); }
+    .btn-save { background: var(--tomato-700); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
+    .btn-save:hover { background: var(--tomato-800); }
+    .btn-edit { color: var(--tomato-700); cursor: pointer; font-size: 0.85rem; }
+    .btn-edit:hover { color: var(--amber-500); }
+    .btn-del { color: #dc2626; cursor: pointer; font-size: 0.85rem; }
+    .btn-del:hover { color: #991b1b; }
+    .category-airfryer { background: #fee2e2; color: #b91c1c; }
+    .category-airfryeroven { background: #fef3c7; color: #b45309; }
+    .category-toaster { background: #dcfce7; color: #166534; }
+
+    .emoji-display { font-size: 1.6rem; }
+
+    /* Thumbnail */
+    .img-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #f1f5f9; }
+
+    /* Image upload area */
+    .img-upload-area {
+      border: 2px dashed #e2e8f0; border-radius: 10px; padding: 16px;
+      text-align: center; cursor: pointer; transition: all 0.2s;
+      background: #f8fafc; position: relative;
+    }
+    .img-upload-area:hover { border-color: var(--amber-500); background: #fffbeb; }
+    .img-upload-area.has-image { border-style: solid; border-color: #22c55e; }
+    .img-preview { max-height: 120px; border-radius: 8px; display: none; }
+    .img-preview.show { display: inline-block; }
+    .img-upload-area .placeholder-text { color: #94a3b8; font-size: 0.85rem; }
+    .img-upload-area.has-image .placeholder-text { display: none; }
+    .btn-remove-img {
+      position: absolute; top: 8px; right: 8px;
+      background: #dc2626; color: white; border: none;
+      border-radius: 50%; width: 22px; height: 22px;
+      font-size: 0.7rem; cursor: pointer; display: none;
+      align-items: center; justify-content: center; line-height: 1;
+    }
+    .img-upload-area.has-image .btn-remove-img { display: flex; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-dialog-custom {
+      background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 820px;
+      max-height: 88vh; overflow-y: auto;
+    }
+    .modal-dialog-custom h5 { font-weight: 700; color: var(--tomato-800); margin-bottom: 20px; }
+
+    /* Toast */
+    .toast-msg {
+      position: fixed; bottom: 30px; right: 30px;
+      background: #1d1d1f; color: #fff; padding: 12px 20px;
+      border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 9999; opacity: 0; transform: translateY(20px);
+      transition: all 0.3s;
+    }
+    .toast-msg.show { opacity: 1; transform: translateY(0); }
+
+    .badge-cat { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .form-label { font-weight: 600; font-size: 0.85rem; }
+
+    @media (max-width: 768px) {
+      .admin-sidebar { width: 100%; height: auto; position: static; min-height: auto; padding: 8px 0; }
+      .admin-sidebar .brand { padding: 8px 24px; }
+      .admin-sidebar .nav-link { display: inline-block; padding: 6px 12px; font-size: 0.8rem; border-left: none; border-bottom: 2px solid transparent; }
+      .admin-sidebar .nav-link.active { border-left-color: transparent; border-bottom-color: var(--amber-500); }
+      .admin-main { margin-left: 0; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-sidebar">
+  <div class="brand"><img src="../images/logo.jpg" alt="TomaChef" style="height:36px;width:auto;margin-bottom:8px;"><br>TomaChef Admin</div>
+  <nav class="nav flex-column">
+    <a class="nav-link" href="dashboard.html">📊 仪表盘</a>
+    <a class="nav-link" href="products.html">📦 产品管理</a>
+    <a class="nav-link" href="inquiries.html">📧 订购咨询</a>
+    <a class="nav-link" href="channels.html">🛒 购买渠道</a>
+    <a class="nav-link active" href="recipes.html">🍳 食谱管理</a>
+    <a class="nav-link" href="contact.html">📇 联系信息</a>
+    <a class="nav-link" href="social.html">📱 社交媒体</a>
+    <a class="nav-link" href="settings.html">⚙️ 系统设置</a>
+    <a class="nav-link" href="../index.html" target="_blank">🌐 查看网站</a>
+  </nav>
+</div>
+
+<div class="admin-main">
+  <div class="admin-header">
+    <h4>🍳 食谱管理</h4>
+    <div>
+      <button class="btn-add me-3" onclick="openAddModal()">+ 添加食谱</button>
+      <a class="btn-signout" href="#" onclick="handleLogout()">退出登录</a>
+    </div>
+  </div>
+
+  <div class="content-card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle" id="recipeTable">
+        <thead>
+          <tr>
+            <th style="width:50px">#</th>
+            <th style="width:60px">图片</th>
+            <th style="width:50px">图标</th>
+            <th>标题 (EN)</th>
+            <th style="width:120px">分类</th>
+            <th style="width:70px">状态</th>
+            <th style="width:120px">操作</th>
+          </tr>
+        </thead>
+        <tbody id="recipeTbody">
+          <tr><td colspan="7" class="text-center text-muted py-4">加载中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="recipeModal">
+  <div class="modal-dialog-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 id="modalTitle" class="mb-0">添加食谱</h5>
+      <button type="button" class="btn-close" onclick="closeModal()"></button>
+    </div>
+
+    <input type="hidden" id="recipeId">
+    <input type="hidden" id="recipeImageUrl" value="">
+    <div class="row g-3 mb-4">
+      <div class="col-md-2">
+        <label class="form-label">Emoji</label>
+        <input type="text" class="form-control" id="recipeEmoji" placeholder="🍳" maxlength="2">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">分类</label>
+        <select class="form-control" id="recipeCat">
+          <option value="airfryer">Air Fryer</option>
+          <option value="airfryeroven">Air Fryer Oven</option>
+          <option value="toaster">Toaster</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">排序</label>
+        <input type="number" class="form-control" id="recipeOrder" value="0" min="0">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">上架</label>
+        <select class="form-control" id="recipeActive">
+          <option value="true">是</option>
+          <option value="false">否</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">食谱图片</label>
+        <div class="img-upload-area" id="imgUploadArea" onclick="document.getElementById('imgFileInput').click()">
+          <img class="img-preview" id="imgPreview" src="" alt="Preview">
+          <span class="placeholder-text">📷 点击上传或拖拽图片</span>
+          <button class="btn-remove-img" onclick="event.stopPropagation(); removeImage()" title="移除图片">✕</button>
+        </div>
+        <input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+      </div>
+    </div>
+
+    <!-- Recipe Content (English, primary language) -->
+    <div class="mb-3">
+      <h6 class="fw-bold mb-3">食谱内容</h6>
+      <div class="mb-2">
+        <label class="form-label">标题 *</label>
+        <input type="text" class="form-control lang-title" data-lang="en">
+      </div>
+      <div class="mb-2">
+        <label class="form-label">简介</label>
+        <textarea class="form-control lang-desc" data-lang="en" rows="2"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">详细做法</label>
+        <textarea class="form-control lang-content" data-lang="en" rows="4"></textarea>
+      </div>
+    </div>
+
+    <div class="mt-4 text-end">
+      <button class="btn btn-light me-2" onclick="closeModal()">取消</button>
+      <button class="btn-save" onclick="saveRecipe()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-msg"></div>
+
+<script>
+  let editingId = null;
+
+  // === Modal helpers ===
+  function openModal() { document.getElementById('recipeModal').classList.add('show'); }
+  function closeModal() { document.getElementById('recipeModal').classList.remove('show'); }
+
+  // === Auth ===
+  async function init() {
+    const session = await requireAuth();
+    if (!session) return;
+    loadRecipes();
+  }
+
+  async function handleLogout() { await signOut(); window.location.href = 'login.html'; }
+
+  // === Image upload ===
+  function handleImageSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById('imgPreview').src = ev.target.result;
+      document.getElementById('imgPreview').classList.add('show');
+      document.getElementById('imgUploadArea').classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+    document.getElementById('imgUploadArea')._file = file;
+    document.getElementById('recipeImageUrl').value = '';
+  }
+
+  function removeImage() {
+    document.getElementById('imgPreview').src = '';
+    document.getElementById('imgPreview').classList.remove('show');
+    document.getElementById('imgUploadArea').classList.remove('has-image');
+    document.getElementById('imgUploadArea')._file = null;
+    document.getElementById('imgFileInput').value = '';
+    document.getElementById('recipeImageUrl').value = '';
+  }
+
+  async function uploadAndGetUrl() {
+    const file = document.getElementById('imgUploadArea')._file;
+    if (!file) return document.getElementById('recipeImageUrl').value || null;
+    const { url, error } = await uploadRecipeImage(file);
+    if (error) {
+      toast('图片上传失败: ' + error.message);
+      return null;
+    }
+    return url;
+  }
+
+  // === Load ===
+  async function loadRecipes() {
+    const tbody = document.getElementById('recipeTbody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">加载中…</td></tr>';
+    const recipes = await fetchAllRecipesAdmin();
+    if (!recipes.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">暂无食谱，点击「+ 添加食谱」创建</td></tr>';
+      return;
+    }
+    const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
+    const catClasses = { airfryer: 'category-airfryer', airfryeroven: 'category-airfryeroven', toaster: 'category-toaster' };
+    tbody.innerHTML = recipes.map((r, i) => {
+      const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
+      const title = (t.en && t.en.title) ? t.en.title : '—';
+      const imgHtml = r.image_url
+        ? '<img class="img-thumb" src="'+escHtml(r.image_url)+'" alt="" onerror="this.style.display=\'none\'">'
+        : '<span class="text-muted" style="font-size:0.75rem">—</span>';
+      return `<tr>
+        <td class="text-muted">${r.display_order ?? 0}</td>
+        <td>${imgHtml}</td>
+        <td><span class="emoji-display">${r.emoji || '🍳'}</span></td>
+        <td>${escHtml(title)}</td>
+        <td><span class="badge-cat ${catClasses[r.category] || ''}">${catLabels[r.category] || r.category}</span></td>
+        <td>${r.is_active ? '✅' : '❌'}</td>
+        <td>
+          <a class="btn-edit me-3" onclick="openEditModal('${r.id}')">编辑</a>
+          <a class="btn-del" onclick="confirmDelete('${r.id}','${escHtml(title)}')">删除</a>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+  // === Form ===
+  function resetForm() {
+    editingId = null;
+    document.getElementById('recipeId').value = '';
+    document.getElementById('recipeImageUrl').value = '';
+    document.getElementById('recipeEmoji').value = '';
+    document.getElementById('recipeCat').value = 'airfryer';
+    document.getElementById('recipeOrder').value = '0';
+    document.getElementById('recipeActive').value = 'true';
+    document.querySelectorAll('.lang-title, .lang-desc, .lang-content').forEach(el => el.value = '');
+    document.getElementById('modalTitle').textContent = '添加食谱';
+    removeImage();
+  }
+
+  function openAddModal() {
+    resetForm();
+    openModal();
+  }
+
+  async function openEditModal(id) {
+    const recipes = await fetchAllRecipesAdmin();
+    const r = recipes.find(rr => rr.id === id);
+    if (!r) return toast('食谱未找到');
+    editingId = id;
+    document.getElementById('recipeId').value = id;
+    document.getElementById('recipeEmoji').value = r.emoji || '';
+    document.getElementById('recipeCat').value = r.category || 'airfryer';
+    document.getElementById('recipeOrder').value = r.display_order ?? 0;
+    document.getElementById('recipeActive').value = r.is_active ? 'true' : 'false';
+
+    // Image
+    removeImage();
+    if (r.image_url) {
+      document.getElementById('recipeImageUrl').value = r.image_url;
+      document.getElementById('imgPreview').src = r.image_url;
+      document.getElementById('imgPreview').classList.add('show');
+      document.getElementById('imgUploadArea').classList.add('has-image');
+    }
+
+    // Translations (EN only)
+    const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
+    const tr = t.en || {};
+    document.querySelector('.lang-title[data-lang="en"]').value = tr.title || '';
+    document.querySelector('.lang-desc[data-lang="en"]').value = tr.description || '';
+    document.querySelector('.lang-content[data-lang="en"]').value = tr.content || '';
+
+    document.getElementById('modalTitle').textContent = '编辑食谱';
+    openModal();
+  }
+
+  async function saveRecipe() {
+    const id = editingId || undefined;
+    const translations = {
+      en: {
+        title: document.querySelector('.lang-title[data-lang="en"]').value.trim(),
+        description: document.querySelector('.lang-desc[data-lang="en"]').value.trim(),
+        content: document.querySelector('.lang-content[data-lang="en"]').value.trim()
+      }
+    };
+    if (!translations.en.title) return toast('请填写标题');
+
+    // Upload image if new file selected
+    let imageUrl = document.getElementById('recipeImageUrl').value || null;
+    const file = document.getElementById('imgUploadArea')._file;
+    if (file) {
+      const uploadedUrl = await uploadAndGetUrl();
+      if (uploadedUrl) imageUrl = uploadedUrl;
+      else return;
+    }
+
+    const recipe = {
+      id,
+      translations,
+      category: document.getElementById('recipeCat').value,
+      emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
+      image_url: imageUrl,
+      display_order: parseInt(document.getElementById('recipeOrder').value) || 0,
+      is_active: document.getElementById('recipeActive').value === 'true'
+    };
+
+    const { error } = await upsertRecipe(recipe);
+    if (error) return toast('保存失败: ' + error.message);
+    toast(editingId ? '已更新' : '已创建');
+    closeModal();
+    loadRecipes();
+  }
+
+  // === Delete ===
+  function confirmDelete(id, title) {
+    if (!confirm('确定删除「' + title + '」？此操作不可恢复。')) return;
+    deleteRecipe(id).then(({ error }) => {
+      if (error) return toast('删除失败: ' + error.message);
+      toast('已删除');
+      loadRecipes();
+    });
+  }
+
+  // === Toast ===
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2000);
+  }
+
+  init();
+</script>
+</body>
+</html>

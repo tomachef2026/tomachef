@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy Now - TomaChef</title>
+  <meta name="description" content="Shop TomaChef kitchen appliances. Select your product, choose a color, and buy from trusted retail partners worldwide.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><img src="images/logo.jpg" alt="TomaChef"></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link" href="index.html" data-i18n="nav_home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="products.html" data-i18n="nav_products">Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="recipes.html" data-i18n="nav_recipes">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html" data-i18n="nav_about">About Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html" data-i18n="nav_contact">Contact Us</a></li>
+          <li class="nav-item nav-search-item ms-lg-2 d-flex align-items-center">
+            <div class="nav-search-wrap">
+              <input type="text" id="navSearchInput" class="nav-search-input" placeholder="Search products..." autocomplete="off">
+              <span class="nav-search-icon">🔍</span>
+              <div id="navSearchResults" class="nav-search-dropdown"></div>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="lang-switcher ms-lg-2">
+              <select id="langSelect" aria-label="Language">
+                <option value="en">English</option>
+                <option value="zh">中文(简体)</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ja">日本語</option>
+                <option value="pt">Português</option>
+              </select>
+            </div>
+          </li>
+          <li class="nav-item ms-lg-2">
+            <a class="nav-link nav-cta active" href="buy.html" data-i18n="nav_inquiry">Buy Now</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== PRODUCT DETAIL SECTION ========== -->
+  <section class="section-padding" id="productDetailSection">
+    <div class="container">
+      <div class="row g-5" id="productDetailContent">
+        <!-- Left: Product Image & Colors -->
+        <div class="col-lg-6 fade-in">
+          <div class="product-detail-img-wrap" id="detailImgWrap">
+            <img id="detailProductImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Crect fill='%23f8f9fa' width='600' height='600'/%3E%3Ctext fill='%23b91c1c' x='300' y='300' text-anchor='middle' dy='.3em' font-size='120'%3E🍟%3C/text%3E%3C/svg%3E" alt="Product Image">
+            <span class="product-badge" id="detailBadge"></span>
+          </div>
+          <!-- Color Swatches -->
+          <div class="color-selector mt-4" id="colorSelector">
+            <p class="color-selector-label" data-i18n="buy_color">Color:</p>
+            <div class="color-swatches" id="colorSwatches">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <!-- Landing CTA for contact form -->
+          <div class="landing-cta-box mt-4" id="landingCTA">
+            <h5 data-i18n="buy_bulk_title">Want Bulk Pricing?</h5>
+            <p data-i18n="buy_bulk_desc">For wholesale orders (100+ units), contact our sales team for exclusive pricing and custom solutions.</p>
+            <button class="btn-buy-bulk" id="btnBulkInquiry" data-i18n="buy_bulk_btn">Request Bulk Quote</button>
+          </div>
+        </div>
+
+        <!-- Right: Product Info + Purchase Channels -->
+        <div class="col-lg-6 fade-in">
+          <div class="product-detail-info">
+            <!-- Breadcrumb -->
+            <div class="product-breadcrumb">
+              <a href="index.html" data-i18n="nav_home">Home</a> &rsaquo;
+              <a href="products.html" data-i18n="nav_products">Products</a> &rsaquo;
+              <span id="detailCatName">Air Fryer</span> &rsaquo;
+              <span id="detailTitle">Digital Air Fryer 5.8QT</span>
+            </div>
+
+            <!-- Title -->
+            <h2 class="product-detail-title" id="detailProductTitle">Digital Air Fryer 5.8QT</h2>
+
+            <!-- Price -->
+            <div class="product-price-wrap mb-4">
+              <span class="product-price" id="detailPrice">$49.99</span>
+              <span class="product-price-unit" data-i18n="buy_price_unit">/ unit</span>
+            </div>
+
+            <!-- Description -->
+            <p class="product-detail-desc" id="detailDesc">Touchscreen control with 8 smart presets. Rapid air circulation technology for healthier frying with little to no oil.</p>
+
+            <!-- Specs -->
+            <div class="product-specs-grid" id="detailSpecsGrid">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Product Videos (Google Search style) -->
+            <div class="product-videos-section mt-4" id="videoDisplaySection" style="display:none;">
+              <h5 class="channel-title" data-i18n="buy_videos_title">Product Videos</h5>
+              <div class="video-cards" id="videoCards">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Purchase Channels -->
+            <div class="channel-section mt-4">
+              <h5 class="channel-title" data-i18n="buy_channels_title">Buy From Our Retail Partners</h5>
+              <div class="channel-list" id="channelList">
+                <!-- Populated by JS / Supabase -->
+                <div class="channel-skeleton">
+                  <div class="skeleton-line" style="width:60%"></div>
+                  <div class="skeleton-line" style="width:40%"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Wholesale Inquiry -->
+            <div class="wholesale-inquiry-box mt-4">
+              <h6 data-i18n="buy_wholesale_title">Wholesale Inquiry</h6>
+              <p data-i18n="buy_wholesale_desc">Interested in ordering in bulk? Fill in your details and our sales team will get back to you within 24 hours.</p>
+              <form id="wholesaleForm" class="wholesale-form">
+                <input type="hidden" id="wsProductId" value="">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <input type="text" id="wsName" class="form-control form-control-sm" placeholder="Full Name" required>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="email" id="wsEmail" class="form-control form-control-sm" placeholder="Email" required>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" id="wsCompany" class="form-control form-control-sm" placeholder="Company">
+                  </div>
+                  <div class="col-md-6">
+                    <input type="tel" id="wsPhone" class="form-control form-control-sm" placeholder="Phone / WhatsApp">
+                  </div>
+                  <div class="col-md-6">
+                    <input type="number" id="wsQuantity" class="form-control form-control-sm" placeholder="Quantity" min="100" value="100">
+                  </div>
+                  <div class="col-12">
+                    <textarea id="wsNotes" class="form-control form-control-sm" rows="2" placeholder="Additional notes..."></textarea>
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="btn-submit btn-sm-full" data-i18n="buy_submit">Submit Order</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PRODUCT SELECTOR (when no product selected) ========== -->
+  <section class="section-padding d-none" id="productSelectorSection">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="buy_title">Place Your Order</h2>
+        <p class="subtitle" data-i18n="buy_subtitle">Select a product below to view details and purchase channels.</p>
+        <div class="divider"></div>
+      </div>
+      <div class="row" id="productSelectorGrid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FAQ SECTION ========== -->
+  <section class="section-padding" style="background: var(--bg-light);">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="faq_title">Frequently Asked Questions</h2>
+        <p class="subtitle" data-i18n="faq_subtitle">Find answers to common questions about ordering, shipping, and our products.</p>
+        <div class="divider"></div>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="faq-accordion" id="faqAccordion">
+            <!-- Dynamically loaded from Supabase -->
+            <p class="text-center text-muted py-3" id="faqLoading">Loading FAQs...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== VIDEO LIGHTBOX ========== -->
+  <div class="video-lightbox" id="videoLightbox" style="display:none;">
+    <div class="video-lightbox-overlay" onclick="closeVideoLightbox()"></div>
+    <div class="video-lightbox-content">
+      <button class="video-lightbox-close" onclick="closeVideoLightbox()">&times;</button>
+      <iframe id="videoIframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <video id="videoPlayer" controls playsinline style="display:none;width:100%;height:100%;"></video>
+    </div>
+  </div>
+
+  <!-- ========== SOCIAL MEDIA BAR ========== -->
+  <section class="social-bar" id="socialBar">
+    <div class="container">
+      <p class="social-bar-title" data-i18n="social_follow">Follow Us</p>
+      <div class="social-bar-icons" id="socialIcons">
+        <a href="#" class="social-icon-link social-fallback" data-platform="instagram" title="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="facebook"  title="Facebook"  target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="youtube"   title="YouTube"   target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 00.5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 002.12 2.14c1.87.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 002.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg></a>
+        <a href="#" class="social-icon-link social-fallback" data-platform="tiktok"    title="TikTok"    target="_blank" rel="noopener"><svg viewBox="0 0 448 512" fill="currentColor"><path d="M448 209.91a210.06 210.06 0 01-122.77-39.25V349.38A162.55 162.55 0 11185 188.31V278.2a74.62 74.62 0 1052.23 71.18V0h88a121.18 121.18 0 001.86 22.17A122.18 122.18 0 00381 102.39a121.43 121.43 0 0067 20.14z"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <a href="index.html" class="footer-brand">Toma<span>Chef</span></a>
+          <p data-i18n="footer_about">TomaChef is a professional kitchen appliance brand specializing in air fryers, air fryer ovens, and toasters for global trade.</p>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h5 data-i18n="footer_products">Products</h5>
+          <ul class="footer-links">
+            <li><a href="products.html?cat=airfryer" data-i18n="cat_airfryer">Air Fryer</a></li>
+            <li><a href="products.html?cat=airfryeroven" data-i18n="cat_airfryeroven">Air Fryer Oven</a></li>
+            <li><a href="products.html?cat=toaster" data-i18n="cat_toaster">Toaster</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h5 data-i18n="footer_quick">Quick Links</h5>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+            <li><a href="about.html" data-i18n="nav_about">About Us</a></li>
+            <li><a href="contact.html" data-i18n="nav_contact">Contact Us</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-4">
+          <h5 data-i18n="footer_contact">Contact</h5>
+          <p id="footerEmail">📧 info@tomachefappliance.com</p>
+          <p id="footerPhone">📞 +1 (857) 396-6897</p>
+          <p id="footerAddress">📍 244 Madison Avenue, Suite 1666<br>New York, NY 10016, USA</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-i18n="footer_copyright">© 2026 TomaChef International Inc. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="supabase.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- Load contact info -->
+  <script>
+  (async function loadContactInfo() {
+    initSupabase();
+    const info = await fetchContactInfo();
+    if (info.email) { const fe = document.getElementById('footerEmail'); if (fe) fe.innerHTML = '📧 ' + info.email; }
+    if (info.phone)  { const fp = document.getElementById('footerPhone'); if (fp) fp.innerHTML = '📞 ' + info.phone; }
+    if (info.address) { const fa = document.getElementById('footerAddress'); if (fa) fa.innerHTML = '📍 ' + info.address.replace(/\n/g, '<br>'); }
+  })();
+  </script>
+
+  <!-- ========== PRODUCT DETAIL LOGIC ========== -->
+  <script>
+  (function initProductDetail() {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product');
+    let currentProduct = null;
+    let selectedColor = 0;
+
+    const VIDEO_PLATFORMS = [
+      { name: 'YouTube', icon: '▶️', color: '#FF0000' },
+      { name: 'Vimeo',   icon: '🎬', color: '#1AB7EA' },
+      { name: '本地上传', icon: '📁', color: '#10b981' },
+      { name: 'Other',   icon: '🎥', color: '#666' },
+    ];
+
+    function escapeAttr(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Wait for products to load
+    const waitForProducts = setInterval(() => {
+      if (typeof products !== 'undefined' && products.length > 0) {
+        clearInterval(waitForProducts);
+        if (productId) {
+          showProductDetail(productId);
+        } else {
+          showProductSelector();
+        }
+      }
+    }, 200);
+
+    function showProductDetail(pid) {
+      const p = products.find(pr => String(pr.id) === String(pid));
+      if (!p) { showProductSelector(); return; }
+      currentProduct = p;
+
+      document.getElementById('productSelectorSection').classList.add('d-none');
+      document.getElementById('productDetailSection').classList.remove('d-none');
+
+      const lang = getCurrentLang();
+      const name = getLocalizedName(p, lang);
+      const desc = getLocalizedDesc(p, lang);
+      const catName = getCategoryLabel(p.category, lang);
+      const price = p.price || '$--';
+
+      // Breadcrumb
+      document.getElementById('detailCatName').textContent = catName;
+      document.getElementById('detailTitle').textContent = name;
+
+      // Title
+      document.getElementById('detailProductTitle').textContent = name;
+      document.getElementById('detailDesc').textContent = desc;
+      document.getElementById('detailPrice').textContent = price;
+
+      // Badge
+      const badge = document.getElementById('detailBadge');
+      if (p.badge) { badge.textContent = p.badge; badge.style.display = 'block'; }
+      else { badge.style.display = 'none'; }
+
+      // Image
+      const img = document.getElementById('detailProductImg');
+      if (p.image_url) {
+        img.src = p.image_url;
+      } else {
+        const icon = p.icon || '🍳';
+        img.src = "data:image/svg+xml," + encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><rect fill="#f8f9fa" width="600" height="600"/><text fill="#b91c1c" x="300" y="300" text-anchor="middle" dy=".3em" font-size="140">${icon}</text></svg>`
+        );
+      }
+
+      // Color swatches
+      renderColorSwatches(p.colors || [{name:'Default', hex:'#b91c1c'}]);
+
+      // Specs grid
+      renderSpecsGrid(p.specs, lang);
+
+      // Purchase channels
+      loadPurchaseChannels(pid);
+
+      // Videos
+      loadProductVideos(pid);
+
+      // Bulk inquiry
+      document.getElementById('wsProductId').value = pid;
+    }
+
+    function showProductSelector() {
+      document.getElementById('productDetailSection').classList.add('d-none');
+      document.getElementById('productSelectorSection').classList.remove('d-none');
+
+      const lang = getCurrentLang();
+      const grid = document.getElementById('productSelectorGrid');
+      const html = products.filter(p => p.active !== false).map(p => {
+        const name = getLocalizedName(p, lang);
+        const desc = getLocalizedDesc(p, lang);
+        const icon = p.icon || '🍳';
+        const price = p.price || '';
+        const imgContent = p.image_url
+          ? `<img src="${p.image_url}" alt="${escapeHtml(name)}" style="width:100%;height:180px;object-fit:cover;border-radius:8px 8px 0 0;">`
+          : `<div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;border-radius:8px 8px 0 0;font-size:4rem;">${icon}</div>`;
+        return `<div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+          <div class="product-selector-card" onclick="window.location='buy.html?product=${p.id}'" style="cursor:pointer;">
+            ${imgContent}
+            <div class="p-3">
+              <h6 style="margin:0;font-size:0.9rem;font-weight:600;color:var(--gray-800);">${escapeHtml(name)}</h6>
+              <p style="margin:4px 0 0;font-size:0.8rem;color:var(--gray-500);">${escapeHtml(desc)}</p>
+              ${price ? `<span style="color:var(--tomato-700);font-weight:700;font-size:1rem;margin-top:8px;display:block;">${escapeHtml(price)}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      grid.innerHTML = html;
+    }
+
+    function renderColorSwatches(colors) {
+      const container = document.getElementById('colorSwatches');
+      const lang = getCurrentLang();
+      const t = (translations && translations[lang]) ? translations[lang] : {};
+      if (!colors || colors.length === 0) {
+        document.getElementById('colorSelector').style.display = 'none';
+        return;
+      }
+      document.getElementById('colorSelector').style.display = 'block';
+      container.innerHTML = colors.map((c, i) => `
+        <button class="color-swatch ${i === selectedColor ? 'active' : ''}"
+          style="background-color:${c.hex}"
+          title="${c.name}"
+          onclick="selectColor(${i})"
+          aria-label="Color: ${c.name}">
+          ${i === selectedColor ? '<span class="swatch-check">✓</span>' : ''}
+        </button>
+      `).join('');
+
+      // Color name display
+      const label = document.querySelector('.color-selector-label');
+      const colorName = colors[selectedColor]?.name || 'Default';
+      if (label) label.textContent = (t['buy_color'] || 'Color') + ': ' + colorName;
+    }
+
+    function getCategoryLabel(cat, lang) {
+      const t = (translations && translations[lang]) ? translations[lang] : {};
+      const map = { airfryer: t['filter_airfryer'] || 'Air Fryer', airfryeroven: t['filter_airfryeroven'] || 'Air Fryer Oven', toaster: t['filter_toaster'] || 'Toaster' };
+      return map[cat] || cat;
+    }
+
+    function renderSpecsGrid(specs, lang) {
+      const grid = document.getElementById('detailSpecsGrid');
+      if (!specs || typeof specs !== 'object') { grid.innerHTML = ''; return; }
+      grid.innerHTML = Object.entries(specs).map(([k, v]) => {
+        const label = k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
+        return `<div class="spec-item"><span class="spec-label">${label}</span><span class="spec-value">${v}</span></div>`;
+      }).join('');
+    }
+
+    async function loadPurchaseChannels(pid) {
+      const list = document.getElementById('channelList');
+      list.innerHTML = '<div class="channel-skeleton"><div class="skeleton-line" style="width:60%"></div><div class="skeleton-line" style="width:40%"></div></div>';
+
+      let channels = [];
+
+      // Try Supabase first
+      if (typeof fetchPurchaseChannels === 'function') {
+        try {
+          const data = await fetchPurchaseChannels(pid);
+          if (data && data.length > 0) channels = data;
+        } catch(e) { console.log('Supabase channels not available, using fallback'); }
+      }
+
+      // No fallback - channels must be added via Admin backend
+
+      if (channels.length === 0) {
+        list.innerHTML = '<p class="text-muted" data-i18n="buy_no_channels">No purchase channels available for this product yet.</p>';
+        return;
+      }
+
+      const lang = getCurrentLang();
+      const t = (translations && translations[lang]) ? translations[lang] : {};
+      const buyText = t['buy_channel_btn'] || 'Buy Now';
+
+      list.innerHTML = channels.map(ch => `
+        <div class="channel-card">
+          <div class="channel-card-left">
+            <span class="channel-icon">${ch.channel_icon || '🛒'}</span>
+            <div class="channel-info">
+              <span class="channel-name">${escapeHtml(ch.channel_name)}</span>
+              <span class="channel-depart">${t['buy_channel_depart'] || 'Appliances'}</span>
+            </div>
+          </div>
+          <div class="channel-card-right">
+            <span class="channel-price">${escapeHtml(ch.channel_price || '$--')}</span>
+            <a href="${ch.channel_url || '#'}" class="btn-channel-buy" target="_blank" rel="noopener">${buyText}</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ---- Video Functions ----
+    async function loadProductVideos(pid) {
+      const section = document.getElementById('videoDisplaySection');
+      const cards = document.getElementById('videoCards');
+
+      if (!section || !cards) return;
+
+      let videos = [];
+      if (typeof fetchProductVideos === 'function') {
+        try { videos = await fetchProductVideos(pid); } catch(e) {}
+      }
+
+      if (!videos || videos.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      cards.innerHTML = videos.map((v, idx) => {
+        const pf = VIDEO_PLATFORMS.find(p => p.name === v.platform);
+        const platformIcon = pf ? pf.icon : '🎥';
+        const platformName = pf ? pf.name : (v.platform || 'Video');
+        const isLocal = platformName === '本地上传';
+
+        // YouTube thumbnail: try img.youtube.com/vi/{id}/hqdefault.jpg
+        let thumbUrl = v.thumbnail_url || '';
+        if (!thumbUrl && platformName === 'YouTube') {
+          const ytId = extractYoutubeId(v.video_url);
+          if (ytId) thumbUrl = 'https://img.youtube.com/vi/' + ytId + '/hqdefault.jpg';
+        }
+        // Vimeo placeholder
+        if (!thumbUrl && platformName === 'Vimeo') {
+          thumbUrl = 'https://i.vimeocdn.com/video/default_' + (idx % 4 + 1) + '.jpg';
+        }
+        // Local upload: use solid bg with icon
+        if (!thumbUrl && isLocal) {
+          thumbUrl = '';
+        }
+        // Fallback
+        if (!thumbUrl) {
+          thumbUrl = 'data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><text fill="white" x="160" y="90" text-anchor="middle" dy=".3em" font-size="24">' + platformIcon + '</text></svg>'
+          );
+        }
+
+        const thumbHtml = isLocal
+          ? `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#064e3b,#047857);font-size:3rem;">📁</div>`
+          : `<img src="${escapeAttr(thumbUrl)}" alt="${escapeAttr(v.title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a2e;font-size:3rem;\\'>${platformIcon}</div>'">`;
+
+        return `
+          <div class="video-card" onclick="openVideoLightbox('${escapeAttr(v.video_url)}', '${escapeAttr(v.platform)}')">
+            <div class="video-thumb">
+              ${thumbHtml}
+              <div class="video-play-overlay">
+                <div class="video-play-btn">▶</div>
+              </div>
+            </div>
+            <div class="video-card-body">
+              <div class="video-card-title">${escapeHtml(v.title || 'Watch Video')}</div>
+              <div class="video-card-platform">${platformIcon} ${isLocal ? '本地视频' : platformName}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function extractYoutubeId(url) {
+      if (!url) return null;
+      const match = url.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})(?:&|$)/) ||
+                    url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+      return match ? match[1] : null;
+    }
+
+    function getEmbedUrl(videoUrl, platform) {
+      if (!videoUrl) return '';
+      if (platform === 'YouTube') {
+        const ytId = extractYoutubeId(videoUrl);
+        return ytId ? 'https://www.youtube.com/embed/' + ytId + '?autoplay=1' : videoUrl;
+      }
+      if (platform === 'Vimeo') {
+        const match = videoUrl.match(/vimeo\.com\/(\d+)/);
+        return match ? 'https://player.vimeo.com/video/' + match[1] + '?autoplay=1' : videoUrl;
+      }
+      return videoUrl;
+    }
+
+    window.openVideoLightbox = function(videoUrl, platform) {
+      const lb = document.getElementById('videoLightbox');
+      const iframe = document.getElementById('videoIframe');
+      const videoPlayer = document.getElementById('videoPlayer');
+      if (!lb) return;
+
+      const isLocal = platform === '本地上传';
+
+      if (isLocal && videoPlayer) {
+        // Local video: use <video> tag
+        iframe.style.display = 'none';
+        iframe.src = '';
+        videoPlayer.style.display = 'block';
+        videoPlayer.src = videoUrl;
+        videoPlayer.play();
+      } else if (iframe) {
+        // YouTube/Vimeo/Other: use iframe
+        if (videoPlayer) { videoPlayer.style.display = 'none'; videoPlayer.src = ''; }
+        iframe.style.display = 'block';
+        iframe.src = getEmbedUrl(videoUrl, platform);
+      }
+
+      lb.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeVideoLightbox = function() {
+      const lb = document.getElementById('videoLightbox');
+      const iframe = document.getElementById('videoIframe');
+      const videoPlayer = document.getElementById('videoPlayer');
+      if (lb) { lb.style.display = 'none'; }
+      if (iframe) { iframe.src = ''; iframe.style.display = 'block'; }
+      if (videoPlayer) { videoPlayer.src = ''; videoPlayer.style.display = 'none'; }
+      document.body.style.overflow = '';
+    };
+
+    // Color selection
+    window.selectColor = function(index) {
+      selectedColor = index;
+      if (currentProduct) {
+        renderColorSwatches(currentProduct.colors || [{name:'Default', hex:'#b91c1c'}]);
+      }
+    };
+
+    // Bulk inquiry form
+    document.getElementById('btnBulkInquiry')?.addEventListener('click', function() {
+      document.getElementById('wholesale-inquiry-box')?.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // FAQ loading
+    async function loadFaqsForBuy() {
+      const lang = getCurrentLang();
+      let faqs = [];
+      if (typeof fetchFaqs === 'function') {
+        try { faqs = await fetchFaqs(lang); } catch(e) { console.log('FAQ load failed:', e); }
+      }
+      renderFaqs(faqs, lang);
+    }
+
+    function renderFaqs(faqs, lang) {
+      const accordion = document.getElementById('faqAccordion');
+      if (!accordion) return;
+
+      if (faqs.length === 0) {
+        accordion.innerHTML = '<p class="text-center text-muted py-3">No FAQs available.</p>';
+        return;
+      }
+
+      accordion.innerHTML = faqs.map((f, i) => {
+        const localized = typeof getLocalizedFaq === 'function' ? getLocalizedFaq(f, lang) : { question: f.question, answer: f.answer };
+        const faqId = 'faq-db-' + (f.id || i);
+        return `
+          <div class="faq-item fade-in">
+            <button class="faq-question collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${faqId}">
+              <span>${escapeHtml(localized.question)}</span>
+              <span class="faq-icon">+</span>
+            </button>
+            <div id="${faqId}" class="collapse" data-bs-parent="#faqAccordion">
+              <div class="faq-answer">${escapeHtml(localized.answer)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Load FAQs on page load
+    loadFaqsForBuy();
+
+    // Re-render on language change
+    document.addEventListener('langChanged', () => {
+      loadFaqsForBuy();
+      if (currentProduct) {
+        const lang = getCurrentLang();
+        document.getElementById('detailCatName').textContent = getCategoryLabel(currentProduct.category, lang);
+        document.getElementById('detailTitle').textContent = getLocalizedName(currentProduct, lang);
+        document.getElementById('detailProductTitle').textContent = getLocalizedName(currentProduct, lang);
+        document.getElementById('detailDesc').textContent = getLocalizedDesc(currentProduct, lang);
+        renderColorSwatches(currentProduct.colors || [{name:'Default', hex:'#b91c1c'}]);
+        renderSpecsGrid(currentProduct.specs, lang);
+        loadPurchaseChannels(currentProduct.id);
+        loadProductVideos(currentProduct.id);
+      } else {
+        showProductSelector();
+      }
+    });
+  })();
+  </script>
+
+  <!-- Wholesale form submission -->
+  <script>
+  document.getElementById('wholesaleForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const lang = getCurrentLang();
+    const t = translations[lang] || translations['en'];
+
+    // Get product name for admin viewing
+    const pid = document.getElementById('wsProductId')?.value || '';
+    let productName = '';
+    if (pid && typeof products !== 'undefined') {
+      const p = products.find(pr => String(pr.id) === String(pid));
+      if (p) productName = p.name || '';
+    }
+
+    const order = {
+      product_id: pid,
+      product_name: productName,
+      quantity: parseInt(document.getElementById('wsQuantity')?.value) || 100,
+      notes: document.getElementById('wsNotes')?.value || '',
+      name: document.getElementById('wsName')?.value || '',
+      email: document.getElementById('wsEmail')?.value || '',
+      company: document.getElementById('wsCompany')?.value || '',
+      phone: document.getElementById('wsPhone')?.value || ''
+    };
+
+    if (typeof submitOrder === 'function') {
+      const { error } = await submitOrder(order);
+      if (error) console.error('Order error:', error);
+    }
+
+    // Send email notification to admin (via EmailJS if configured)
+    sendNotification(order);
+
+    showToast(t['buy_success'] || 'Your order has been submitted! Our team will contact you within 24 hours.');
+    document.getElementById('wholesaleForm').reset();
+  });
+
+  // Email notification - uses EmailJS (free tier: 200 emails/month)
+  // To enable: 1) Sign up at https://emailjs.com  2) Set up a Service + Template
+  // 3) Fill in EMAILJS_USER_ID, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID below
+  async function sendNotification(order) {
+    // Try EmailJS first
+    const EMAILJS_USER_ID = '';   // <-- Your EmailJS Public Key
+    const EMAILJS_SERVICE_ID = ''; // <-- Your EmailJS Service ID
+    const EMAILJS_TEMPLATE_ID = ''; // <-- Your EmailJS Template ID
+
+    if (EMAILJS_USER_ID && EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID) {
+      try {
+        // Dynamically load EmailJS SDK
+        if (typeof emailjs === 'undefined') {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+          });
+          emailjs.init(EMAILJS_USER_ID);
+        }
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          product_name: order.product_name || 'N/A',
+          product_id: order.product_id || 'N/A',
+          quantity: order.quantity,
+          name: order.name,
+          email: order.email,
+          company: order.company || 'N/A',
+          phone: order.phone || 'N/A',
+          notes: order.notes || 'None',
+          date: new Date().toLocaleString()
+        });
+        console.log('✅ Email notification sent');
+      } catch(e) {
+        console.log('EmailJS failed (check config):', e.message);
+      }
+    } else {
+      // Notification stored in Supabase — view in Admin > Inquiries
+      console.log('📥 Order saved. View in admin/inquiries.html');
+      if (typeof getNotificationEmail === 'function') {
+        const adminEmail = await getNotificationEmail();
+        if (adminEmail) console.log('   → Notify:', adminEmail);
+      }
+    }
+  }
+  </script>
+
+  <script src="js/social.js"></script>
+</body>
+</html>
