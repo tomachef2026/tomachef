@@ -60,21 +60,33 @@
     </div>
   </section>
 
-  <!-- ========== RECIPE CATEGORY FILTER TABS ========== -->
+  <!-- ========== PRODUCT SELECTOR ========== -->
+  <section class="section-padding" style="padding-bottom: 0;">
+    <div class="container">
+      <h3 class="section-title fade-in" data-i18n="recipes_select_product" style="margin-bottom: 24px;">Choose Your Appliance</h3>
+      <div class="recipe-product-selector fade-in" id="recipeProductSelector">
+        <div class="text-center py-4 w-100">
+          <div class="spinner-border spinner-border-sm text-muted mb-2" role="status"></div>
+          <p class="text-muted small" data-i18n="loading">Loading…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== RECIPE GRID ========== -->
   <section class="section-padding">
     <div class="container">
-      <div class="filter-tabs fade-in">
-        <button class="filter-btn active" data-filter="all" data-i18n="recipe_filter_all">All Recipes</button>
-        <button class="filter-btn" data-filter="airfryer" data-i18n="filter_airfryer">Air Fryer</button>
-        <button class="filter-btn" data-filter="airfryeroven" data-i18n="filter_airfryeroven">Air Fryer Oven</button>
-        <button class="filter-btn" data-filter="toaster" data-i18n="filter_toaster">Toaster</button>
+      <div id="recipeSectionHeader" style="display:none;">
+        <h3 class="section-title fade-in" style="margin-bottom: 8px;">
+          <span data-i18n="recipes_for">Recipes for</span>
+          <span id="selectedProductName" style="color:#b91c1c;"></span>
+        </h3>
+        <p id="selectedProductDesc" style="color:#666;margin-bottom:28px;"></p>
       </div>
 
-      <!-- Recipe Grid -->
       <div class="recipe-grid" id="recipeGrid">
         <div class="text-center py-5 w-100" style="grid-column: 1 / -1;">
-          <div class="spinner-border text-muted mb-2" role="status"></div>
-          <p class="text-muted" data-i18n="loading">Loading recipes…</p>
+          <p class="text-muted" data-i18n="recipes_select_product">Select a product above to see its recipes</p>
         </div>
       </div>
     </div>
@@ -147,131 +159,316 @@
   <script src="supabase.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/products.js"></script>
   <script>
-    /* ===== Dynamic Recipe Loading + Filter ===== */
+    /* ===== State ===== */
     let allRecipes = [];
-    let currentFilter = 'all';
+    let selectedProductId = null;
+
+    /* ===== Helper: Get translations ===== */
+    function t(key) {
+      const lang = getCurrentLang ? getCurrentLang() : 'en';
+      if (typeof translations !== 'undefined') {
+        const tx = translations[lang] || translations['en'];
+        if (tx && tx[key]) return tx[key];
+      }
+      const defaults = {
+        recipes_select_product: 'Choose Your Appliance',
+        recipes_for: 'Recipes for',
+        recipes_no_product: 'Select a product above to see its recipes',
+        recipe_ingredients: 'Ingredients',
+        recipe_directions: 'Directions',
+        recipe_tips: 'Tips',
+        recipe_mode: 'Mode',
+        recipe_temp: 'Temp',
+        recipe_time: 'Time',
+        recipe_close: 'Close',
+        recipe_view: 'View Recipe →',
+        loading: 'Loading…'
+      };
+      return defaults[key] || key;
+    }
 
     function getCatLabels(lang) {
-      const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
+      const tx = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
       return {
-        airfryer: t.recipe_tag_airfryer || 'Air Fryer',
-        airfryeroven: t.recipe_tag_oven || 'Air Fryer Oven',
-        toaster: t.recipe_tag_toaster || 'Toaster'
+        airfryer: tx.recipe_tag_airfryer || 'Air Fryer',
+        airfryeroven: tx.recipe_tag_oven || 'Air Fryer Oven',
+        toaster: tx.recipe_tag_toaster || 'Toaster'
       };
     }
 
-    async function loadRecipes() {
-      allRecipes = await fetchRecipes();
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    /* ===== Product Selector ===== */
+    function getProductsWithRecipes() {
+      // Gather all unique product_ids from recipes
+      const productIds = new Set();
+      allRecipes.forEach(r => {
+        if (r.product_id) productIds.add(r.product_id);
+      });
+
+      // Find matching products from the global `products` array (from products.js)
+      if (typeof products === 'undefined' || !products.length) return [];
+
+      return products.filter(p => productIds.has(p.id) && p.active !== false);
+    }
+
+    function renderProductSelector() {
+      const container = document.getElementById('recipeProductSelector');
+      if (!container) return;
+      const lang = getCurrentLang ? getCurrentLang() : 'en';
+
+      const productsWithRecipes = getProductsWithRecipes();
+
+      if (!productsWithRecipes.length) {
+        container.innerHTML = '<p class="text-muted text-center">No products with recipes available yet.</p>';
+        return;
+      }
+
+      container.innerHTML = productsWithRecipes.map(p => {
+        const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
+        const desc = (typeof getLocalizedDesc === 'function') ? getLocalizedDesc(p, lang) : (p.description || '');
+        const isSelected = selectedProductId === p.id;
+        const recipeCount = allRecipes.filter(r => r.product_id === p.id).length;
+        const icon = p.icon || '🍳';
+        const price = p.price || '';
+        const sku = p.sku || '';
+        const badge = p.badge || '';
+
+        // Build specs string from specs object
+        let specsHtml = '';
+        if (p.specs && typeof p.specs === 'object') {
+          specsHtml = Object.entries(p.specs).slice(0, 3).map(([k, v]) =>
+            `<span class="rpp-spec-tag">${k}: ${v}</span>`
+          ).join('');
+        }
+
+        return `<div class="recipe-product-card ${isSelected ? 'selected' : ''}"
+                    onclick="selectProduct(${p.id})"
+                    data-product-id="${p.id}">
+          <div class="recipe-product-icon">${icon}</div>
+          <div class="recipe-product-info">
+            <div class="rpp-header">
+              <h5>${escapeHtml(name)}</h5>
+              ${badge ? `<span class="rpp-badge">${badge}</span>` : ''}
+            </div>
+            <div class="rpp-meta">
+              ${sku ? `<span class="rpp-sku">SKU: ${escapeHtml(sku)}</span>` : ''}
+              ${price ? `<span class="rpp-price">${escapeHtml(price)}</span>` : ''}
+              <span class="recipe-product-count">${recipeCount} ${lang === 'zh' ? '个食谱' : 'recipes'}</span>
+            </div>
+            <p class="recipe-product-desc">${escapeHtml(desc)}</p>
+            ${specsHtml ? `<div class="rpp-specs">${specsHtml}</div>` : ''}
+          </div>
+          <div class="recipe-product-arrow">→</div>
+        </div>`;
+      }).join('');
+
+      // Auto-select first product if none selected
+      if (!selectedProductId && productsWithRecipes.length > 0) {
+        selectProduct(productsWithRecipes[0].id);
+      }
+    }
+
+    function selectProduct(productId) {
+      selectedProductId = productId;
+      const lang = getCurrentLang ? getCurrentLang() : 'en';
+
+      // Update product selector UI
+      document.querySelectorAll('.recipe-product-card').forEach(card => {
+        card.classList.toggle('selected', parseInt(card.dataset.productId) === productId);
+      });
+
+      // Update section header
+      const header = document.getElementById('recipeSectionHeader');
+      const nameEl = document.getElementById('selectedProductName');
+      const descEl = document.getElementById('selectedProductDesc');
+
+      if (header && nameEl && descEl) {
+        if (typeof products !== 'undefined' && products.length) {
+          const p = products.find(prod => prod.id === productId);
+          if (p) {
+            const pName = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
+            const pDesc = (typeof getLocalizedDesc === 'function') ? getLocalizedDesc(p, lang) : (p.description || '');
+            nameEl.textContent = pName;
+            descEl.textContent = pDesc;
+            header.style.display = 'block';
+          }
+        }
+      }
+
       renderRecipes();
+    }
+
+    /* ===== Recipe Rendering ===== */
+    async function loadRecipes() {
+      try {
+        allRecipes = await fetchRecipes();
+      } catch(e) {
+        console.warn('Supabase fetch failed, using fallback recipes:', e.message);
+        allRecipes = [];
+      }
+      // Merge fallback recipes
+      if (typeof FALLBACK_RECIPES !== 'undefined') {
+        if (!allRecipes.length) {
+          allRecipes = [...FALLBACK_RECIPES];
+        } else {
+          const existingIds = new Set(allRecipes.map(r => r.id));
+          FALLBACK_RECIPES.forEach(fr => {
+            if (!existingIds.has(fr.id)) {
+              allRecipes.push(fr);
+            }
+          });
+        }
+      }
+      renderProductSelector();
     }
 
     function renderRecipes() {
       const grid = document.getElementById('recipeGrid');
       if (!grid) return;
       const lang = getCurrentLang ? getCurrentLang() : 'en';
-      const catLabels = getCatLabels(lang);
-      const filtered = currentFilter === 'all'
-        ? allRecipes
-        : allRecipes.filter(r => r.category === currentFilter);
 
-      if (!allRecipes.length) {
-        grid.innerHTML = '<div class="text-center py-5 w-100" style="grid-column: 1 / -1;"><p class="text-muted">No recipes yet. Stay tuned!</p></div>';
+      if (!selectedProductId) {
+        grid.innerHTML = `<div class="text-center py-5 w-100" style="grid-column: 1 / -1;"><p class="text-muted">${t('recipes_no_product')}</p></div>`;
         return;
       }
 
-      const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
-        ? translations[lang].recipe_view : 'View Recipe →';
+      const filtered = allRecipes.filter(r => r.product_id === selectedProductId && r.is_active !== false);
+
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="text-center py-5 w-100" style="grid-column: 1 / -1;"><p class="text-muted">No recipes found for this product yet. Stay tuned!</p></div>';
+        return;
+      }
 
       grid.innerHTML = filtered.map(r => {
-        const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
-        const tr = t[lang] || t.en || {};
+        const trData = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
+        const tr = trData[lang] || trData['en'] || {};
         const title = tr.title || 'Untitled';
         const desc = tr.description || '';
-        const content = tr.content || '';
-        const badge = catLabels[r.category] || r.category;
-        const productName = (r.products && r.products.name) || '';
+        const mode = r.mode || '';
+        const temp = r.temp || '';
+        const cookTime = r.time || '';
+
+        // Mode/Temp/Time badges
+        let metaHtml = '';
+        if (mode || temp || cookTime) {
+          metaHtml = '<div class="recipe-meta-row">';
+          if (mode) metaHtml += `<span class="recipe-meta-badge"><span class="meta-icon">🔥</span>${escapeHtml(mode)}</span>`;
+          if (temp) metaHtml += `<span class="recipe-meta-badge"><span class="meta-icon">🌡️</span>${escapeHtml(temp)}</span>`;
+          if (cookTime) metaHtml += `<span class="recipe-meta-badge"><span class="meta-icon">⏱️</span>${escapeHtml(cookTime)}</span>`;
+          metaHtml += '</div>';
+        }
 
         const imgHtml = r.image_url
-          ? `<img src="${r.image_url}" alt="${escapeHtml(title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">`
-          : `<span class="recipe-emoji">${r.emoji || '🍳'}</span>`;
+          ? `<img src="${r.image_url}" alt="${escapeHtml(title)}" loading="lazy">`
+          : '';
 
-        return `<div class="recipe-card fade-in" data-cat="${r.category}">
-          <div class="recipe-img" style="position:relative;">
+        return `<div class="recipe-card recipe-card-new fade-in" onclick="showRecipeDetail(${r.id})">
+          <div class="recipe-img-new">
             ${imgHtml}
-            <span class="recipe-badge" style="z-index:1;">${badge}</span>
+            <span class="recipe-emoji">${r.emoji || '🍳'}</span>
           </div>
           <div class="recipe-body">
             <h5>${escapeHtml(title)}</h5>
-            ${productName ? '<p style="font-size:0.8rem;color:#b91c1c;margin-bottom:6px;">' + escapeHtml(productName) + '</p>' : ''}
-            <p>${escapeHtml(desc)}</p>
-            <span class="recipe-btn" onclick="showRecipeDetail('${escapeHtml(title).replace(/'/g, "\\'")}','${escapeHtml(desc).replace(/'/g, "\\'")}','${escapeHtml(content).replace(/'/g, "\\'").replace(/\n/g, '<br>')}')">${viewText}</span>
+            <p class="recipe-card-desc">${escapeHtml(desc)}</p>
+            ${metaHtml}
+            <span class="recipe-btn">${t('recipe_view')}</span>
           </div>
         </div>`;
       }).join('');
     }
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
+    /* ===== Recipe Detail Modal ===== */
+    function showRecipeDetail(recipeId) {
+      const recipe = allRecipes.find(r => r.id === recipeId);
+      if (!recipe) return;
+      const lang = getCurrentLang ? getCurrentLang() : 'en';
+      const trData = (typeof recipe.translations === 'string') ? JSON.parse(recipe.translations) : (recipe.translations || {});
+      const tr = trData[lang] || trData['en'] || {};
+      const title = tr.title || 'Untitled';
+      const desc = tr.description || '';
+      const mode = recipe.mode || '';
+      const temp = recipe.temp || '';
+      const cookTime = recipe.time || '';
+      const ingredients = tr.ingredients || [];
+      const directions = tr.directions || [];
+      const tips = tr.tips || [];
 
-    function showRecipeDetail(title, desc, content) {
-      // Simple recipe detail: show in a Bootstrap-like inline card or modal
-      if (!content) {
-        alert(title + '\n\n' + desc);
-        return;
+      let headerBadges = '';
+      if (mode || temp || cookTime) {
+        headerBadges = '<div class="recipe-detail-meta">';
+        if (mode) headerBadges += `<span class="detail-meta-item"><strong>${t('recipe_mode')}:</strong> ${escapeHtml(mode)}</span>`;
+        if (temp) headerBadges += `<span class="detail-meta-item"><strong>${t('recipe_temp')}:</strong> ${escapeHtml(temp)}</span>`;
+        if (cookTime) headerBadges += `<span class="detail-meta-item"><strong>${t('recipe_time')}:</strong> ${escapeHtml(cookTime)}</span>`;
+        headerBadges += '</div>';
       }
-      // Create a temporary modal-like overlay
+
+      let ingredientsHtml = '';
+      if (ingredients.length) {
+        ingredientsHtml = `<div class="recipe-detail-section ingredients-section">
+          <h6>${t('recipe_ingredients')}</h6>
+          <ul>${ingredients.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
+        </div>`;
+      }
+
+      let directionsHtml = '';
+      if (directions.length) {
+        directionsHtml = `<div class="recipe-detail-section directions-section">
+          <h6>${t('recipe_directions')}</h6>
+          <ol>${directions.map((d, i) => `<li>${escapeHtml(d)}</li>`).join('')}</ol>
+        </div>`;
+      }
+
+      let tipsHtml = '';
+      if (tips.length) {
+        tipsHtml = `<div class="recipe-detail-section tips-section">
+          <h6>💡 ${t('recipe_tips')}</h6>
+          <ul>${tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join('')}</ul>
+        </div>`;
+      }
+
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-      overlay.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:80vh;overflow-y:auto;padding:32px;position:relative;">
-        <button style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
-        <h4 style="margin-bottom:12px;">${title}</h4>
-        <p style="color:#666;margin-bottom:16px;">${desc}</p>
-        <hr>
-        <div style="line-height:1.8;white-space:pre-line;">${content}</div>
+      overlay.className = 'recipe-overlay';
+      overlay.innerHTML = `<div class="recipe-detail-modal">
+        <button class="recipe-detail-close" title="${t('recipe_close')}" onclick="this.closest('.recipe-overlay').remove()">&times;</button>
+        ${recipe.emoji ? `<div class="recipe-detail-emoji">${recipe.emoji}</div>` : ''}
+        <h3>${escapeHtml(title)}</h3>
+        ${headerBadges}
+        ${desc ? `<p class="recipe-detail-desc">${escapeHtml(desc)}</p>` : ''}
+        ${ingredientsHtml}
+        ${directionsHtml}
+        ${tipsHtml}
       </div>`;
       document.body.appendChild(overlay);
-      overlay.querySelector('button').onclick = () => overlay.remove();
       overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     }
 
-    // Robust language change detection — 3 independent fallbacks
+    /* ===== Language change ===== */
     function onLangChange() {
-      if (allRecipes.length > 0) renderRecipes();
+      renderProductSelector();
+      if (selectedProductId) renderRecipes();
     }
 
-    // [1] i18n.js CustomEvent broadcast (primary)
     document.addEventListener('langChanged', onLangChange);
 
-    // [2] Direct select change listener (fallback, registered after DOM ready)
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Ensure products are loaded first
+      if (typeof initProducts === 'function') {
+        await initProducts();
+      }
       const sel = document.getElementById('langSelect');
       if (sel) {
-        sel.addEventListener('change', function() {
-          // i18n.js already calls setLanguage, but ensure recipes re-render too
-          setTimeout(onLangChange, 50);
-        });
+        sel.addEventListener('change', () => setTimeout(onLangChange, 50));
       }
-
-      // [3] Storage event (cross-tab fallback)
-      window.addEventListener('storage', function(e) {
+      window.addEventListener('storage', e => {
         if (e.key === 'tomachef_lang') onLangChange();
       });
-
-      // Filter tabs
-      const filterBtns = document.querySelectorAll('.filter-btn');
-      filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          filterBtns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentFilter = btn.getAttribute('data-filter');
-          renderRecipes();
-        });
-      });
-
       loadRecipes();
     });
   </script>
