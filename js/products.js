@@ -490,17 +490,16 @@ async function initProducts() {
   }
 
   // Render based on which layout is on this page
+  const lang = getCurrentLang();
   const sectionsContainer = document.getElementById('productSections');
   const productGrid = document.getElementById('productGrid');
   const homeGrid = document.getElementById('homeProductGrid');
 
   if (sectionsContainer) {
     // New scroll section layout
-    const lang = getCurrentLang();
     renderProductSections(lang);
   } else if (productGrid) {
     // Legacy grid layout
-    const lang = getCurrentLang();
     renderProducts('all', lang);
 
     // Check URL params for category filter
