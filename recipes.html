@@ -316,22 +316,14 @@
     async function loadRecipes() {
       try {
         allRecipes = await fetchRecipes();
+        if (!allRecipes || !allRecipes.length) {
+          throw new Error('Empty result');
+        }
       } catch(e) {
         console.warn('Supabase fetch failed, using fallback recipes:', e.message);
-        allRecipes = [];
-      }
-      // Merge fallback recipes
-      if (typeof FALLBACK_RECIPES !== 'undefined') {
-        if (!allRecipes.length) {
-          allRecipes = [...FALLBACK_RECIPES];
-        } else {
-          const existingIds = new Set(allRecipes.map(r => r.id));
-          FALLBACK_RECIPES.forEach(fr => {
-            if (!existingIds.has(fr.id)) {
-              allRecipes.push(fr);
-            }
-          });
-        }
+        allRecipes = (typeof FALLBACK_RECIPES !== 'undefined')
+          ? [...FALLBACK_RECIPES]
+          : [];
       }
       renderProductSelector();
     }

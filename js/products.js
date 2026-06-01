@@ -36,7 +36,7 @@ const FALLBACK_RECIPES = [
     translations: { en:{title:'Avocado Toast 3 Ways',description:'Elevate your breakfast with these three gourmet avocado toast recipes.'}, zh:{title:'牛油果吐司三吃',description:'三种精致牛油果吐司，开启美好早晨。'}, es:{title:'Tostada de Aguacate 3 Estilos',description:'Eleva tu desayuno con estas tres recetas gourmet.'}, fr:{title:'Tartine Avocat 3 Façons',description:'Sublimez votre petit-déjeuner avec ces recettes gourmandes.'}, ja:{title:'アボカドトースト3種',description:'3つのグルメレシピで朝食をワンランクアップ。'}, pt:{title:'Torrada de Abacate 3 Estilos',description:'Eleve seu café da manhã com estas três receitas gourmet.'} },
     is_active:true, display_order:3 },
   // === 11-in-1 Air Fryer Oven Recipes ===
-  { id:4, title:'Oven-Fried Buttermilk Chicken', category:'airfryeroven', emoji:'🍗', product_id:9,
+  { id:4, title:'Oven-Fried Buttermilk Chicken', category:'airfryeroven', emoji:'🍗', product_id: null,
     mode:'Air Fryer', temp:'375°F (190°C)', time:'25-30 minutes',
     translations: {
       en:{title:'Oven-Fried Buttermilk Chicken',description:'Crispy, golden fried chicken with juicy buttermilk-marinated meat — no deep frying needed.',content:'',
@@ -64,7 +64,7 @@ const FALLBACK_RECIPES = [
         directions:['Marinar o frango em buttermilk em temperatura ambiente por pelo menos 30 minutos. Se possível, deixe de molho durante a noite.','Misture farinha, páprica, alho em pó, caiena, sal e pimenta em um prato.','Retire os pedaços de frango do buttermilk, sacuda o excesso e cubra completamente com a mistura de farinha. Para crosta extra grossa, repita.','Disponha o frango em uma única camada e frite com ar a 190°C por 25-30 minutos, virando na metade.'],
         tips:['Para crosta extra grossa, repita o empanamento.','Deixe o frango descansar 5 minutos em temperatura ambiente após empanar.','Use um termômetro de carne — o frango está pronto a 74°C.']}
     }, is_active:true, display_order:4 },
-  { id:5, title:'Garlic Bread (Bakery-Style)', category:'airfryeroven', emoji:'🧄', product_id:9,
+  { id:5, title:'Garlic Bread (Bakery-Style)', category:'airfryeroven', emoji:'🧄', product_id: null,
     mode:'Bake/Toast', temp:'400°F (200°C)', time:'8-16 minutes',
     translations: {
       en:{title:'Garlic Bread (Bakery-Style)',description:'Crispy, golden garlic bread with a soft buttery center — just like your favorite bakery.',content:'',
@@ -92,7 +92,7 @@ const FALLBACK_RECIPES = [
         directions:['Pré-aqueça o forno fritadeira a 200°C no modo Assar/Tostar.','Misture a manteiga amolecida, alho picado, salsinha, parmesão e sal.','Espalhe a mistura sobre os lados cortados do pão. Polvilhe mussarela se desejar.','Coloque o pão com o corte para cima e asse por 8-12 minutos até dourar. Para mais crocância, adicione 2-4 minutos.','Retire, corte em tiras e sirva quente.'],
         tips:['Para mais sabor de alho, asse os dentes de alho por 5 minutos antes de misturar.','Use pão do dia anterior — absorve melhor a manteiga.','Observe após 8 minutos — o alho pode queimar rápido.']}
     }, is_active:true, display_order:5 },
-  { id:6, title:'Everything Bagel Salmon Melt', category:'airfryeroven', emoji:'🥯', product_id:9,
+  { id:6, title:'Everything Bagel Salmon Melt', category:'airfryeroven', emoji:'🥯', product_id: null,
     mode:'Bake/Roast', temp:'425°F (220°C)', time:'13-18 minutes',
     translations: {
       en:{title:'Everything Bagel Salmon Melt',description:'An open-faced bagel loaded with cream cheese, smoked salmon, and melted cheese — brunch perfection.',content:'',
@@ -120,7 +120,7 @@ const FALLBACK_RECIPES = [
         directions:['Pré-aqueça o forno fritadeira a 220°C no modo Assar/Grelhar.','Espalhe o cream cheese em cada metade de bagel. Disponha o salmão defumado e espalhe alcaparras e cebola.','Cubra generosamente com queijo ralado.','Coloque na grelha e asse por 8-11 minutos até o queijo derreter e borbulhar.','Retire, decore com endro fresco e sirva com limão.'],
         tips:['Para mais sabor, espalhe mostarda Dijon sob o cream cheese.','Não asse demais — o salmão deve ficar úmido.','Sirva com salada de rúcula para um brunch completo.']}
     }, is_active:true, display_order:6 },
-  { id:7, title:'New-York-Style Pizza', category:'airfryeroven', emoji:'🍕', product_id:9,
+  { id:7, title:'New-York-Style Pizza', category:'airfryeroven', emoji:'🍕', product_id: null,
     mode:'Pizza', temp:'450°F (230°C)', time:'16-20+ minutes',
     translations: {
       en:{title:'New-York-Style Pizza',description:'Thin, foldable crust with a perfect char — authentic New York pizza made right in your air fryer oven.',content:'',
