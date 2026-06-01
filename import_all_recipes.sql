@@ -4,14 +4,15 @@
 -- Run this in Supabase SQL Editor
 -- ===========================================================
 
--- Enable UUID extension if not already enabled
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Ensure required columns exist
+ALTER TABLE recipes ADD COLUMN IF NOT EXISTS mode TEXT;
+ALTER TABLE recipes ADD COLUMN IF NOT EXISTS temp TEXT;
+ALTER TABLE recipes ADD COLUMN IF NOT EXISTS "time" TEXT;
 
 -- Recipe 4: Oven-Fried Buttermilk Chicken
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   4,
-  'Oven-Fried Buttermilk Chicken',
   'airfryeroven',
   '🍗',
   9,
@@ -23,23 +24,21 @@ VALUES (
   4
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 5: Garlic Bread (Bakery-Style)
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   5,
-  'Garlic Bread (Bakery-Style)',
   'airfryeroven',
   '🧄',
   9,
@@ -51,23 +50,21 @@ VALUES (
   5
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 6: Everything Bagel Salmon Melt
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   6,
-  'Everything Bagel Salmon Melt',
   'airfryeroven',
   '🥯',
   9,
@@ -79,23 +76,21 @@ VALUES (
   6
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 7: New York-Style Pizza
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   7,
-  'New York-Style Pizza',
   'airfryeroven',
   '🍕',
   9,
@@ -107,23 +102,21 @@ VALUES (
   7
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 8: Chicken Pot Pie
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   8,
-  'Chicken Pot Pie',
   'airfryeroven',
   '🥧',
   9,
@@ -135,23 +128,21 @@ VALUES (
   8
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 9: Roast Chicken with Root Vegetables
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   9,
-  'Roast Chicken with Root Vegetables',
   'airfryeroven',
   '🍗',
   9,
@@ -163,23 +154,21 @@ VALUES (
   9
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 10: Broiled Lobster Tail with Garlic Butter
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   10,
-  'Broiled Lobster Tail with Garlic Butter',
   'airfryeroven',
   '🦞',
   9,
@@ -191,23 +180,21 @@ VALUES (
   10
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 11: Classic Chocolate Chip Cookies
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   11,
-  'Classic Chocolate Chip Cookies',
   'airfryeroven',
   '🍪',
   9,
@@ -219,23 +206,21 @@ VALUES (
   11
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 12: Apple Chips with Cinnamon
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   12,
-  'Apple Chips with Cinnamon',
   'airfryeroven',
   '🍎',
   9,
@@ -247,23 +232,21 @@ VALUES (
   12
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Recipe 13: Pizza Dough Proofing
-INSERT INTO recipes (id, title, category, emoji, product_id, mode, temp, time, translations, is_active, display_order)
+INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
   13,
-  'Pizza Dough Proofing',
   'airfryeroven',
   '🍕',
   9,
@@ -275,17 +258,16 @@ VALUES (
   13
 )
 ON CONFLICT (id) DO UPDATE SET
-  title = EXCLUDED.title,
   category = EXCLUDED.category,
   emoji = EXCLUDED.emoji,
   product_id = EXCLUDED.product_id,
   mode = EXCLUDED.mode,
   temp = EXCLUDED.temp,
-  time = EXCLUDED.time,
+  "time" = EXCLUDED."time",
   translations = EXCLUDED.translations,
   is_active = EXCLUDED.is_active,
   display_order = EXCLUDED.display_order,
   updated_at = NOW();
 
 -- Verify import
-SELECT id, title, mode, temp, time, product_id, is_active FROM recipes WHERE id BETWEEN 4 AND 13 ORDER BY id;
+SELECT id, mode, temp, "time", product_id, is_active FROM recipes WHERE id BETWEEN 4 AND 13 ORDER BY id;
