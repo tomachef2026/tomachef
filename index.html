@@ -148,11 +148,23 @@
         <p class="subtitle" data-i18n="recipes_subtitle">Delicious ideas to get the most out of your TomaChef appliances</p>
         <div class="divider"></div>
       </div>
+
+      <!-- Product Selector -->
+      <div class="recipe-product-selector fade-in" id="homeProductSelector" style="margin-bottom:32px;">
+        <div class="text-center py-3 w-100">
+          <div class="spinner-border spinner-border-sm text-muted" role="status"></div>
+        </div>
+      </div>
+
+      <!-- Recipe Grid -->
       <div class="recipe-grid" id="homeRecipeGrid">
         <div class="text-center py-4 w-100" style="grid-column: 1 / -1;">
-          <div class="spinner-border spinner-border-sm text-muted me-2" role="status"></div>
-          <span class="text-muted">Loading…</span>
+          <p style="color:#94a3b8;">Select an appliance to see recipes</p>
         </div>
+      </div>
+
+      <div class="text-center mt-3 fade-in">
+        <a href="recipes.html" class="btn btn-outline" style="border-color:#b91c1c;color:#b91c1c;" data-i18n="view_all_recipes">View All Recipes →</a>
       </div>
     </div>
   </section>
@@ -309,34 +321,107 @@
   <script src="js/main.js"></script>
   <script src="js/social.js"></script>
   <script>
-    /* Dynamic Home Recipes - uses Supabase, fallback only on error */
-    (async function loadHomeRecipes() {
+    /* ===== Dynamic Home Recipes with Product Selector ===== */
+    let _homeRecipes = [];
+    let _homeSelectedProduct = null;
+
+    async function loadHomeRecipes() {
       const grid = document.getElementById('homeRecipeGrid');
       if (!grid) return;
 
-      let recipes = [];
-      let supabaseFailed = false;
+      // Fetch recipes from Supabase
       try {
         if (typeof fetchRecipes === 'function') {
-          recipes = await fetchRecipes();
+          _homeRecipes = await fetchRecipes();
         }
       } catch(e) {
         console.error('Home recipes fetch failed:', e);
-        supabaseFailed = true;
       }
 
-      // Only use FALLBACK_RECIPES when Supabase is unreachable, not when it's just empty
-      if (!recipes || !recipes.length) {
-        if (supabaseFailed && typeof FALLBACK_RECIPES !== 'undefined' && FALLBACK_RECIPES.length) {
-          recipes = FALLBACK_RECIPES;
+      // Fallback on error only
+      if (!_homeRecipes || !_homeRecipes.length) {
+        if (typeof FALLBACK_RECIPES !== 'undefined' && FALLBACK_RECIPES.length) {
+          _homeRecipes = [...FALLBACK_RECIPES];
         } else {
-          grid.innerHTML = '<div class="text-center py-5 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;font-size:1.1rem;">No recipes yet. Stay tuned!</p></div>';
+          grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">No recipes yet. Stay tuned!</p></div>';
           return;
         }
       }
 
-      window._homeRecipes = recipes; // Store for language switching
+      window._homeRecipes = _homeRecipes;
+      renderHomeProductSelector();
+    }
+
+    function getHomeProductsWithRecipes() {
+      const productIds = new Set();
+      _homeRecipes.forEach(r => { if (r.product_id) productIds.add(r.product_id); });
+      if (typeof products === 'undefined' || !products.length) return [];
+      return products.filter(p => productIds.has(p.id) && p.active !== false);
+    }
+
+    function renderHomeProductSelector() {
+      const container = document.getElementById('homeProductSelector');
+      if (!container) return;
       const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'en';
+      const productsWithRecipes = getHomeProductsWithRecipes();
+
+      if (!productsWithRecipes.length) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = productsWithRecipes.map(p => {
+        const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
+        const isSelected = _homeSelectedProduct === p.id;
+        const recipeCount = _homeRecipes.filter(r => r.product_id === p.id).length;
+        return '<div class="recipe-product-card' + (isSelected ? ' selected' : '') + '" style="cursor:pointer;" data-product-id="' + p.id + '">' +
+          '<div class="recipe-product-icon">' + (p.icon || '🍳') + '</div>' +
+          '<div class="recipe-product-info">' +
+            '<div class="rpp-header"><h5>' + (typeof escapeHtml === 'function' ? escapeHtml(name) : name) + '</h5></div>' +
+            '<div class="rpp-meta"><span class="recipe-product-count">' + recipeCount + ' ' + (lang === 'zh' ? '个食谱' : 'recipes') + '</span></div>' +
+          '</div>' +
+          '<div class="recipe-product-arrow">→</div>' +
+        '</div>';
+      }).join('');
+
+      // Bind click events
+      container.querySelectorAll('.recipe-product-card').forEach(card => {
+        card.addEventListener('click', function() {
+          selectHomeProduct(this.dataset.productId);
+        });
+      });
+
+      // Auto-select first
+      if (!_homeSelectedProduct && productsWithRecipes.length > 0) {
+        selectHomeProduct(productsWithRecipes[0].id);
+      }
+    }
+
+    function selectHomeProduct(productId) {
+      _homeSelectedProduct = productId;
+      // Update selector UI
+      document.querySelectorAll('#homeProductSelector .recipe-product-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.productId === productId);
+      });
+      renderHomeRecipes();
+    }
+
+    function renderHomeRecipes() {
+      const grid = document.getElementById('homeRecipeGrid');
+      if (!grid) return;
+      const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'en';
+
+      if (!_homeSelectedProduct) {
+        grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">Select an appliance above</p></div>';
+        return;
+      }
+
+      const filtered = _homeRecipes.filter(r => r.product_id === _homeSelectedProduct && r.is_active !== false);
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">No recipes for this product yet.</p></div>';
+        return;
+      }
+
       const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
       if (typeof translations !== 'undefined') {
         const t = translations[lang] || {};
@@ -346,24 +431,62 @@
       }
       const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
         ? translations[lang].recipe_view : 'View Recipe →';
-      grid.innerHTML = recipes.slice(0, 3).map(r => {
+
+      // Show up to 4 recipes on homepage
+      grid.innerHTML = filtered.slice(0, 4).map(r => {
         const trData = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
-        const tr = trData[lang] || trData.en || {};
-        const imgHtml = r.image_url && typeof r.image_url === 'string' && r.image_url.trim()
-          ? '<img src="' + r.image_url + '" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">'
-          : '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>';
+        const tr = trData[lang] || trData['en'] || {};
         const title = typeof escapeHtml === 'function' ? escapeHtml(tr.title || '') : (tr.title || '');
         const desc = typeof escapeHtml === 'function' ? escapeHtml(tr.description || '') : (tr.description || '');
-        const productName = (r.products && r.products.name) || '';
-        return '<div class="recipe-card fade-in">' +
-          '<div class="recipe-img" style="position:relative;">' + imgHtml +
-          '<span class="recipe-badge" style="z-index:1;">' + (catLabels[r.category] || r.category) + '</span></div>' +
-          '<div class="recipe-body"><h5>' + title + '</h5>' +
-          (productName ? '<p style="font-size:0.8rem;color:#b91c1c;margin-bottom:6px;">' + (typeof escapeHtml === 'function' ? escapeHtml(productName) : productName) + '</p>' : '') +
-          '<p>' + desc + '</p>' +
-          '<a href="recipes.html" class="recipe-btn">' + viewText + '</a></div></div>';
+        const mode = r.mode || '';
+        const temp = r.temp || '';
+        const cookTime = r.time || '';
+
+        let metaHtml = '';
+        if (mode || temp || cookTime) {
+          metaHtml = '<div class="recipe-meta-row">';
+          if (mode) metaHtml += '<span class="recipe-meta-badge"><span class="meta-icon">🔥</span>' + (typeof escapeHtml === 'function' ? escapeHtml(mode) : mode) + '</span>';
+          if (temp) metaHtml += '<span class="recipe-meta-badge"><span class="meta-icon">🌡️</span>' + (typeof escapeHtml === 'function' ? escapeHtml(temp) : temp) + '</span>';
+          if (cookTime) metaHtml += '<span class="recipe-meta-badge"><span class="meta-icon">⏱️</span>' + (typeof escapeHtml === 'function' ? escapeHtml(cookTime) : cookTime) + '</span>';
+          metaHtml += '</div>';
+        }
+
+        const imgHtml = r.image_url && r.image_url.trim()
+          ? '<img src="' + r.image_url + '" alt="" loading="lazy">'
+          : '';
+        const emojiHtml = imgHtml ? '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>' : '';
+
+        return '<div class="recipe-card recipe-card-new fade-in">' +
+          '<div class="recipe-img-new">' + imgHtml + emojiHtml + '</div>' +
+          '<div class="recipe-body">' +
+            '<h5>' + title + '</h5>' +
+            '<p class="recipe-card-desc">' + desc + '</p>' +
+            metaHtml +
+            '<a href="recipes.html" class="recipe-btn">' + viewText + '</a>' +
+          '</div>' +
+        '</div>';
       }).join('');
-    })();
+    }
+
+    // Language change handler
+    function homeOnLangChange() {
+      renderHomeProductSelector();
+      if (_homeSelectedProduct) renderHomeRecipes();
+    }
+    document.addEventListener('langChanged', homeOnLangChange);
+
+    // Initialize when DOM ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof initProducts === 'function') {
+        await initProducts();
+      }
+      loadHomeRecipes();
+
+      // Listen for lang changes
+      window.addEventListener('storage', e => {
+        if (e.key === 'tomachef_lang') homeOnLangChange();
+      });
+    });
   </script>
 </body>
 </html>
