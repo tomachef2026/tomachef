@@ -477,7 +477,7 @@
       id,
       translations,
       category: document.getElementById('recipeCat').value,
-      product_id: parseInt(document.getElementById('recipeProduct').value) || null,
+      product_id: document.getElementById('recipeProduct').value || null,
       emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
       image_url: imageUrl,
       display_order: parseInt(document.getElementById('recipeOrder').value) || 0,
