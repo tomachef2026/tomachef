@@ -366,6 +366,9 @@
       const productsWithRecipes = getHomeProductsWithRecipes();
 
       if (!productsWithRecipes.length) {
+        // Fallback: no products linked → show all recipes directly
+        _homeSelectedProduct = '__all__';
+        renderHomeRecipes();
         container.innerHTML = '';
         return;
       }
@@ -416,7 +419,9 @@
         return;
       }
 
-      const filtered = _homeRecipes.filter(r => r.product_id === _homeSelectedProduct && r.is_active !== false);
+      const filtered = _homeSelectedProduct === '__all__'
+        ? _homeRecipes.filter(r => r.is_active !== false)
+        : _homeRecipes.filter(r => r.product_id === _homeSelectedProduct && r.is_active !== false);
       if (!filtered.length) {
         grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">No recipes for this product yet.</p></div>';
         return;

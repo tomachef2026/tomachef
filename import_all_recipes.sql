@@ -12,10 +12,10 @@ ALTER TABLE recipes ADD COLUMN IF NOT EXISTS "time" TEXT;
 -- Recipe 4: Oven-Fried Buttermilk Chicken
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  4,
+  'a1b2c3d4-e5f6-4004-8004-000000000004',
   'airfryeroven',
   '🍗',
-  9,
+  NULL,
   'Air Fry',
   '375°F (190°C)',
   '25-30 minutes',
@@ -38,10 +38,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 5: Garlic Bread (Bakery-Style)
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  5,
+  'a1b2c3d4-e5f6-4005-8005-000000000005',
   'airfryeroven',
   '🧄',
-  9,
+  NULL,
   'Toast',
   '400°F (205°C)',
   '6-8 minutes',
@@ -64,10 +64,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 6: Everything Bagel Salmon Melt
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  6,
+  'a1b2c3d4-e5f6-4006-8006-000000000006',
   'airfryeroven',
   '🥯',
-  9,
+  NULL,
   'Bagel',
   '420°F (220°C)',
   '8-10 minutes',
@@ -90,10 +90,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 7: New York-Style Pizza
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  7,
+  'a1b2c3d4-e5f6-4007-8007-000000000007',
   'airfryeroven',
   '🍕',
-  9,
+  NULL,
   'Pizza',
   '450°F (230°C)',
   '10-15 minutes',
@@ -116,10 +116,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 8: Chicken Pot Pie
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  8,
+  'a1b2c3d4-e5f6-4008-8008-000000000008',
   'airfryeroven',
   '🥧',
-  9,
+  NULL,
   'Bake',
   '350°F (175°C)',
   '40-45 minutes',
@@ -142,10 +142,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 9: Roast Chicken with Root Vegetables
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  9,
+  'a1b2c3d4-e5f6-4009-8009-000000000009',
   'airfryeroven',
   '🍗',
-  9,
+  NULL,
   'Roast',
   '375°F (190°C)',
   '60-65 minutes',
@@ -168,10 +168,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 10: Broiled Lobster Tail with Garlic Butter
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  10,
+  'a1b2c3d4-e5f6-4010-8010-000000000010',
   'airfryeroven',
   '🦞',
-  9,
+  NULL,
   'Broil',
   '500°F (260°C)',
   '6-10 minutes',
@@ -194,10 +194,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 11: Classic Chocolate Chip Cookies
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  11,
+  'a1b2c3d4-e5f6-4011-8011-000000000011',
   'airfryeroven',
   '🍪',
-  9,
+  NULL,
   'Cookie',
   '320°F (160°C)',
   '11-13 minutes',
@@ -220,10 +220,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 12: Apple Chips with Cinnamon
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  12,
+  'a1b2c3d4-e5f6-4012-8012-000000000012',
   'airfryeroven',
   '🍎',
-  9,
+  NULL,
   'Dehydrate',
   '135°F (57°C)',
   '6-8 hours',
@@ -246,10 +246,10 @@ ON CONFLICT (id) DO UPDATE SET
 -- Recipe 13: Pizza Dough Proofing
 INSERT INTO recipes (id, category, emoji, product_id, mode, temp, "time", translations, is_active, display_order)
 VALUES (
-  13,
+  'a1b2c3d4-e5f6-4013-8013-000000000013',
   'airfryeroven',
   '🍕',
-  9,
+  NULL,
   'Ferment',
   '95-100°F (35-38°C)',
   '1-2 hours',
@@ -270,4 +270,4 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = NOW();
 
 -- Verify import
-SELECT id, mode, temp, "time", product_id, is_active FROM recipes WHERE id BETWEEN 4 AND 13 ORDER BY id;
+SELECT id, translations->'en'->>'title' as title_en, mode, temp, "time", product_id, is_active FROM recipes WHERE id IN ('a1b2c3d4-e5f6-4004-8004-000000000004','a1b2c3d4-e5f6-4005-8005-000000000005','a1b2c3d4-e5f6-4006-8006-000000000006','a1b2c3d4-e5f6-4007-8007-000000000007','a1b2c3d4-e5f6-4008-8008-000000000008','a1b2c3d4-e5f6-4009-8009-000000000009','a1b2c3d4-e5f6-4010-8010-000000000010','a1b2c3d4-e5f6-4011-8011-000000000011','a1b2c3d4-e5f6-4012-8012-000000000012','a1b2c3d4-e5f6-4013-8013-000000000013') ORDER BY display_order;

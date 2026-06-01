@@ -4,17 +4,15 @@
 -- ===========================================================
 
 -- Step 1: See which products are available (for reference)
-SELECT id, sku, name, category FROM products WHERE category = 'airfryeroven' OR name ILIKE '%air fryer oven%' OR sku = 'TC-AFO-001'
+SELECT id, name, category FROM products WHERE category = 'airfryeroven' OR name ILIKE '%air fryer oven%'
 ORDER BY sort_order;
 
--- Step 2: Update all 10 recipes — auto-finds the product by SKU or name
--- If multiple products match, picks the first one
+-- Step 2: Update all 10 recipes — auto-finds the product by name
 UPDATE recipes 
 SET product_id = (
     SELECT id FROM products 
-    WHERE sku = 'TC-AFO-001' 
-       OR name ILIKE '%26QT%' 
-       OR name ILIKE '%Air Fryer Oven%'
+    WHERE name ILIKE '%Air Fryer Oven%' 
+       OR name ILIKE '%26QT%'
     ORDER BY sort_order
     LIMIT 1
 ),
@@ -39,7 +37,6 @@ SELECT
     r.mode, 
     r.temp, 
     r."time",
-    p.sku as product_sku, 
     p.name as product_name
 FROM recipes r
 LEFT JOIN products p ON r.product_id = p.id
