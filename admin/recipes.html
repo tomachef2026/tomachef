@@ -218,6 +218,20 @@
           <option value="false">否</option>
         </select>
       </div>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-2">
+        <label class="form-label">模式</label>
+        <input type="text" class="form-control" id="recipeMode" placeholder="Air Fry">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">温度</label>
+        <input type="text" class="form-control" id="recipeTemp" placeholder="375°F (190°C)">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">时间</label>
+        <input type="text" class="form-control" id="recipeTime" placeholder="25-30 min">
+      </div>
       <div class="col-md-4">
         <label class="form-label">食谱图片</label>
         <div class="img-upload-area" id="imgUploadArea" onclick="document.getElementById('imgFileInput').click()">
@@ -365,6 +379,9 @@
     document.getElementById('recipeProduct').value = '';
     document.getElementById('recipeOrder').value = '0';
     document.getElementById('recipeActive').value = 'true';
+    document.getElementById('recipeMode').value = '';
+    document.getElementById('recipeTemp').value = '';
+    document.getElementById('recipeTime').value = '';
     document.querySelectorAll('.lang-title, .lang-desc, .lang-content').forEach(el => el.value = '');
     document.getElementById('modalTitle').textContent = '添加食谱';
     removeImage();
@@ -386,6 +403,9 @@
     document.getElementById('recipeProduct').value = r.product_id || '';
     document.getElementById('recipeOrder').value = r.display_order ?? 0;
     document.getElementById('recipeActive').value = r.is_active ? 'true' : 'false';
+    document.getElementById('recipeMode').value = r.mode || '';
+    document.getElementById('recipeTemp').value = r.temp || '';
+    document.getElementById('recipeTime').value = r.time || '';
 
     // Image
     removeImage();
@@ -409,8 +429,30 @@
 
   async function saveRecipe() {
     const id = editingId || undefined;
+
+    // When editing, fetch existing recipe to preserve multilingual data
+    let existingTranslations = {};
+    let existingMode = '', existingTemp = '', existingTime = '';
+    if (id) {
+      try {
+        const recipes = await fetchAllRecipesAdmin();
+        const existing = recipes.find(rr => rr.id === id);
+        if (existing) {
+          const t = (typeof existing.translations === 'string') ? JSON.parse(existing.translations) : (existing.translations || {});
+          existingTranslations = t;
+          existingMode = existing.mode || '';
+          existingTemp = existing.temp || '';
+          existingTime = existing.time || '';
+        }
+      } catch (e) { console.warn('Failed to fetch existing recipe for merge', e); }
+    }
+
+    // Merge English form fields with existing data (preserve ingredients/directions/tips)
+    const existingEn = existingTranslations.en || {};
     const translations = {
+      ...existingTranslations,  // keep all non-English languages
       en: {
+        ...existingEn,  // keep ingredients/directions/tips
         title: document.querySelector('.lang-title[data-lang="en"]').value.trim(),
         description: document.querySelector('.lang-desc[data-lang="en"]').value.trim(),
         content: document.querySelector('.lang-content[data-lang="en"]').value.trim()
@@ -427,6 +469,10 @@
       else return;
     }
 
+    const formMode = document.getElementById('recipeMode').value.trim();
+    const formTemp = document.getElementById('recipeTemp').value.trim();
+    const formTime = document.getElementById('recipeTime').value.trim();
+
     const recipe = {
       id,
       translations,
@@ -435,7 +481,10 @@
       emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
       image_url: imageUrl,
       display_order: parseInt(document.getElementById('recipeOrder').value) || 0,
-      is_active: document.getElementById('recipeActive').value === 'true'
+      is_active: document.getElementById('recipeActive').value === 'true',
+      mode: formMode || existingMode || null,
+      temp: formTemp || existingTemp || null,
+      time: formTime || existingTime || null
     };
 
     const { error } = await upsertRecipe(recipe);
