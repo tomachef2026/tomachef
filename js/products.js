@@ -387,25 +387,40 @@ function updateHomeProductCards() {
   renderHomeProducts('all', lang);
 }
 
-// Initialize with Supabase API (falls back to static data)
+// Initialize with Supabase API (falls back to static data only when Supabase is unavailable)
 let _initProductsRunning = null;
 
 async function initProducts() {
-  // Prevent duplicate concurrent calls — reuse in-flight promise
   if (_initProductsRunning) return _initProductsRunning;
+
   _initProductsRunning = (async () => {
-    // Try Supabase first
     if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
       try {
         const supabaseProducts = await fetchProducts(null, getCurrentLang());
-        if (supabaseProducts && supabaseProducts.length > 0) {
-          // Use Supabase data as-is (admin panel manages all fields including translations)
-          products = supabaseProducts;
+        if (supabaseProducts === null) {
+          console.log('Supabase not available, using fallback data');
+          products = [...FALLBACK_PRODUCTS];
+        } else if (supabaseProducts.length > 0) {
+          products = supabaseProducts.map(p => {
+            const fallback = FALLBACK_PRODUCTS.find(f => f.id === p.id);
+            if (fallback) {
+              for (const lang of ['zh', 'es', 'fr', 'ja', 'pt']) {
+                if (!p['name_' + lang] || !p['name_' + lang].toString().trim()) {
+                  p['name_' + lang] = fallback['name_' + lang];
+                }
+                if (!p['description_' + lang] || !p['description_' + lang].toString().trim()) {
+                  p['description_' + lang] = fallback['description_' + lang];
+                }
+              }
+              if (!p.price) p.price = fallback.price;
+              if (!p.sku) p.sku = fallback.sku;
+            }
+            return p;
+          });
           console.log('Loaded ' + products.length + ' products from Supabase');
         } else {
-          // Supabase returned empty — use fallback
-          console.log('Supabase returned empty products, using fallback data');
-          products = [...FALLBACK_PRODUCTS];
+          console.log('Supabase returned empty products, showing empty state');
+          products = [];
         }
       } catch (e) {
         console.log('Supabase not available, using fallback data:', e.message);
@@ -415,39 +430,36 @@ async function initProducts() {
       products = [...FALLBACK_PRODUCTS];
     }
 
-  // Render based on which layout is on this page
-  const lang = getCurrentLang();
-  const sectionsContainer = document.getElementById('productSections');
-  const productGrid = document.getElementById('productGrid');
-  const homeGrid = document.getElementById('homeProductGrid');
+    const lang = getCurrentLang();
+    const sectionsContainer = document.getElementById('productSections');
+    const productGrid = document.getElementById('productGrid');
+    const homeGrid = document.getElementById('homeProductGrid');
 
-  if (sectionsContainer) {
-    // New scroll section layout
-    renderProductSections(lang);
-  } else if (productGrid) {
-    // Legacy grid layout
-    renderProducts('all', lang);
+    if (sectionsContainer) {
+      renderProductSections(lang);
+    } else if (productGrid) {
+      renderProducts('all', lang);
 
-    // Check URL params for category filter
-    const params = new URLSearchParams(window.location.search);
-    const cat = params.get('cat');
-    if (cat && ['airfryer', 'airfryeroven', 'toaster'].includes(cat)) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      const target = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
-      if (target) {
-        target.classList.add('active');
-        renderProducts(cat, lang);
+      const params = new URLSearchParams(window.location.search);
+      const cat = params.get('cat');
+      if (cat && ['airfryer', 'airfryeroven', 'toaster'].includes(cat)) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        const target = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
+        if (target) {
+          target.classList.add('active');
+          renderProducts(cat, lang);
+        }
       }
     }
-  }
 
-  if (homeGrid) {
-    renderHomeProducts('all', lang);
-  }
+    if (homeGrid) {
+      renderHomeProducts('all', lang);
+    }
 
-  // Notify any listeners that products are fully loaded (including Supabase data)
-  window.dispatchEvent(new CustomEvent('productsReady'));
+    window.dispatchEvent(new CustomEvent('productsReady'));
+    return products;
   })();
+
   return _initProductsRunning;
 }
 

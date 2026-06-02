@@ -115,7 +115,7 @@ async function fetchProducts(category = null, lang = 'en') {
   if (cached) return cached;
 
   const sb = initSupabase();
-  if (!sb) return [];
+  if (!sb) return null;
 
   let query = sb.from('products').select('*').eq('active', true);
 
@@ -128,7 +128,7 @@ async function fetchProducts(category = null, lang = 'en') {
   const { data, error } = await query;
   if (error) {
     console.error('Error fetching products:', error);
-    return [];
+    return null;
   }
   // Return raw data — localization is handled by getLocalizedName/getLocalizedDesc at render time
   cacheSet(cacheKey, data);
@@ -154,19 +154,25 @@ async function fetchAllProductsAdmin() {
 async function createProduct(product) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
-  return await sb.from('products').insert(product).select();
+  const result = await sb.from('products').insert(product).select();
+  if (!result.error) cacheClear('products_');
+  return result;
 }
 
 async function updateProduct(id, updates) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
-  return await sb.from('products').update(updates).eq('id', id).select();
+  const result = await sb.from('products').update(updates).eq('id', id).select();
+  if (!result.error) cacheClear('products_');
+  return result;
 }
 
 async function deleteProduct(id) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
-  return await sb.from('products').delete().eq('id', id);
+  const result = await sb.from('products').delete().eq('id', id);
+  if (!result.error) cacheClear('products_');
+  return result;
 }
 
 // ============================================================
