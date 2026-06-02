@@ -309,11 +309,17 @@
         </div>
 
         <!-- Name & Description (English, primary language) -->
-        <div class="col-12">
-          <label class="form-label fw-semibold">产品名称 *</label>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">产品名称 (EN) *</label>
           <input class="form-control" id="name_en" required>
-          <label class="form-label fw-semibold mt-2">产品描述</label>
+          <label class="form-label fw-semibold mt-2">产品描述 (EN)</label>
           <textarea class="form-control" id="description_en" rows="2"></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">产品名称 (中文)</label>
+          <input class="form-control" id="name_zh">
+          <label class="form-label fw-semibold mt-2">产品描述 (中文)</label>
+          <textarea class="form-control" id="description_zh" rows="2"></textarea>
         </div>
 
         <div class="col-md-6">
@@ -452,6 +458,8 @@ function openProductModal(product = null) {
     document.getElementById('icon').value = product.icon || '';
     document.getElementById('sort_order').value = product.sort_order || 0;
     document.getElementById('description_en').value = product.description || '';
+    document.getElementById('name_zh').value = product.name_zh || '';
+    document.getElementById('description_zh').value = product.description_zh || '';
     // Fill specs fields from product.specs object
     const s = product.specs || {};
     document.getElementById('spec_power').value = s.power || '';
@@ -568,11 +576,13 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
 
   const data = {
     name: document.getElementById('name_en').value,
+    name_zh: document.getElementById('name_zh').value.trim(),
     category: document.getElementById('category').value,
     badge: document.getElementById('badge').value,
     icon: document.getElementById('icon').value,
     sort_order: parseInt(document.getElementById('sort_order').value) || 0,
     description: document.getElementById('description_en').value,
+    description_zh: document.getElementById('description_zh').value.trim(),
     specs: specs,
     image_url: document.getElementById('image_url').value,
     active: document.getElementById('active').checked,

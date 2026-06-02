@@ -125,10 +125,10 @@ function createScrollCard(product, lang) {
   return `
     <div class="scroll-card" data-category="${product.category}">
       <div class="scroll-card-img">
-        ${badgeHtml}
         ${imgContent}
       </div>
       <div class="scroll-card-body">
+        ${badgeHtml}
         <h6>${escapeHtml(name)}</h6>
         <p class="scroll-card-desc">${escapeHtml(desc)}</p>
         ${specsHtml ? `<div class="scroll-card-specs">${specsHtml}</div>` : ''}
@@ -176,10 +176,10 @@ function createProductCard(product, lang) {
     <div class="col-lg-3 col-md-4 col-sm-6 mb-4" data-category="${product.category}">
       <div class="product-card">
         <div class="product-img">
-          ${badgeHtml}
           ${imgContent}
         </div>
         <div class="product-body">
+          ${badgeHtml}
           <div class="product-category">${catLabel}</div>
           <h6>${escapeHtml(name)}</h6>
           <p class="product-specs">${escapeHtml(desc)}</p>
@@ -375,25 +375,9 @@ async function initProducts() {
     try {
       const supabaseProducts = await fetchProducts(null, getCurrentLang());
       if (supabaseProducts && supabaseProducts.length > 0) {
-        // Merge missing translations from fallback data
-        products = supabaseProducts.map(p => {
-          const fallback = FALLBACK_PRODUCTS.find(f => f.id === p.id);
-          if (fallback) {
-            for (const lang of ['zh', 'es', 'fr', 'ja', 'pt']) {
-              if (!p['name_' + lang] || !p['name_' + lang].toString().trim()) {
-                p['name_' + lang] = fallback['name_' + lang];
-              }
-              if (!p['description_' + lang] || !p['description_' + lang].toString().trim()) {
-                p['description_' + lang] = fallback['description_' + lang];
-              }
-            }
-            // Merge missing price/sku if Supabase doesn't have them
-            if (!p.price) p.price = fallback.price;
-            if (!p.sku) p.sku = fallback.sku;
-          }
-          return p;
-        });
-        console.log('Loaded ' + products.length + ' products from Supabase (translations merged from fallback)');
+        // Use Supabase data as-is (admin panel manages all fields including translations)
+        products = supabaseProducts;
+        console.log('Loaded ' + products.length + ' products from Supabase');
       } else {
         // Supabase returned empty — use fallback
         console.log('Supabase returned empty products, using fallback data');
