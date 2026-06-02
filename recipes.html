@@ -205,17 +205,21 @@
     }
 
     /* ===== Product Selector ===== */
+    const RECIPE_PRODUCT_SKU = 'TC-AFO-001';
+
     function getProductsWithRecipes() {
       // Gather all unique product_ids from recipes
       const productIds = new Set();
-      allRecipes.forEach(r => {
-        if (r.product_id) productIds.add(r.product_id);
+      allRecipes.filter(r => r.is_active !== false).forEach(r => {
+        if (r.product_id) productIds.add(String(r.product_id));
       });
 
       // Find matching products from the global `products` array (from products.js)
       if (typeof products === 'undefined' || !products.length) return [];
 
-      return products.filter(p => productIds.has(p.id) && p.active !== false);
+      const matchedProducts = products.filter(p => productIds.has(String(p.id)) && p.active !== false);
+      const preferredProduct = matchedProducts.find(p => p.sku === RECIPE_PRODUCT_SKU);
+      return preferredProduct ? [preferredProduct] : matchedProducts;
     }
 
     function renderProductSelector() {
@@ -236,8 +240,8 @@
       container.innerHTML = productsWithRecipes.map(p => {
         const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
         const desc = (typeof getLocalizedDesc === 'function') ? getLocalizedDesc(p, lang) : (p.description || '');
-        const isSelected = selectedProductId === p.id;
-        const recipeCount = allRecipes.filter(r => r.product_id === p.id).length;
+        const isSelected = String(selectedProductId) === String(p.id);
+        const recipeCount = allRecipes.filter(r => String(r.product_id) === String(p.id) && r.is_active !== false).length;
         const icon = p.icon || '🍳';
         const price = p.price || '';
         const sku = p.sku || '';
@@ -252,7 +256,7 @@
         }
 
         return `<div class="recipe-product-card ${isSelected ? 'selected' : ''}"
-                    onclick="selectProduct(${p.id})"
+                    onclick="selectProduct('${escapeHtml(String(p.id))}')"
                     data-product-id="${p.id}">
           <div class="recipe-product-icon">${icon}</div>
           <div class="recipe-product-info">
@@ -272,8 +276,8 @@
         </div>`;
       }).join('');
 
-      // Auto-select first product if none selected
-      if (!selectedProductId && productsWithRecipes.length > 0) {
+      const selectedStillAvailable = productsWithRecipes.some(p => String(p.id) === String(selectedProductId));
+      if (!selectedProductId || !selectedStillAvailable) {
         selectProduct(productsWithRecipes[0].id);
       }
     }
@@ -298,7 +302,7 @@
           descEl.textContent = lang === 'zh' ? '浏览所有 TomaChef 食谱' : 'Browse all TomaChef recipes';
           header.style.display = 'block';
         } else if (typeof products !== 'undefined' && products.length) {
-          const p = products.find(prod => prod.id === productId);
+          const p = products.find(prod => String(prod.id) === String(productId));
           if (p) {
             const pName = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
             const pDesc = (typeof getLocalizedDesc === 'function') ? getLocalizedDesc(p, lang) : (p.description || '');
@@ -340,7 +344,7 @@
 
       const filtered = selectedProductId === '__all__'
         ? allRecipes.filter(r => r.is_active !== false)
-        : allRecipes.filter(r => r.product_id === selectedProductId && r.is_active !== false);
+        : allRecipes.filter(r => String(r.product_id) === String(selectedProductId) && r.is_active !== false);
 
       if (!filtered.length) {
         grid.innerHTML = '<div class="text-center py-5 w-100" style="grid-column: 1 / -1;"><p class="text-muted">No recipes found for this product yet. Stay tuned!</p></div>';
@@ -367,7 +371,7 @@
         }
 
         const imgHtml = r.image_url
-          ? `<img src="${r.image_url}" alt="${escapeHtml(title)}" loading="lazy">`
+          ? `<img src="${escapeHtml(r.image_url)}" alt="${escapeHtml(title)}" loading="eager" decoding="async" onerror="this.remove()">`
           : '';
 
         return `<div class="recipe-card recipe-card-new fade-in" onclick="showRecipeDetail('${r.id}')">
@@ -400,6 +404,9 @@
       const ingredients = tr.ingredients || [];
       const directions = tr.directions || [];
       const tips = tr.tips || [];
+      const detailMedia = recipe.image_url
+        ? `<img class="recipe-detail-image" src="${escapeHtml(recipe.image_url)}" alt="${escapeHtml(title)}" loading="eager" decoding="async" onerror="this.remove()">`
+        : (recipe.emoji ? `<div class="recipe-detail-emoji">${recipe.emoji}</div>` : '');
 
       let headerBadges = '';
       if (mode || temp || cookTime) {
@@ -438,7 +445,7 @@
       overlay.className = 'recipe-overlay';
       overlay.innerHTML = `<div class="recipe-detail-modal">
         <button class="recipe-detail-close" title="${t('recipe_close')}" onclick="this.closest('.recipe-overlay').remove()">&times;</button>
-        ${recipe.emoji ? `<div class="recipe-detail-emoji">${recipe.emoji}</div>` : ''}
+        ${detailMedia}
         <h3>${escapeHtml(title)}</h3>
         ${headerBadges}
         ${desc ? `<p class="recipe-detail-desc">${escapeHtml(desc)}</p>` : ''}

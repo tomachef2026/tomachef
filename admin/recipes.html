@@ -119,6 +119,11 @@
 
     .badge-cat { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
     .form-label { font-weight: 600; font-size: 0.85rem; }
+    .view-tools { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
+    .view-tools .form-select { width: 180px; }
+    .view-summary { color: #64748b; font-size: 0.86rem; }
+    .product-code { display: block; color: #b91c1c; font-weight: 700; }
+    .product-label { color: #64748b; }
 
     @media (max-width: 768px) {
       .admin-sidebar { width: 100%; height: auto; position: static; min-height: auto; padding: 8px 0; }
@@ -156,6 +161,16 @@
   </div>
 
   <div class="content-card">
+    <div class="view-tools">
+      <div>
+        <select class="form-select form-select-sm" id="recipeViewMode" onchange="setRecipeViewMode(this.value)">
+          <option value="frontend">前台可见</option>
+          <option value="all">全部食谱</option>
+          <option value="inactive">停用/重复</option>
+        </select>
+      </div>
+      <div class="view-summary" id="recipeViewSummary">正在加载数据…</div>
+    </div>
     <div class="table-responsive">
       <table class="table table-hover align-middle" id="recipeTable">
         <thead>
@@ -272,6 +287,9 @@
 <script>
   let editingId = null;
   let allProducts = [];
+  let allAdminRecipes = [];
+  let recipeViewMode = 'frontend';
+  const FRONTEND_RECIPE_PRODUCT_SKU = 'TC-AFO-001';
 
   // === Modal helpers ===
   function openModal() { document.getElementById('recipeModal').classList.add('show'); }
@@ -288,7 +306,7 @@
       allProducts.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.id;
-        opt.textContent = (p.name || p.name_en || 'Product #' + p.id);
+        opt.textContent = productOptionLabel(p);
         sel.appendChild(opt);
       });
     } catch (e) { console.warn('Failed to load products for dropdown', e); }
@@ -336,28 +354,47 @@
   async function loadRecipes() {
     const tbody = document.getElementById('recipeTbody');
     tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">加载中…</td></tr>';
-    const recipes = await fetchAllRecipesAdmin();
-    if (!recipes.length) {
+    allAdminRecipes = await fetchAllRecipesAdmin();
+    renderRecipes();
+  }
+
+  function renderRecipes() {
+    const tbody = document.getElementById('recipeTbody');
+    const summary = document.getElementById('recipeViewSummary');
+    const recipes = getRecipesForCurrentView();
+    const frontendCount = getFrontendVisibleRecipes().length;
+    const inactiveCount = allAdminRecipes.filter(r => r.is_active === false).length;
+
+    if (summary) {
+      summary.textContent = `前台可见 ${frontendCount} 条 · 全部 ${allAdminRecipes.length} 条 · 停用/重复 ${inactiveCount} 条`;
+    }
+
+    if (!allAdminRecipes.length) {
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无食谱，点击「+ 添加食谱」创建</td></tr>';
       return;
     }
+
+    if (!recipes.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">当前视图没有食谱记录</td></tr>';
+      return;
+    }
+
     const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
     const catClasses = { airfryer: 'category-airfryer', airfryeroven: 'category-airfryeroven', toaster: 'category-toaster' };
     tbody.innerHTML = recipes.map((r, i) => {
       const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
       const title = (t.en && t.en.title) ? t.en.title : '—';
       const imgHtml = r.image_url
-        ? '<img class="img-thumb" src="'+escHtml(r.image_url)+'" alt="" onerror="this.style.display=\'none\'">'
+        ? '<img class="img-thumb" src="'+escHtml(r.image_url)+'" alt="" loading="eager" decoding="async" onerror="this.style.display=\'none\'">'
         : '<span class="text-muted" style="font-size:0.75rem">—</span>';
-      // Product name from join or stored product_id
-      const productName = (r.products && r.products.name) || (r.product_id ? '#' + r.product_id : '—');
+      const productName = productDisplayHtml(r);
       return `<tr>
         <td class="text-muted">${r.display_order ?? 0}</td>
         <td>${imgHtml}</td>
         <td><span class="emoji-display">${r.emoji || '🍳'}</span></td>
         <td>${escHtml(title)}</td>
         <td><span class="badge-cat ${catClasses[r.category] || ''}">${catLabels[r.category] || r.category}</span></td>
-        <td><small>${escHtml(productName)}</small></td>
+        <td><small>${productName}</small></td>
         <td>${r.is_active ? '✅' : '❌'}</td>
         <td>
           <a class="btn-edit me-3" onclick="openEditModal('${r.id}')">编辑</a>
@@ -365,6 +402,39 @@
         </td>
       </tr>`;
     }).join('');
+  }
+
+  function getFrontendVisibleRecipes() {
+    return allAdminRecipes.filter(r =>
+      r.is_active !== false &&
+      r.products &&
+      r.products.sku === FRONTEND_RECIPE_PRODUCT_SKU
+    );
+  }
+
+  function getRecipesForCurrentView() {
+    if (recipeViewMode === 'frontend') return getFrontendVisibleRecipes();
+    if (recipeViewMode === 'inactive') return allAdminRecipes.filter(r => r.is_active === false);
+    return allAdminRecipes;
+  }
+
+  function setRecipeViewMode(mode) {
+    recipeViewMode = mode || 'frontend';
+    renderRecipes();
+  }
+
+  function productOptionLabel(p) {
+    const code = p.sku ? p.sku + ' · ' : '';
+    return code + (p.name_zh || p.name || p.name_en || 'Product #' + p.id);
+  }
+
+  function productDisplayHtml(recipe) {
+    if (recipe.products) {
+      const sku = recipe.products.sku || '';
+      const name = recipe.products.name_zh || recipe.products.name || '';
+      return `${sku ? `<span class="product-code">${escHtml(sku)}</span>` : ''}<span class="product-label">${escHtml(name || '未命名产品')}</span>`;
+    }
+    return recipe.product_id ? `<span class="product-label">#${escHtml(recipe.product_id)}</span>` : '<span class="product-label">—</span>';
   }
 
   function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -376,7 +446,8 @@
     document.getElementById('recipeImageUrl').value = '';
     document.getElementById('recipeEmoji').value = '';
     document.getElementById('recipeCat').value = 'airfryer';
-    document.getElementById('recipeProduct').value = '';
+    const defaultProduct = allProducts.find(p => p.sku === FRONTEND_RECIPE_PRODUCT_SKU);
+    document.getElementById('recipeProduct').value = defaultProduct ? defaultProduct.id : '';
     document.getElementById('recipeOrder').value = '0';
     document.getElementById('recipeActive').value = 'true';
     document.getElementById('recipeMode').value = '';
@@ -393,8 +464,8 @@
   }
 
   async function openEditModal(id) {
-    const recipes = await fetchAllRecipesAdmin();
-    const r = recipes.find(rr => rr.id === id);
+    if (!allAdminRecipes.length) allAdminRecipes = await fetchAllRecipesAdmin();
+    const r = allAdminRecipes.find(rr => String(rr.id) === String(id));
     if (!r) return toast('食谱未找到');
     editingId = id;
     document.getElementById('recipeId').value = id;
@@ -435,8 +506,8 @@
     let existingMode = '', existingTemp = '', existingTime = '';
     if (id) {
       try {
-        const recipes = await fetchAllRecipesAdmin();
-        const existing = recipes.find(rr => rr.id === id);
+        if (!allAdminRecipes.length) allAdminRecipes = await fetchAllRecipesAdmin();
+        const existing = allAdminRecipes.find(rr => String(rr.id) === String(id));
         if (existing) {
           const t = (typeof existing.translations === 'string') ? JSON.parse(existing.translations) : (existing.translations || {});
           existingTranslations = t;
@@ -472,12 +543,16 @@
     const formMode = document.getElementById('recipeMode').value.trim();
     const formTemp = document.getElementById('recipeTemp').value.trim();
     const formTime = document.getElementById('recipeTime').value.trim();
+    const productIdValue = document.getElementById('recipeProduct').value;
+    const productId = productIdValue
+      ? (/^\d+$/.test(productIdValue) ? Number(productIdValue) : productIdValue)
+      : null;
 
     const recipe = {
       id,
       translations,
       category: document.getElementById('recipeCat').value,
-      product_id: document.getElementById('recipeProduct').value || null,
+      product_id: productId,
       emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
       image_url: imageUrl,
       display_order: parseInt(document.getElementById('recipeOrder').value) || 0,

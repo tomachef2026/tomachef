@@ -13,15 +13,38 @@ VALUES (
     ARRAY['image/png', 'image/jpeg', 'image/webp', 'image/gif']
 ) ON CONFLICT (id) DO NOTHING;
 
--- Allow public uploads via anon key
-CREATE POLICY "allow_public_upload" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'tomachef-assets');
+-- Admin helper used by storage policies
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT (nullif(current_setting('request.jwt.claims', true)::jsonb -> 'app_metadata' ->> 'role', '')) = 'admin';
+$$;
+
+-- Allow public reads only. Upload/update/delete must be limited to admins.
+DROP POLICY IF EXISTS "allow_public_upload" ON storage.objects;
+DROP POLICY IF EXISTS "allow_public_update" ON storage.objects;
+DROP POLICY IF EXISTS "allow_public_read" ON storage.objects;
+DROP POLICY IF EXISTS "allow_admin_upload" ON storage.objects;
+DROP POLICY IF EXISTS "allow_admin_update" ON storage.objects;
+DROP POLICY IF EXISTS "allow_admin_delete" ON storage.objects;
 
 -- Allow public reads
 CREATE POLICY "allow_public_read" ON storage.objects
 FOR SELECT USING (bucket_id = 'tomachef-assets');
 
--- Allow public updates
-CREATE POLICY "allow_public_update" ON storage.objects
-FOR UPDATE USING (bucket_id = 'tomachef-assets')
-WITH CHECK (bucket_id = 'tomachef-assets');
+-- Allow only admins to write files
+CREATE POLICY "allow_admin_upload" ON storage.objects
+FOR INSERT
+WITH CHECK (bucket_id = 'tomachef-assets' AND public.is_admin());
+
+CREATE POLICY "allow_admin_update" ON storage.objects
+FOR UPDATE
+USING (bucket_id = 'tomachef-assets' AND public.is_admin())
+WITH CHECK (bucket_id = 'tomachef-assets' AND public.is_admin());
+
+CREATE POLICY "allow_admin_delete" ON storage.objects
+FOR DELETE
+USING (bucket_id = 'tomachef-assets' AND public.is_admin());

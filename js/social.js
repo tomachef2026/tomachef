@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       a.title      = link.label || link.platform;
       a.className  = 'social-icon-link';
       a.setAttribute('data-platform', link.platform);
-      a.innerHTML  = link.icon || getSocialIcon(link.platform);
+      a.innerHTML  = getSocialIcon(link.platform);
       container.appendChild(a);
     });
   } catch (e) {

@@ -5,7 +5,7 @@
 // ============================================================
 // Cache Layer — avoids re-fetching on every page navigation
 // ============================================================
-const CACHE_VERSION = 'v2'; // bump to invalidate all old caches
+const CACHE_VERSION = 'v3'; // bump to invalidate all old caches
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function cacheGet(key) {
@@ -406,7 +406,11 @@ async function fetchRecipes(category = null, productId = null) {
 async function fetchAllRecipesAdmin() {
   const sb = initSupabase();
   if (!sb) return [];
-  const { data, error } = await sb.from('recipes').select('*, products(name)').order('display_order', { ascending: true });
+  const { data, error } = await sb
+    .from('recipes')
+    .select('*, products(id, sku, name, name_zh)')
+    .order('is_active', { ascending: false })
+    .order('display_order', { ascending: true });
   if (error) { console.error('Error fetching recipes admin:', error); return []; }
   return data;
 }
@@ -415,13 +419,17 @@ async function upsertRecipe(recipe) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
   recipe.updated_at = new Date().toISOString();
-  return await sb.from('recipes').upsert(recipe, { onConflict: 'id' }).select();
+  const result = await sb.from('recipes').upsert(recipe, { onConflict: 'id' }).select();
+  if (!result.error) cacheClear('recipes_');
+  return result;
 }
 
 async function deleteRecipe(id) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
-  return await sb.from('recipes').delete().eq('id', id);
+  const result = await sb.from('recipes').delete().eq('id', id);
+  if (!result.error) cacheClear('recipes_');
+  return result;
 }
 
 // ============================================================
