@@ -468,10 +468,10 @@ function openProductModal(product = null) {
   } else {
     title.textContent = '添加产品';
     editingProductId = null;
-    document.getElementById('chHint').textContent = '保存产品后可添加购买渠道';
-    document.getElementById('btnAddChannel').style.display = 'none';
-    document.getElementById('videoHint').textContent = '保存产品后可添加视频';
-    document.getElementById('btnAddVideo').style.display = 'none';
+    document.getElementById('chHint').textContent = '';
+    document.getElementById('btnAddChannel').style.display = 'inline-block';
+    document.getElementById('videoHint').textContent = '';
+    document.getElementById('btnAddVideo').style.display = 'inline-block';
   }
 
   modal.classList.add('show');
@@ -578,17 +578,74 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
     active: document.getElementById('active').checked,
   };
 
+  let productId = id ? parseInt(id) : null;
+
   if (id) {
     const { error } = await updateProduct(parseInt(id), data);
     if (error) { alert('更新失败：' + error.message); return; }
   } else {
-    const { error } = await createProduct(data);
+    const { data: created, error } = await createProduct(data);
     if (error) { alert('创建失败：' + error.message); return; }
+    productId = parseInt(created[0]?.id);
+    // Save pending channels and videos for new product
+    if (productId) {
+      await savePendingChannelsVideos(productId);
+    }
   }
 
   closeModal();
   await loadProducts();
 });
+
+// Save all pending channels & videos after a new product is created
+async function savePendingChannelsVideos(productId) {
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '保存渠道和视频...';
+
+  // Collect channel data from DOM (not editingChannels, since addChannelRow
+  // pushes placeholders and the actual values are entered in the input fields)
+  const chRows = document.querySelectorAll('#channelList .channel-row');
+  for (let i = 0; i < chRows.length; i++) {
+    const platSelect = document.getElementById('chPlatform' + i);
+    const priceInput = document.getElementById('chPrice' + i);
+    const urlInput = document.getElementById('chUrl' + i);
+    if (!platSelect || !priceInput || !urlInput) continue;
+    const name = platSelect.value;
+    const price = priceInput.value.trim();
+    const url = urlInput.value.trim();
+    if (!name || !price || !url) continue;
+    const pf = PLATFORMS.find(p => p.name === name);
+    await upsertPurchaseChannel({
+      product_id: productId,
+      channel_name: name,
+      channel_icon: pf?.icon || '🛒',
+      channel_price: price,
+      channel_url: url,
+      sort_order: i + 1,
+    });
+  }
+
+  // Save videos
+  const vidRows = document.querySelectorAll('#videoList .channel-row');
+  for (let i = 0; i < vidRows.length; i++) {
+    const platSelect = document.getElementById('vidPlatform' + i);
+    const urlInput = document.getElementById('vidUrl' + i);
+    if (!platSelect || !urlInput) continue;
+    const platform = platSelect.value;
+    const url = urlInput.value.trim();
+    if (!url) continue;
+    await upsertProductVideo({
+      product_id: productId,
+      platform: platform,
+      video_url: url,
+      sort_order: i + 1,
+    });
+  }
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = '保存产品';
+}
 
 // ---- Predefined Platforms ----
 const PLATFORMS = [
