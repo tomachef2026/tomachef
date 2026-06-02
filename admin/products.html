@@ -110,6 +110,11 @@
     .upload-status.uploading { color: var(--amber-500); }
     .upload-status.success { color: #22c55e; }
     .upload-status.error { color: #dc2626; }
+    /* Specs input grid */
+    .specs-grid { display: flex; flex-direction: column; gap: 6px; }
+    .spec-row { display: flex; align-items: center; gap: 8px; }
+    .spec-label { width: 110px; font-size: 0.82rem; font-weight: 500; color: #475569; flex-shrink: 0; }
+    .spec-input { flex: 1; }
   </style>
 </head>
 <body>
@@ -312,8 +317,14 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label fw-semibold">规格(JSON)</label>
-          <textarea class="form-control" id="specs" rows="3" placeholder='{"capacity":"5.8 QT","power":"1700W"}' style="font-size:0.8rem;font-family:monospace;"></textarea>
+          <label class="form-label fw-semibold">产品规格</label>
+          <div class="specs-grid">
+            <div class="spec-row"><span class="spec-label">🔌 Power</span><input class="form-control form-control-sm spec-input" id="spec_power" placeholder="e.g. 1700W"></div>
+            <div class="spec-row"><span class="spec-label">📦 Capacity</span><input class="form-control form-control-sm spec-input" id="spec_capacity" placeholder="e.g. 5.8 QT"></div>
+            <div class="spec-row"><span class="spec-label">🎛️ Presets</span><input class="form-control form-control-sm spec-input" id="spec_presets" placeholder="e.g. 8"></div>
+            <div class="spec-row"><span class="spec-label">🌡️ Temperature</span><input class="form-control form-control-sm spec-input" id="spec_temp" placeholder="e.g. 90-400°F"></div>
+            <div class="spec-row"><span class="spec-label">⚙️ Functions</span><input class="form-control form-control-sm spec-input" id="spec_functions" placeholder="e.g. 12-in-1"></div>
+          </div>
         </div>
         <div class="col-md-6">
           <label class="form-label fw-semibold">产品图片</label>
@@ -441,7 +452,13 @@ function openProductModal(product = null) {
     document.getElementById('icon').value = product.icon || '';
     document.getElementById('sort_order').value = product.sort_order || 0;
     document.getElementById('description_en').value = product.description || '';
-    document.getElementById('specs').value = JSON.stringify(product.specs || {}, null, 2);
+    // Fill specs fields from product.specs object
+    const s = product.specs || {};
+    document.getElementById('spec_power').value = s.power || '';
+    document.getElementById('spec_capacity').value = s.capacity || '';
+    document.getElementById('spec_presets').value = s.presets || '';
+    document.getElementById('spec_temp').value = s.temp || '';
+    document.getElementById('spec_functions').value = s.functions || '';
     document.getElementById('image_url').value = product.image_url || '';
     document.getElementById('image_url_manual').value = product.image_url || '';
     showImagePreview(product.image_url);
@@ -542,13 +559,12 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const id = document.getElementById('productId').value;
-  let specs = {};
-  try {
-    specs = JSON.parse(document.getElementById('specs').value || '{}');
-  } catch (err) {
-    alert('规格字段JSON格式错误');
-    return;
-  }
+  // Collect specs from individual input fields
+  const specs = {};
+  ['power','capacity','presets','temp','functions'].forEach(key => {
+    const val = document.getElementById('spec_' + key).value.trim();
+    if (val) specs[key] = val;
+  });
 
   const data = {
     name: document.getElementById('name_en').value,
