@@ -372,16 +372,98 @@ img { max-width: 100%; height: auto; }
   position: relative;
   overflow: hidden;
 }
-.product-card .product-badge {
-  display: inline-block;
-  background: var(--tomato-600);
-  color: var(--white);
+/* ============================================================
+   PRODUCT BADGE — Premium standalone badge
+   ============================================================ */
+.product-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 50px;
+  padding: 5px 14px 5px 10px;
+  border-radius: 6px;
   text-transform: uppercase;
-  margin-bottom: 6px;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  box-shadow: 0 3px 12px rgba(185,28,28,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  border-left: 3px solid #f59e0b;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.product-badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #f59e0b;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(245,158,11,0.8);
+  flex-shrink: 0;
+}
+.product-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(185,28,28,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+/* Badge variants */
+.product-badge--new {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 0 3px 12px rgba(5,150,105,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  border-left-color: #34d399;
+}
+.product-badge--new::before { background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.8); }
+.product-badge--new:hover { box-shadow: 0 5px 18px rgba(5,150,105,0.4), inset 0 1px 0 rgba(255,255,255,0.15); }
+
+.product-badge--hot {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f97316 100%);
+  box-shadow: 0 3px 12px rgba(220,38,38,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  border-left-color: #fbbf24;
+}
+.product-badge--hot::before { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.8); animation: badge-pulse 1.5s ease-in-out infinite; }
+.product-badge--hot:hover { box-shadow: 0 5px 18px rgba(220,38,38,0.45), inset 0 1px 0 rgba(255,255,255,0.15); }
+
+.product-badge--bestseller {
+  background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);
+  box-shadow: 0 3px 12px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  border-left-color: #fde68a;
+  color: #7c2d12;
+}
+.product-badge--bestseller::before { background: #fff; box-shadow: 0 0 6px rgba(255,255,255,0.9); }
+.product-badge--bestseller:hover { box-shadow: 0 5px 18px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.2); }
+
+.product-badge--smart {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  box-shadow: 0 3px 12px rgba(79,70,229,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  border-left-color: #a5b4fc;
+}
+.product-badge--smart::before { background: #a5b4fc; box-shadow: 0 0 6px rgba(165,180,252,0.8); }
+.product-badge--smart:hover { box-shadow: 0 5px 18px rgba(79,70,229,0.4), inset 0 1px 0 rgba(255,255,255,0.15); }
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.6); }
+}
+
+/* Product card specific */
+.product-card .product-badge {
+  margin-bottom: 10px;
+}
+
+/* Scroll card specific */
+.scroll-card-body .product-badge {
+  margin-bottom: 10px;
+}
+
+/* For product detail page badge on image */
+.product-detail-img-wrap .product-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  margin-bottom: 0;
 }
 .product-card .product-body {
   padding: 20px;
@@ -1397,18 +1479,6 @@ img { max-width: 100%; height: auto; }
   height: 100%;
   object-fit: contain;
   padding: 20px;
-}
-.product-detail-img-wrap .product-badge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  background: var(--tomato-600);
-  color: white;
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  z-index: 2;
 }
 
 /* Color selector */

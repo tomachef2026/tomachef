@@ -363,7 +363,11 @@
 
       // Badge
       const badge = document.getElementById('detailBadge');
-      if (p.badge) { badge.textContent = p.badge; badge.style.display = 'block'; }
+      if (p.badge) {
+        badge.textContent = p.badge;
+        badge.className = 'product-badge ' + getBadgeClass(p.badge);
+        badge.style.display = 'inline-flex';
+      }
       else { badge.style.display = 'none'; }
 
       // Image

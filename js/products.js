@@ -91,6 +91,23 @@ function getProductsByCategory(category) {
   return products.filter(p => p.category === category);
 }
 
+// Map badge text to CSS variant class
+function getBadgeClass(badgeText) {
+  const map = {
+    'new': 'product-badge--new',
+    'hot': 'product-badge--hot',
+    'bestseller': 'product-badge--bestseller',
+    'smart': 'product-badge--smart',
+    'premium': '',
+    'xl': '',
+    'large': '',
+    'retro': '',
+    'digital': '',
+    'commercial': ''
+  };
+  return map[badgeText.toLowerCase().trim()] || '';
+}
+
 // Create scroll card (for horizontal scroll layout)
 function createScrollCard(product, lang) {
   const name = getLocalizedName(product, lang);
@@ -105,8 +122,9 @@ function createScrollCard(product, lang) {
     inquiryText = t['btn_inquiry'] || 'Buy Now';
   }
 
+  const badgeClass = getBadgeClass(badgeText);
   const badgeHtml = badgeText
-    ? `<span class="product-badge">${badgeText}</span>`
+    ? `<span class="product-badge ${badgeClass}">${badgeText}</span>`
     : '';
 
   const imgContent = imageUrl
@@ -164,8 +182,9 @@ function createProductCard(product, lang) {
     }).join('');
   }
 
+  const badgeClass = getBadgeClass(badgeText);
   const badgeHtml = badgeText
-    ? `<span class="product-badge">${badgeText}</span>`
+    ? `<span class="product-badge ${badgeClass}">${badgeText}</span>`
     : '';
 
   const imgContent = imageUrl
