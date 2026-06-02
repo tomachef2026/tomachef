@@ -412,43 +412,30 @@ img { max-width: 100%; height: auto; }
   box-shadow: 0 4px 14px rgba(185,28,28,0.35);
 }
 
-/* Badge color variants */
+/* Badge color variants — all keep red bg, only accent differs */
 .product-badge--new {
-  background: #059669;
   border-color: #34d399;
-  outline-color: #059669;
-  box-shadow: 0 2px 6px rgba(5,150,105,0.25);
+  outline-color: #b91c1c;
 }
 .product-badge--new::before { background: #34d399; }
-.product-badge--new:hover { box-shadow: 0 4px 14px rgba(5,150,105,0.35); }
 
 .product-badge--hot {
-  background: #dc2626;
   border-color: #fbbf24;
-  outline-color: #dc2626;
-  box-shadow: 0 2px 6px rgba(220,38,38,0.3);
+  outline-color: #b91c1c;
 }
 .product-badge--hot::before { background: #fbbf24; animation: badge-pulse 1.5s ease-in-out infinite; }
-.product-badge--hot:hover { box-shadow: 0 4px 14px rgba(220,38,38,0.4); }
 
 .product-badge--bestseller {
-  background: #f59e0b;
-  border-color: #fde68a;
-  outline-color: #f59e0b;
-  color: #7c2d12;
-  box-shadow: 0 2px 6px rgba(245,158,11,0.3);
+  border-color: #fbbf24;
+  outline-color: #b91c1c;
 }
-.product-badge--bestseller::before { background: #fff; }
-.product-badge--bestseller:hover { box-shadow: 0 4px 14px rgba(245,158,11,0.4); }
+.product-badge--bestseller::before { background: #fbbf24; }
 
 .product-badge--smart {
-  background: #4f46e5;
   border-color: #a5b4fc;
-  outline-color: #4f46e5;
-  box-shadow: 0 2px 6px rgba(79,70,229,0.25);
+  outline-color: #b91c1c;
 }
 .product-badge--smart::before { background: #a5b4fc; }
-.product-badge--smart:hover { box-shadow: 0 4px 14px rgba(79,70,229,0.35); }
 
 @keyframes badge-pulse {
   0%, 100% { opacity: 1; transform: rotate(45deg) scale(1); }
