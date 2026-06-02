@@ -104,7 +104,7 @@
                 </div>
                 <div class="col-12">
                   <label class="form-label" data-i18n="captcha_label">Verification</label>
-                  <div class="g-recaptcha" data-sitekey="6LeL4P4sAAAAAMuXJwzKDmpT52mymhxRvU2quNKI"></div>
+                  <div class="g-recaptcha" data-sitekey="6LchlwgtAAAAAGnhHarJSQOCJ45OQTQX__glcIOV"></div>
                 </div>
                 <div class="col-12">
                   <button type="submit" class="btn-submit" data-i18n="form_submit">Send Inquiry</button>
@@ -207,6 +207,16 @@
 
   <!-- Load contact info from Supabase -->
   <script>
+  function escapeContactText(value) {
+    const div = document.createElement('div');
+    div.textContent = value || '';
+    return div.innerHTML;
+  }
+
+  function renderContactMultiline(value) {
+    return escapeContactText(value).replace(/\n/g, '<br>');
+  }
+
   (async function loadContactInfo() {
     initSupabase();
     const info = await fetchContactInfo();
@@ -215,20 +225,20 @@
     if (info.email) {
       document.getElementById('contactEmail').textContent = info.email;
       const fe = document.getElementById('footerEmail');
-      if (fe) fe.innerHTML = '📧 ' + info.email;
+      if (fe) fe.textContent = '📧 ' + info.email;
     }
     if (info.phone) {
       document.getElementById('contactPhone').textContent = info.phone;
       const fp = document.getElementById('footerPhone');
-      if (fp) fp.innerHTML = '📞 ' + info.phone;
+      if (fp) fp.textContent = '📞 ' + info.phone;
     }
     if (info.address) {
-      document.getElementById('contactAddress').innerHTML = info.address.replace(/\n/g, '<br>');
+      document.getElementById('contactAddress').innerHTML = renderContactMultiline(info.address);
       const fa = document.getElementById('footerAddress');
-      if (fa) fa.innerHTML = '📍 ' + info.address.replace(/\n/g, '<br>');
+      if (fa) fa.innerHTML = '📍 ' + renderContactMultiline(info.address);
     }
     if (info.business_hours) {
-      document.getElementById('contactHours').innerHTML = info.business_hours.replace(/\n/g, '<br>');
+      document.getElementById('contactHours').innerHTML = renderContactMultiline(info.business_hours);
     }
   })();
   </script>
@@ -255,21 +265,22 @@
       phone: document.getElementById('formPhone')?.value || '',
       company: document.getElementById('formCompany')?.value || '',
       product_interest: document.getElementById('formProduct')?.value || '',
-      message: document.getElementById('formMsg')?.value || ''
+      message: document.getElementById('formMsg')?.value || '',
+      recaptchaToken
     };
 
-    // Try Supabase first
-    if (typeof submitInquiry === 'function') {
-      const { error } = await submitInquiry(inquiry);
-      if (!error) {
-        showToast(t['toast_success'] || 'Your inquiry has been sent! We will get back to you within 24 hours.');
-        form.reset();
-        grecaptcha.reset();
-        return;
-      }
+    const res = await fetch('/api/submit-inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inquiry)
+    });
+
+    if (!res.ok) {
+      showToast(t['toast_error'] || 'Submission failed. Please try again.');
+      grecaptcha.reset();
+      return;
     }
 
-    // Fallback: just show success
     showToast(t['toast_success'] || 'Your inquiry has been sent! We will get back to you within 24 hours.');
     form.reset();
     grecaptcha.reset();

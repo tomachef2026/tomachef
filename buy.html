@@ -152,6 +152,9 @@
                     <textarea id="wsNotes" class="form-control form-control-sm" rows="2" placeholder="Additional notes..."></textarea>
                   </div>
                   <div class="col-12">
+                    <div class="g-recaptcha" data-sitekey="6LchlwgtAAAAAGnhHarJSQOCJ45OQTQX__glcIOV"></div>
+                  </div>
+                  <div class="col-12">
                     <button type="submit" class="btn-submit btn-sm-full" data-i18n="buy_submit">Submit Order</button>
                   </div>
                 </div>
@@ -267,12 +270,22 @@
 
   <!-- Load contact info -->
   <script>
+  function escapeContactText(value) {
+    const div = document.createElement('div');
+    div.textContent = value || '';
+    return div.innerHTML;
+  }
+
+  function renderContactMultiline(value) {
+    return escapeContactText(value).replace(/\n/g, '<br>');
+  }
+
   (async function loadContactInfo() {
     initSupabase();
     const info = await fetchContactInfo();
-    if (info.email) { const fe = document.getElementById('footerEmail'); if (fe) fe.innerHTML = '📧 ' + info.email; }
-    if (info.phone)  { const fp = document.getElementById('footerPhone'); if (fp) fp.innerHTML = '📞 ' + info.phone; }
-    if (info.address) { const fa = document.getElementById('footerAddress'); if (fa) fa.innerHTML = '📍 ' + info.address.replace(/\n/g, '<br>'); }
+    if (info.email) { const fe = document.getElementById('footerEmail'); if (fe) fe.textContent = '📧 ' + info.email; }
+    if (info.phone)  { const fp = document.getElementById('footerPhone'); if (fp) fp.textContent = '📞 ' + info.phone; }
+    if (info.address) { const fa = document.getElementById('footerAddress'); if (fa) fa.innerHTML = '📍 ' + renderContactMultiline(info.address); }
   })();
   </script>
 
@@ -691,6 +704,12 @@
     e.preventDefault();
     const lang = getCurrentLang();
     const t = translations[lang] || translations['en'];
+    const recaptchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+
+    if (!recaptchaToken) {
+      showToast(t['captcha_error'] || 'Please complete the verification.');
+      return;
+    }
 
     // Get product name for admin viewing
     const pid = document.getElementById('wsProductId')?.value || '';
@@ -708,12 +727,20 @@
       name: document.getElementById('wsName')?.value || '',
       email: document.getElementById('wsEmail')?.value || '',
       company: document.getElementById('wsCompany')?.value || '',
-      phone: document.getElementById('wsPhone')?.value || ''
+      phone: document.getElementById('wsPhone')?.value || '',
+      recaptchaToken
     };
 
-    if (typeof submitOrder === 'function') {
-      const { error } = await submitOrder(order);
-      if (error) console.error('Order error:', error);
+    const res = await fetch('/api/submit-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order)
+    });
+
+    if (!res.ok) {
+      showToast(t['toast_error'] || 'Submission failed. Please try again.');
+      if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+      return;
     }
 
     // Send email notification to admin (via EmailJS if configured)
@@ -721,6 +748,7 @@
 
     showToast(t['buy_success'] || 'Your order has been submitted! Our team will contact you within 24 hours.');
     document.getElementById('wholesaleForm').reset();
+    if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
   });
 
   // Email notification - uses EmailJS (free tier: 200 emails/month)

@@ -324,6 +324,7 @@
     /* ===== Dynamic Home Recipes with Product Selector ===== */
     let _homeRecipes = [];
     let _homeSelectedProduct = null;
+    const HOME_RECIPE_PRODUCT_SKU = 'TC-AFO-001';
 
     async function loadHomeRecipes() {
       const grid = document.getElementById('homeRecipeGrid');
@@ -354,9 +355,11 @@
 
     function getHomeProductsWithRecipes() {
       const productIds = new Set();
-      _homeRecipes.forEach(r => { if (r.product_id) productIds.add(r.product_id); });
+      _homeRecipes.filter(r => r.is_active !== false).forEach(r => { if (r.product_id) productIds.add(String(r.product_id)); });
       if (typeof products === 'undefined' || !products.length) return [];
-      return products.filter(p => productIds.has(p.id) && p.active !== false);
+      const matchedProducts = products.filter(p => productIds.has(String(p.id)) && p.active !== false);
+      const preferredProduct = matchedProducts.find(p => p.sku === HOME_RECIPE_PRODUCT_SKU);
+      return preferredProduct ? [preferredProduct] : matchedProducts;
     }
 
     function renderHomeProductSelector() {
@@ -375,8 +378,8 @@
 
       container.innerHTML = productsWithRecipes.map(p => {
         const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
-        const isSelected = _homeSelectedProduct === p.id;
-        const recipeCount = _homeRecipes.filter(r => r.product_id === p.id).length;
+        const isSelected = String(_homeSelectedProduct) === String(p.id);
+        const recipeCount = _homeRecipes.filter(r => String(r.product_id) === String(p.id) && r.is_active !== false).length;
         return '<div class="recipe-product-card' + (isSelected ? ' selected' : '') + '" style="cursor:pointer;" data-product-id="' + p.id + '">' +
           '<div class="recipe-product-icon">' + (p.icon || '🍳') + '</div>' +
           '<div class="recipe-product-info">' +
@@ -394,8 +397,8 @@
         });
       });
 
-      // Auto-select first
-      if (!_homeSelectedProduct && productsWithRecipes.length > 0) {
+      const selectedStillAvailable = productsWithRecipes.some(p => String(p.id) === String(_homeSelectedProduct));
+      if (!_homeSelectedProduct || !selectedStillAvailable) {
         selectHomeProduct(productsWithRecipes[0].id);
       }
     }
@@ -404,7 +407,7 @@
       _homeSelectedProduct = productId;
       // Update selector UI
       document.querySelectorAll('#homeProductSelector .recipe-product-card').forEach(card => {
-        card.classList.toggle('selected', card.dataset.productId === productId);
+        card.classList.toggle('selected', String(card.dataset.productId) === String(productId));
       });
       renderHomeRecipes();
     }
@@ -421,7 +424,7 @@
 
       const filtered = _homeSelectedProduct === '__all__'
         ? _homeRecipes.filter(r => r.is_active !== false)
-        : _homeRecipes.filter(r => r.product_id === _homeSelectedProduct && r.is_active !== false);
+        : _homeRecipes.filter(r => String(r.product_id) === String(_homeSelectedProduct) && r.is_active !== false);
       if (!filtered.length) {
         grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">No recipes for this product yet.</p></div>';
         return;
@@ -457,7 +460,7 @@
         }
 
         const imgHtml = r.image_url && r.image_url.trim()
-          ? '<img src="' + r.image_url + '" alt="" loading="lazy">'
+          ? '<img src="' + r.image_url + '" alt="" loading="eager" decoding="async" onerror="this.remove()">'
           : '';
         const emojiHtml = imgHtml ? '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>' : '';
 
