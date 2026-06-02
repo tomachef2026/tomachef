@@ -9,13 +9,8 @@ const CACHE_VERSION = 'v4'; // bump to invalidate all old caches
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function cacheGet(key) {
-  try {
-    const item = localStorage.getItem(CACHE_VERSION + '_' + key);
-    if (!item) return null;
-    const { data, ts } = JSON.parse(item);
-    if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem(CACHE_VERSION + '_' + key); return null; }
-    return data;
-  } catch (e) { return null; }
+  // Cache disabled — always fetch live from Supabase for instant sync with admin panel
+  return null;
 }
 
 function cacheSet(key, data) {
