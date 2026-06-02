@@ -477,6 +477,39 @@ async function deleteFaq(id) {
 // Storage API (Image Upload)
 // ============================================================
 
+async function uploadProductImage(file) {
+  const sb = initSupabase();
+  if (!sb) return { error: 'Supabase not initialized' };
+
+  // Validate image type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    return { error: 'Unsupported image format. Use JPEG, PNG, WebP, or GIF.' };
+  }
+  // Max 5MB
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: 'Image too large. Maximum 5MB.' };
+  }
+
+  const ext = file.name.split('.').pop() || 'jpg';
+  const fileName = `products/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+
+  const { data, error } = await sb.storage
+    .from('tomachef-assets')
+    .upload(fileName, file, {
+      cacheControl: '31536000',
+      upsert: false
+    });
+
+  if (error) return { error };
+
+  const { data: publicUrlData } = sb.storage
+    .from('tomachef-assets')
+    .getPublicUrl(fileName);
+
+  return { url: publicUrlData.publicUrl };
+}
+
 async function uploadRecipeImage(file) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
