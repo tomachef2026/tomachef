@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TomaChef Badge 风格预览</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f8f9fa;
+    color: #1a1a2e;
+    padding: 40px 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: #b91c1c;
+  }
+  .subtitle {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 40px;
+    font-size: 0.95rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .option {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 24px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 8px 28px rgba(0,0,0,0.06);
+  }
+  .option-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .option-num {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: #fef2f2;
+    color: #b91c1c;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.1rem;
+  }
+  .option-name {
+    font-weight: 700; font-size: 1.1rem;
+    flex:1;
+  }
+  .option-tagline {
+    font-size: 0.78rem; color: #94a3b8; font-weight: 400;
+  }
+
+  /* Card mockup */
+  .card-mock {
+    display: flex; gap: 14px;
+    background: #fafafa;
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid #e8ecf0;
+  }
+  .card-img {
+    width: 100px; height: 100px;
+    background: linear-gradient(135deg, #fee2e2 0%, #fef3c7 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem;
+    flex-shrink: 0;
+  }
+  .card-info {
+    display: flex; flex-direction: column;
+    gap: 6px; flex:1; min-width:0;
+  }
+  .card-info h4 {
+    font-size: 0.95rem; font-weight: 700; color: #1a1a2e;
+    margin-top: 6px;
+  }
+  .card-info .specs {
+    font-size: 0.75rem; color: #94a3b8;
+  }
+  .card-info .price {
+    font-weight: 800; color: #b91c1c; font-size: 0.95rem;
+  }
+
+  .badge-showcase {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    padding: 16px; background: #fafafa; border-radius: 12px;
+    align-items: center; justify-content: center; min-height: 56px;
+  }
+
+  /* ============ STYLE 1: 渐变标签 (Current) ============ */
+  .b1 {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    color: #fff; font-size: 0.7rem; font-weight: 700;
+    padding: 5px 14px 5px 10px; border-radius: 6px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    box-shadow: 0 3px 12px rgba(185,28,28,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    border-left: 3px solid #f59e0b;
+  }
+  .b1::before { content:''; display:inline-block; width:6px; height:6px; background:#f59e0b; border-radius:50%; box-shadow:0 0 6px rgba(245,158,11,0.8); }
+
+  /* ============ STYLE 2: 药丸胶囊 ============ */
+  .b2 {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+    color: #fff; font-size: 0.7rem; font-weight: 700;
+    padding: 6px 16px; border-radius: 50px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    box-shadow: 0 2px 10px rgba(220,38,38,0.35);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  /* ============ STYLE 3: 折角标签 ============ */
+  .b3 {
+    display: inline-flex; align-items: center;
+    background: linear-gradient(135deg, #b91c1c 0%, #c62828 100%);
+    color: #fff; font-size: 0.7rem; font-weight: 700;
+    padding: 5px 12px; border-radius: 3px 8px 8px 3px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(185,28,28,0.25);
+  }
+  .b3::after {
+    content:''; position:absolute; right:-8px; top:50%; transform:translateY(-50%);
+    width:0; height:0;
+    border-top: 14px solid transparent;
+    border-bottom: 14px solid transparent;
+    border-left: 8px solid #b91c1c;
+  }
+
+  /* ============ STYLE 4: 琥珀描边 ============ */
+  .b4 {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #fff; color: #b91c1c; font-size: 0.7rem; font-weight: 700;
+    padding: 5px 14px; border-radius: 6px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border: 2px solid #f59e0b;
+    box-shadow: 0 0 0 1px rgba(245,158,11,0.15), 0 2px 6px rgba(245,158,11,0.12);
+  }
+  .b4::before { content:''; display:inline-block; width:8px; height:8px; background:#b91c1c; border-radius:2px; transform:rotate(45deg); }
+
+  /* ============ STYLE 5: 缎带徽章 ============ */
+  .b5 {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    color: #fff; font-size: 0.65rem; font-weight: 700;
+    padding: 7px 18px 7px 16px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 6px) 50%, 100% 100%, 10px 100%, 0 50%);
+    box-shadow: 0 2px 8px rgba(185,28,28,0.3);
+    margin: 0 8px;
+  }
+
+  /* ============ STYLE 6: 红金撞色 ============ */
+  .b6 {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #b91c1c; color: #fff; font-size: 0.7rem; font-weight: 700;
+    padding: 5px 12px; border-radius: 5px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    box-shadow: 0 2px 6px rgba(185,28,28,0.25);
+    border: 2px solid #f59e0b;
+    outline: 2px solid #b91c1c;
+    outline-offset: -6px;
+  }
+  .b6::before { content:''; display:inline-block; width:6px; height:6px; background:#f59e0b; border-radius:1px; transform:rotate(45deg); }
+
+  .label-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .label-tag {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 4px;
+    background: #f1f5f9; color: #475569; font-weight: 500;
+  }
+
+  .pick-btn {
+    margin-top: auto;
+    padding: 10px 20px;
+    border: 2px solid #e8ecf0;
+    border-radius: 10px;
+    background: #fff;
+    color: #b91c1c;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .pick-btn:hover {
+    background: #b91c1c; color: #fff; border-color: #b91c1c;
+  }
+</style>
+</head>
+<body>
+
+<h1>TomaChef Badge 风格方案</h1>
+<p class="subtitle">6 种设计 — 点击您喜欢的那一款，反馈编号即可</p>
+
+<div class="grid">
+
+  <!-- Option 1: 渐变标签 -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-num">1</span>
+      <div>
+        <div class="option-name">渐变标签 <span class="option-tagline">（当前版本）</span></div>
+      </div>
+    </div>
+    <div class="badge-showcase">
+      <span class="b1">BESTSELLER</span>
+      <span class="b1">NEW</span>
+      <span class="b1" style="background:linear-gradient(135deg,#059669,#10b981);border-left-color:#34d399;">NEW</span>
+    </div>
+    <div class="card-mock">
+      <div class="card-img">🔥</div>
+      <div class="card-info">
+        <span class="b1" style="margin-bottom:2px;">BESTSELLER</span>
+        <h4>26QT Air Fryer Oven</h4>
+        <div class="specs">12-in-1 · 1800W · 26QT</div>
+        <div class="price">$119.99</div>
+      </div>
+    </div>
+    <div class="label-row">
+      <span class="label-tag">渐变红底</span>
+      <span class="label-tag">琥珀左边框</span>
+      <span class="label-tag">金色圆点</span>
+      <span class="label-tag">hover上浮</span>
+    </div>
+    <button class="pick-btn" onclick="pick(1)">✅ 选这个</button>
+  </div>
+
+  <!-- Option 2: 药丸胶囊 -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-num">2</span>
+      <div>
+        <div class="option-name">药丸胶囊</div>
+      </div>
+    </div>
+    <div class="badge-showcase">
+      <span class="b2">BESTSELLER</span>
+      <span class="b2" style="background:linear-gradient(135deg,#059669,#10b981);">NEW</span>
+      <span class="b2" style="background:linear-gradient(135deg,#f59e0b,#d97706);">HOT</span>
+    </div>
+    <div class="card-mock">
+      <div class="card-img">🔥</div>
+      <div class="card-info">
+        <span class="b2" style="margin-bottom:2px;">BESTSELLER</span>
+        <h4>26QT Air Fryer Oven</h4>
+        <div class="specs">12-in-1 · 1800W · 26QT</div>
+        <div class="price">$119.99</div>
+      </div>
+    </div>
+    <div class="label-row">
+      <span class="label-tag">全圆角</span>
+      <span class="label-tag">柔和阴影</span>
+      <span class="label-tag">现代极简</span>
+    </div>
+    <button class="pick-btn" onclick="pick(2)">✅ 选这个</button>
+  </div>
+
+  <!-- Option 3: 折角标签 -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-num">3</span>
+      <div>
+        <div class="option-name">折角标签</div>
+      </div>
+    </div>
+    <div class="badge-showcase">
+      <span class="b3">BESTSELLER</span>
+      <span class="b3" style="background:linear-gradient(135deg,#f59e0b,#d97706);">HOT</span>
+      <span class="b3" style="background:linear-gradient(135deg,#4f46e5,#6366f1);">SMART</span>
+    </div>
+    <div class="card-mock">
+      <div class="card-img">🔥</div>
+      <div class="card-info">
+        <span class="b3" style="margin-bottom:2px;">BESTSELLER</span>
+        <h4>26QT Air Fryer Oven</h4>
+        <div class="specs">12-in-1 · 1800W · 26QT</div>
+        <div class="price">$119.99</div>
+      </div>
+    </div>
+    <div class="label-row">
+      <span class="label-tag">三角箭头</span>
+      <span class="label-tag">价格标签风</span>
+      <span class="label-tag">辨识度极高</span>
+    </div>
+    <button class="pick-btn" onclick="pick(3)">✅ 选这个</button>
+  </div>
+
+  <!-- Option 4: 琥珀描边 -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-num">4</span>
+      <div>
+        <div class="option-name">琥珀描边</div>
+      </div>
+    </div>
+    <div class="badge-showcase">
+      <span class="b4">BESTSELLER</span>
+      <span class="b4" style="color:#059669;border-color:#10b981;">NEW</span>
+      <span class="b4" style="color:#d97706;border-color:#ef4444;">HOT</span>
+    </div>
+    <div class="card-mock">
+      <div class="card-img">🔥</div>
+      <div class="card-info">
+        <span class="b4" style="margin-bottom:2px;">BESTSELLER</span>
+        <h4>26QT Air Fryer Oven</h4>
+        <div class="specs">12-in-1 · 1800W · 26QT</div>
+        <div class="price">$119.99</div>
+      </div>
+    </div>
+    <div class="label-row">
+      <span class="label-tag">白底金边</span>
+      <span class="label-tag">红色菱形</span>
+      <span class="label-tag">清爽优雅</span>
+    </div>
+    <button class="pick-btn" onclick="pick(4)">✅ 选这个</button>
+  </div>
+
+  <!-- Option 5: 缎带徽章 -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-num">5</span>
+      <div>
+        <div class="option-name">缎带徽章</div>
+      </div>
+    </div>
+    <div class="badge-showcase">
+      <span class="b5">BESTSELLER</span>
+      <span class="b5" style="background:linear-gradient(135deg,#f59e0b,#d97706);">HOT</span>
+      <span class="b5" style="background:linear-gradient(135deg,#059669,#10b981);">NEW</span>
+    </div>
+    <div class="card-mock">
+      <div class="card-img">🔥</div>
+      <div class="card-info">
+        <span class="b5" style="margin-bottom:2px;">BESTSELLER</span>
+        <h4>26QT Air Fryer Oven</h4>
+        <div class="specs">12-in-1 · 1800W · 26QT</div>
+        <div class="price">$119.99</div>
+      </div>
+    </div>
+    <div class="label-row">
+      <span class="label-tag">缎带造型</span>
+      <span class="label-tag">几何切割</span>
+      <span class="label-tag">独特醒目</span>
+    </div>
+    <button class="pick-btn" onclick="pick(5)">✅ 选这个</button>
+  </div>
+
+  <!-- Option 6: 红金撞色 -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-num">6</span>
+      <div>
+        <div class="option-name">红金撞色</div>
+      </div>
+    </div>
+    <div class="badge-showcase">
+      <span class="b6">BESTSELLER</span>
+      <span class="b6" style="background:#059669;border-color:#34d399;outline-color:#059669;">NEW</span>
+      <span class="b6" style="background:#4f46e5;border-color:#a5b4fc;outline-color:#4f46e5;">SMART</span>
+    </div>
+    <div class="card-mock">
+      <div class="card-img">🔥</div>
+      <div class="card-info">
+        <span class="b6" style="margin-bottom:2px;">BESTSELLER</span>
+        <h4>26QT Air Fryer Oven</h4>
+        <div class="specs">12-in-1 · 1800W · 26QT</div>
+        <div class="price">$119.99</div>
+      </div>
+    </div>
+    <div class="label-row">
+      <span class="label-tag">红底金框</span>
+      <span class="label-tag">双层轮廓</span>
+      <span class="label-tag">品牌冲击力</span>
+    </div>
+    <button class="pick-btn" onclick="pick(6)">✅ 选这个</button>
+  </div>
+
+</div>
+
+<script>
+function pick(n) {
+  document.querySelectorAll('.pick-btn').forEach(b => {
+    b.textContent = b.textContent.replace('✅ ','');
+    b.style.background='#fff'; b.style.color='#b91c1c';
+  });
+  const btn = event.target;
+  btn.textContent = '✅ 已选择 #' + n;
+  btn.style.background = '#b91c1c';
+  btn.style.color = '#fff';
+  alert('您选择了方案 #' + n + '\n\n记下编号告诉我，我立刻帮你部署！');
+}
+</script>
+
+</body>
+</html>
