@@ -7,7 +7,7 @@
   <title>Products Management - TomaChef Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-  <script src="../supabase.js"></script>
+  <script src="../supabase.js?v=20260602c"></script>
   <style>
     :root {
       --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
@@ -67,6 +67,46 @@
     .category-airfryer { background: #fee2e2; color: #b91c1c; }
     .category-airfryeroven { background: #fef3c7; color: #b45309; }
     .category-toaster { background: #dcfce7; color: #166534; }
+    .img-upload-area {
+      border: 2px dashed #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f8fafc;
+      position: relative;
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .img-upload-area:hover { border-color: var(--amber-500); background: #fffbeb; }
+    .img-upload-area.has-image { border-style: solid; border-color: #22c55e; }
+    .img-preview { max-height: 120px; border-radius: 8px; display: none; max-width: 100%; }
+    .img-preview.show { display: inline-block; }
+    .img-upload-area .placeholder-text { color: #94a3b8; font-size: 0.85rem; }
+    .img-upload-area.has-image .placeholder-text { display: none; }
+    .btn-remove-img {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #dc2626;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .img-upload-area.has-image .btn-remove-img { display: flex; }
+    .upload-note { color: #94a3b8; font-size: 0.75rem; line-height: 1.4; }
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
@@ -574,6 +614,8 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
     if (val) specs[key] = val;
   });
 
+  let imageUrl = (document.getElementById('image_url').value || '').trim();
+
   const data = {
     name: document.getElementById('name_en').value,
     name_zh: document.getElementById('name_zh').value.trim(),
@@ -584,7 +626,7 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
     description: document.getElementById('description_en').value,
     description_zh: document.getElementById('description_zh').value.trim(),
     specs: specs,
-    image_url: document.getElementById('image_url').value,
+    image_url: imageUrl,
     active: document.getElementById('active').checked,
   };
 

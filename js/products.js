@@ -85,6 +85,18 @@ function getLocalizedDesc(product, lang) {
   return product.description || '';
 }
 
+function addCacheBuster(url, token) {
+  if (!url) return '';
+  const value = String(url).trim();
+  if (!token) return value;
+  return value + (value.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(String(token));
+}
+
+function getProductImageUrl(product) {
+  if (!product || !product.image_url) return '';
+  return addCacheBuster(product.image_url, product.updated_at || product.created_at || product.id);
+}
+
 // Get products by category
 function getProductsByCategory(category) {
   if (category === 'all') return products;
@@ -114,7 +126,7 @@ function createScrollCard(product, lang) {
   const desc = getLocalizedDesc(product, lang);
   const badgeText = product.badge || '';
   const icon = product.icon || '🍳';
-  const imageUrl = product.image_url || '';
+  const imageUrl = getProductImageUrl(product);
 
   let inquiryText = 'Buy Now';
   if (typeof translations !== 'undefined') {
@@ -128,7 +140,7 @@ function createScrollCard(product, lang) {
     : '';
 
   const imgContent = imageUrl
-    ? `<img src="${imageUrl}" alt="${escapeHtml(name)}">`
+    ? `<img src="${imageUrl}" alt="${escapeHtml(name)}" loading="eager" decoding="async">`
     : `<span class="placeholder-icon">${icon}</span>`;
 
   // Build spec tags
@@ -161,7 +173,7 @@ function createProductCard(product, lang) {
   const desc = getLocalizedDesc(product, lang);
   const badgeText = product.badge || '';
   const icon = product.icon || '🍳';
-  const imageUrl = product.image_url || '';
+  const imageUrl = getProductImageUrl(product);
 
   let inquiryText, catLabel;
   if (typeof translations !== 'undefined') {
@@ -188,7 +200,7 @@ function createProductCard(product, lang) {
     : '';
 
   const imgContent = imageUrl
-    ? `<img src="${imageUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${imageUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;" loading="eager" decoding="async">`
     : `<span style="font-size:4rem;">${icon}</span>`;
 
   return `
