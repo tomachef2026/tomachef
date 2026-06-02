@@ -243,6 +243,7 @@
         const isSelected = String(selectedProductId) === String(p.id);
         const recipeCount = allRecipes.filter(r => String(r.product_id) === String(p.id) && r.is_active !== false).length;
         const icon = p.icon || '🍳';
+        const imageUrl = p.image_url || '';
         const price = p.price || '';
         const sku = p.sku || '';
         const badge = p.badge || '';
@@ -255,10 +256,19 @@
           ).join('');
         }
 
+        // Product image or emoji fallback
+        const iconHtml = imageUrl
+          ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" class="recipe-product-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
+          : '';
+        const emojiHtml = imageUrl
+          ? `<div class="recipe-product-icon" style="display:none;">${icon}</div>`
+          : `<div class="recipe-product-icon">${icon}</div>`;
+
         return `<div class="recipe-product-card ${isSelected ? 'selected' : ''}"
                     onclick="selectProduct('${escapeHtml(String(p.id))}')"
                     data-product-id="${p.id}">
-          <div class="recipe-product-icon">${icon}</div>
+          ${iconHtml}
+          ${emojiHtml}
           <div class="recipe-product-info">
             <div class="rpp-header">
               <h5>${escapeHtml(name)}</h5>
