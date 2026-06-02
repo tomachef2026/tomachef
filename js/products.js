@@ -124,7 +124,7 @@ function createScrollCard(product, lang) {
 
   const badgeClass = getBadgeClass(badgeText);
   const badgeHtml = badgeText
-    ? `<span class="product-badge ${badgeClass}">${badgeText}</span>`
+    ? `<a href="buy.html?product=${product.id}" class="product-badge ${badgeClass}">${badgeText}</a>`
     : '';
 
   const imgContent = imageUrl
@@ -184,7 +184,7 @@ function createProductCard(product, lang) {
 
   const badgeClass = getBadgeClass(badgeText);
   const badgeHtml = badgeText
-    ? `<span class="product-badge ${badgeClass}">${badgeText}</span>`
+    ? `<a href="buy.html?product=${product.id}" class="product-badge ${badgeClass}">${badgeText}</a>`
     : '';
 
   const imgContent = imageUrl
