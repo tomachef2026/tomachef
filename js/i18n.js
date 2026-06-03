@@ -12,6 +12,7 @@ const translations = {
     nav_contact: "Contact Us",
     nav_inquiry: "Buy Now",
     nav_buy: "Buy Now",
+    nav_back: "Back",
 
     // Hero
     hero_title: "Premium Kitchen Appliances for <span>Global Trade</span>",
@@ -250,6 +251,7 @@ const translations = {
     nav_contact: "联系我们",
     nav_inquiry: "立即购买",
     nav_buy: "立即购买",
+    nav_back: "返回",
 
     hero_title: "全球贸易<span>优质厨房电器</span>",
     hero_subtitle: "TomaChef 为全球分销商和零售商提供高品质空气炸锅、空气炸烤箱和烤面包机。认证齐全，品质可靠，价格有竞争力。",
@@ -470,7 +472,7 @@ const translations = {
 
   es: {
     nav_home: "Inicio", nav_products: "Productos", nav_about: "Nosotros",
-    nav_contact: "Contacto", nav_inquiry: "Comprar", nav_buy: "Comprar",
+    nav_contact: "Contacto", nav_inquiry: "Comprar", nav_buy: "Comprar", nav_back: "Volver",
     hero_title: "Electrodomésticos de Cocina <span>Premium</span>",
     hero_subtitle: "TomaChef ofrece freidoras de aire, hornos freidores y tostadoras de alta calidad a distribuidores y minoristas de todo el mundo.",
     hero_btn_products: "Ver Productos", hero_btn_contact: "Contáctenos",
@@ -604,7 +606,7 @@ const translations = {
 
   fr: {
     nav_home: "Accueil", nav_products: "Produits", nav_about: "À Propos",
-    nav_contact: "Contact", nav_inquiry: "Acheter", nav_buy: "Acheter",
+    nav_contact: "Contact", nav_inquiry: "Acheter", nav_buy: "Acheter", nav_back: "Retour",
     hero_title: "Appareils de Cuisine <span>Premium</span>",
     hero_subtitle: "TomaChef fournit des friteuses à air, fours friteuses et grille-pains de qualité aux distributeurs du monde entier.",
     hero_btn_products: "Voir Produits", hero_btn_contact: "Contactez-Nous",
@@ -738,7 +740,7 @@ const translations = {
 
   ja: {
     nav_home: "ホーム", nav_products: "製品", nav_about: "会社概要",
-    nav_contact: "お問合せ", nav_inquiry: "購入", nav_buy: "購入",
+    nav_contact: "お問合せ", nav_inquiry: "購入", nav_buy: "購入", nav_back: "戻る",
     hero_title: "グローバルトレード向け<br><span>プレミアムキッチン家電</span>",
     hero_subtitle: "TomaChefは、高品質のエアフライヤー、エアフライヤーオーブン、トースターを世界中の販売店や小売店に提供しています。",
     hero_btn_products: "製品を見る", hero_btn_contact: "お問合せ",
@@ -873,7 +875,7 @@ const translations = {
 
   pt: {
     nav_home: "Início", nav_products: "Produtos", nav_about: "Sobre",
-    nav_contact: "Contato", nav_inquiry: "Comprar", nav_buy: "Comprar",
+    nav_contact: "Contato", nav_inquiry: "Comprar", nav_buy: "Comprar", nav_back: "Voltar",
     hero_title: "Eletrodomésticos de Cozinha <span>Premium</span>",
     hero_subtitle: "TomaChef oferece fritadeiras de ar, fornos fritadeiras e torradeiras de alta qualidade para distribuidores globais.",
     hero_btn_products: "Ver Produtos", hero_btn_contact: "Fale Conosco",
@@ -1041,6 +1043,13 @@ function applyTranslations(lang) {
       const key = el.getAttribute('data-i18n-placeholder');
       if (t[key] !== undefined) {
         el.setAttribute('placeholder', t[key]);
+      }
+    });
+
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+      const key = el.getAttribute('data-i18n-aria-label');
+      if (t[key] !== undefined) {
+        el.setAttribute('aria-label', t[key]);
       }
     });
 
