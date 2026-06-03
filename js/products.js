@@ -362,6 +362,19 @@ function renderHomeProducts(category, lang) {
 
   container.innerHTML = display.map(p => createProductCard(p, lang)).join('');
   bindProductCardLinks(container);
+  enforceHomepageBestsellersOnly();
+}
+
+function enforceHomepageBestsellersOnly() {
+  const container = document.getElementById('homeProductGrid');
+  if (!container) return;
+
+  container.querySelectorAll('.product-card').forEach(card => {
+    const badge = card.querySelector('.product-badge');
+    const isBestseller = badge && badge.textContent.trim().toLowerCase() === 'bestseller';
+    const column = card.closest('[class*="col-"]') || card;
+    if (!isBestseller) column.remove();
+  });
 }
 
 // Update product cards when language changes
@@ -482,6 +495,7 @@ async function initProducts() {
 
     if (homeGrid) {
       renderHomeProducts('all', lang);
+      enforceHomepageBestsellersOnly();
     }
 
     productsLoaded = true;
