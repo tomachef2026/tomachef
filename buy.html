@@ -263,9 +263,9 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://jtrhzphdttralmvdhtva.supabase.co">
-  <script src="supabase.js?v=20260602c"></script>
+  <script src="supabase.js?v=20260603a"></script>
   <script src="js/i18n.js"></script>
-  <script src="js/products.js?v=20260602c"></script>
+  <script src="js/products.js?v=20260603a"></script>
   <script src="js/main.js"></script>
 
   <!-- Load contact info -->
@@ -328,15 +328,15 @@
       }
     }
 
-    const waitForProducts = setInterval(() => {
-      tryShowProductDetail();
-      if (detailShown) clearInterval(waitForProducts);
-    }, 200);
+    const waitForProducts = setTimeout(() => {
+      if (!detailShown) tryShowProductDetail();
+    }, 1200);
 
     // Retry when Supabase data finishes loading (catches products not in FALLBACK)
     window.addEventListener('productsReady', () => {
+      clearTimeout(waitForProducts);
       tryShowProductDetail();
-    });
+    }, { once: true });
 
     function showProductDetail(pid) {
       const p = products.find(pr => String(pr.id) === String(pid));

@@ -70,6 +70,8 @@ const FALLBACK_RECIPES = [
 
 // Expose products globally — start empty, loaded from Supabase or fallback
 let products = [];
+let productsLoadPromise = null;
+let productsLoaded = false;
 
 // Get localized name for a product
 function getLocalizedName(product, lang) {
@@ -400,12 +402,10 @@ function updateHomeProductCards() {
 }
 
 // Initialize with Supabase API (falls back to static data only when Supabase is unavailable)
-let _initProductsRunning = null;
-
 async function initProducts() {
-  if (_initProductsRunning) return _initProductsRunning;
+  if (productsLoadPromise) return productsLoadPromise;
 
-  _initProductsRunning = (async () => {
+  productsLoadPromise = (async () => {
     if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
       try {
         const supabaseProducts = await fetchProducts(null, getCurrentLang());
@@ -456,7 +456,7 @@ async function initProducts() {
       const cat = params.get('cat');
       if (cat && ['airfryer', 'airfryeroven', 'toaster'].includes(cat)) {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        const target = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
+        const target = document.querySelector(`.filter-btn[data-filter=""]`);
         if (target) {
           target.classList.add('active');
           renderProducts(cat, lang);
@@ -468,11 +468,13 @@ async function initProducts() {
       renderHomeProducts('all', lang);
     }
 
+    productsLoaded = true;
+    window.productsLoaded = true;
     window.dispatchEvent(new CustomEvent('productsReady'));
     return products;
   })();
 
-  return _initProductsRunning;
+  return productsLoadPromise;
 }
 
 // ================================================================

@@ -89,16 +89,20 @@ function showToast(message) {
 
   let debounceTimer;
   let allProducts = [];
+  let productsLoadPromise = null;
 
-  // Fetch products once and cache
+  // Fetch products only when search is used, so the homepage first paint stays light.
   async function loadProducts() {
     if (allProducts.length > 0) return;
+    if (productsLoadPromise) return productsLoadPromise;
+    productsLoadPromise = (async () => {
     if (typeof fetchProducts === 'function') {
       const products = await fetchProducts();
       if (Array.isArray(products)) allProducts = products;
     }
+    })();
+    return productsLoadPromise;
   }
-  loadProducts();
 
   // Search products
   function searchProducts(query) {
@@ -154,6 +158,10 @@ function showToast(message) {
       const results = searchProducts(q);
       renderResults(results);
     }, 300);
+  });
+
+  input.addEventListener('focus', () => {
+    loadProducts();
   });
 
   input.addEventListener('keydown', (e) => {

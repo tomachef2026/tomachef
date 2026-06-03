@@ -315,20 +315,23 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://jtrhzphdttralmvdhtva.supabase.co">
-  <script src="supabase.js?v=20260602c"></script>
+  <script src="supabase.js?v=20260603a"></script>
   <script src="js/i18n.js"></script>
-  <script src="js/products.js?v=20260602c"></script>
+  <script src="js/products.js?v=20260603a"></script>
   <script src="js/main.js"></script>
   <script src="js/social.js"></script>
   <script>
     /* ===== Dynamic Home Recipes with Product Selector ===== */
     let _homeRecipes = [];
     let _homeSelectedProduct = null;
+    let _homeRecipesLoaded = false;
     const HOME_RECIPE_PRODUCT_SKU = 'TC-AFO-001';
 
     async function loadHomeRecipes() {
       const grid = document.getElementById('homeRecipeGrid');
       if (!grid) return;
+      if (_homeRecipesLoaded) return;
+      _homeRecipesLoaded = true;
 
       // Fetch recipes from Supabase
       try {
@@ -489,10 +492,12 @@
 
     // Initialize when DOM ready
     document.addEventListener('DOMContentLoaded', async () => {
-      if (typeof initProducts === 'function') {
-        await initProducts();
+      const startHomeRecipes = () => loadHomeRecipes();
+      if (window.productsLoaded || (typeof products !== 'undefined' && products.length)) {
+        startHomeRecipes();
+      } else {
+        window.addEventListener('productsReady', startHomeRecipes, { once: true });
       }
-      loadHomeRecipes();
 
       // Listen for lang changes
       window.addEventListener('storage', e => {
