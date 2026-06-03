@@ -129,7 +129,7 @@ function createScrollCard(product, lang) {
   const badgeText = product.badge || '';
   const icon = product.icon || '🍳';
   const imageUrl = getProductImageUrl(product);
-  const detailUrl = `buy.html?product=${product.id}`;
+  const detailUrl = `buy.html?product=${encodeURIComponent(product.id)}`;
 
   let inquiryText = 'Buy Now';
   if (typeof translations !== 'undefined') {
@@ -156,7 +156,7 @@ function createScrollCard(product, lang) {
   }
 
   return `
-    <a class="scroll-card product-card-link" href="${detailUrl}" data-category="${product.category}" aria-label="${escapeHtml(name)}">
+    <a class="scroll-card product-card-link" href="${detailUrl}" data-href="${detailUrl}" data-category="${product.category}" aria-label="${escapeHtml(name)}">
       <div class="scroll-card-img">
         ${imgContent}
       </div>
@@ -177,7 +177,7 @@ function createProductCard(product, lang) {
   const badgeText = product.badge || '';
   const icon = product.icon || '🍳';
   const imageUrl = getProductImageUrl(product);
-  const detailUrl = `buy.html?product=${product.id}`;
+  const detailUrl = `buy.html?product=${encodeURIComponent(product.id)}`;
 
   let inquiryText, catLabel;
   if (typeof translations !== 'undefined') {
@@ -209,7 +209,7 @@ function createProductCard(product, lang) {
 
   return `
     <div class="col-lg-3 col-md-4 col-sm-6 mb-4" data-category="${product.category}">
-      <a class="product-card product-card-link" href="${detailUrl}" aria-label="${escapeHtml(name)}">
+      <a class="product-card product-card-link" href="${detailUrl}" data-href="${detailUrl}" aria-label="${escapeHtml(name)}">
         <div class="product-img">
           ${imgContent}
         </div>
@@ -229,6 +229,20 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function bindProductCardLinks(root) {
+  if (!root || root._productCardLinksBound) return;
+  root._productCardLinksBound = true;
+  root.addEventListener('click', function(e) {
+    if (e.target.closest('.scroll-arrow')) return;
+    const card = e.target.closest('.product-card-link');
+    if (!card || !root.contains(card)) return;
+    const href = card.getAttribute('data-href') || card.getAttribute('href');
+    if (!href) return;
+    e.preventDefault();
+    window.location.href = href;
+  });
 }
 
 // Render category scroll sections
@@ -277,6 +291,7 @@ function renderProductSections(lang) {
   }
 
   container.innerHTML = html;
+  bindProductCardLinks(container);
 
   // Attach arrow button handlers
   container.querySelectorAll('.scroll-arrow').forEach(btn => {
@@ -323,6 +338,7 @@ function renderProducts(category, lang) {
   }
 
   container.innerHTML = filtered.map(p => createProductCard(p, lang)).join('');
+  bindProductCardLinks(container);
 }
 
 // Also render to homeProductGrid (for homepage)
@@ -333,6 +349,7 @@ function renderHomeProducts(category, lang) {
   const filtered = getProductsByCategory(category);
   const display = filtered.slice(0, 3);
   container.innerHTML = display.map(p => createProductCard(p, lang)).join('');
+  bindProductCardLinks(container);
 }
 
 // Update product cards when language changes
@@ -489,6 +506,7 @@ async function initProducts() {
     const lang = getCurrentLang();
     const display = products.slice(0, 3);
     homeGrid.innerHTML = display.map(p => createProductCard(p, lang)).join('');
+    bindProductCardLinks(homeGrid);
   }
 })();
 
