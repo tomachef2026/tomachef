@@ -350,7 +350,16 @@ function renderHomeProducts(category, lang) {
   if (!container) return;
 
   const filtered = getProductsByCategory(category);
-  const display = filtered.slice(0, 3);
+  const display = filtered
+    .filter(p => p.active !== false && String(p.badge || '').trim().toLowerCase() === 'bestseller')
+    .slice(0, 3);
+
+  if (display.length === 0) {
+    const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
+    container.innerHTML = `<div class="col-12 text-center py-4"><p class="text-muted">${t['prod_no_results'] || 'No featured products yet.'}</p></div>`;
+    return;
+  }
+
   container.innerHTML = display.map(p => createProductCard(p, lang)).join('');
   bindProductCardLinks(container);
 }
@@ -483,20 +492,6 @@ async function initProducts() {
 
   return productsLoadPromise;
 }
-
-// ================================================================
-// ALWAYS render fallback products immediately (before Supabase)
-// This ensures the homepage never shows blank products
-// ================================================================
-(function renderFallbackHomeProducts() {
-  const homeGrid = document.getElementById('homeProductGrid');
-  if (homeGrid && products.length > 0) {
-    const lang = getCurrentLang();
-    const display = products.slice(0, 3);
-    homeGrid.innerHTML = display.map(p => createProductCard(p, lang)).join('');
-    bindProductCardLinks(homeGrid);
-  }
-})();
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
