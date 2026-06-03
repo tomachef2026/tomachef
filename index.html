@@ -380,8 +380,12 @@
         const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
         const isSelected = String(_homeSelectedProduct) === String(p.id);
         const recipeCount = _homeRecipes.filter(r => String(r.product_id) === String(p.id) && r.is_active !== false).length;
+        const iconHtml = p.image_url
+          ? '<img src="' + p.image_url + '" alt="' + name + '" class="recipe-product-icon-img" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\';">' +
+            '<span class="recipe-product-emoji" style="display:none;">' + (p.icon || '🍳') + '</span>'
+          : p.icon || '🍳';
         return '<div class="recipe-product-card' + (isSelected ? ' selected' : '') + '" style="cursor:pointer;" data-product-id="' + p.id + '">' +
-          '<div class="recipe-product-icon">' + (p.icon || '🍳') + '</div>' +
+          '<div class="recipe-product-icon">' + iconHtml + '</div>' +
           '<div class="recipe-product-info">' +
             '<div class="rpp-header"><h5>' + (typeof escapeHtml === 'function' ? escapeHtml(name) : name) + '</h5></div>' +
             '<div class="rpp-meta"><span class="recipe-product-count">' + recipeCount + ' ' + (lang === 'zh' ? '个食谱' : 'recipes') + '</span></div>' +

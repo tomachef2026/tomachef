@@ -2012,9 +2012,26 @@ img { max-width: 100%; height: auto; }
 }
 
 .recipe-product-icon {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 2.5rem;
   line-height: 1;
-  flex-shrink: 0;
+  background: #b91c1c;
+  border-radius: 4px 0 0 4px;
+  overflow: hidden;
+}
+.recipe-product-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.recipe-product-emoji {
+  font-size: 2.5rem;
+  line-height: 1;
 }
 
 .recipe-product-img {
