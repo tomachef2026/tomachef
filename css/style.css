@@ -350,7 +350,7 @@ img { max-width: 100%; height: auto; }
 }
 .category-card .card-img-wrap {
   height: 240px;
-  background: #fafaf8;
+  background: linear-gradient(135deg, var(--tomato-800), var(--tomato-600));
   display: flex;
   align-items: center;
   justify-content: center;
