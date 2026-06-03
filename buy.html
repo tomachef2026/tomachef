@@ -60,7 +60,7 @@
         <!-- Left: Product Image & Colors -->
         <div class="col-lg-6 fade-in">
           <div class="product-detail-img-wrap" id="detailImgWrap">
-            <img id="detailProductImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Crect fill='%23f8f9fa' width='600' height='600'/%3E%3Ctext fill='%23b91c1c' x='300' y='300' text-anchor='middle' dy='.3em' font-size='120'%3E🍟%3C/text%3E%3C/svg%3E" alt="Product Image">
+            <img id="detailProductImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Crect fill='%23f8fafc' width='600' height='600'/%3E%3C/svg%3E" alt="Product Image">
             <span class="product-badge" id="detailBadge"></span>
           </div>
           <!-- Color Swatches -->
@@ -85,21 +85,21 @@
             <div class="product-breadcrumb">
               <a href="index.html" data-i18n="nav_home">Home</a> &rsaquo;
               <a href="products.html" data-i18n="nav_products">Products</a> &rsaquo;
-              <span id="detailCatName">Air Fryer</span> &rsaquo;
-              <span id="detailTitle">Digital Air Fryer 5.8QT</span>
+              <span id="detailCatName"></span> &rsaquo;
+              <span id="detailTitle"></span>
             </div>
 
             <!-- Title -->
-            <h2 class="product-detail-title" id="detailProductTitle">Digital Air Fryer 5.8QT</h2>
+            <h2 class="product-detail-title" id="detailProductTitle"></h2>
 
             <!-- Price -->
-            <div class="product-price-wrap mb-4">
-              <span class="product-price" id="detailPrice">$49.99</span>
+            <div class="product-price-wrap mb-4" id="detailPriceWrap" style="display:none;">
+              <span class="product-price" id="detailPrice"></span>
               <span class="product-price-unit" data-i18n="buy_price_unit">/ unit</span>
             </div>
 
             <!-- Description -->
-            <p class="product-detail-desc" id="detailDesc">Touchscreen control with 8 smart presets. Rapid air circulation technology for healthier frying with little to no oil.</p>
+            <p class="product-detail-desc" id="detailDesc"></p>
 
             <!-- Specs -->
             <div class="product-specs-grid" id="detailSpecsGrid">
@@ -263,9 +263,9 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://jtrhzphdttralmvdhtva.supabase.co">
-  <script src="supabase.js?v=20260603c"></script>
+  <script src="supabase.js?v=20260603d"></script>
   <script src="js/i18n.js"></script>
-  <script src="js/products.js?v=20260603c"></script>
+  <script src="js/products.js?v=20260603d"></script>
   <script src="js/main.js"></script>
 
   <!-- Load contact info -->
@@ -350,7 +350,7 @@
       const name = getLocalizedName(p, lang);
       const desc = getLocalizedDesc(p, lang);
       const catName = getCategoryLabel(p.category, lang);
-      const price = p.price || '$--';
+      const price = (p.price || '').trim();
 
       // Breadcrumb
       document.getElementById('detailCatName').textContent = catName;
@@ -359,7 +359,9 @@
       // Title
       document.getElementById('detailProductTitle').textContent = name;
       document.getElementById('detailDesc').textContent = desc;
+      const priceWrap = document.getElementById('detailPriceWrap');
       document.getElementById('detailPrice').textContent = price;
+      priceWrap.style.display = price ? '' : 'none';
 
       // Badge
       const badge = document.getElementById('detailBadge');
@@ -375,14 +377,13 @@
       if (p.image_url) {
         img.src = p.image_url;
       } else {
-        const icon = p.icon || '🍳';
         img.src = "data:image/svg+xml," + encodeURIComponent(
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><rect fill="#f8f9fa" width="600" height="600"/><text fill="#b91c1c" x="300" y="300" text-anchor="middle" dy=".3em" font-size="140">${icon}</text></svg>`
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><rect fill="#f8fafc" width="600" height="600"/><text fill="#94a3b8" x="300" y="300" text-anchor="middle" dy=".3em" font-size="32">No image</text></svg>`
         );
       }
 
       // Color swatches
-      renderColorSwatches(p.colors || [{name:'Default', hex:'#b91c1c'}]);
+      renderColorSwatches(p.colors || []);
 
       // Specs grid
       renderSpecsGrid(p.specs, lang);
@@ -407,11 +408,10 @@
       const html = products.filter(p => p.active !== false).map(p => {
         const name = getLocalizedName(p, lang);
         const desc = getLocalizedDesc(p, lang);
-        const icon = p.icon || '🍳';
         const price = p.price || '';
         const imgContent = p.image_url
           ? `<img src="${p.image_url}" alt="${escapeHtml(name)}" style="width:100%;height:180px;object-fit:cover;border-radius:8px 8px 0 0;">`
-          : `<div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;border-radius:8px 8px 0 0;font-size:4rem;">${icon}</div>`;
+          : `<div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:8px 8px 0 0;color:#94a3b8;font-size:0.9rem;">No image</div>`;
         return `<div class="col-lg-3 col-md-4 col-sm-6 mb-4">
           <div class="product-selector-card" onclick="window.location='buy.html?product=${p.id}'" style="cursor:pointer;">
             ${imgContent}

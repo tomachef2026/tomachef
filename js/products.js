@@ -2,8 +2,8 @@
    TomaChef Products - API-first with fallback
    ============================================================ */
 
-// Fallback static data (used when Supabase is not configured)
-const FALLBACK_PRODUCTS = [
+// Historical seed data kept out of the public render path.
+const FALLBACK_PRODUCTS_SEED = [
   { id:1, sku:'TC-AF-001', name:'Digital Air Fryer 5.8QT', name_zh:'数字触控空气炸锅 5.8QT', name_es:'Freidora de Aire Digital 5.8QT', name_fr:'Friteuse à Air Numérique 5.8QT', name_ja:'デジタルエアフライヤー 5.8QT', name_pt:'Fritadeira de Ar Digital 5.8QT', description:'Touchscreen, 8 presets, 1700W', description_zh:'触控屏，8种预设，1700W', description_es:'Pantalla táctil, 8 programas, 1700W', description_fr:'Écran tactile, 8 préréglages, 1700W', description_ja:'タッチスクリーン、8プリセット、1700W', description_pt:'Tela touch, 8 programas, 1700W', category:'airfryer', icon:'🍟', badge:'Bestseller', price:'$49.99', image_url:'', colors:[{name:'Black',hex:'#1a1a1a'},{name:'White',hex:'#f5f5f5'},{name:'Red',hex:'#b91c1c'}], specs:{capacity:'5.8 QT',power:'1700W',presets:'8',temp:'90-400°F'}, sort_order:1, active:true },
   { id:2, sku:'TC-AF-002', name:'Visible Glass Air Fryer', name_zh:'可视玻璃空气炸锅', name_es:'Freidora de Aire con Visor', name_fr:'Friteuse à Air avec Hublot', name_ja:'可視ガラスエアフライヤー', name_pt:'Fritadeira de Ar com Visor', description:'360° viewing window, 6QT, LED display', description_zh:'360°观察窗，6QT，LED显示', description_es:'Ventana 360°, 6QT, pantalla LED', description_fr:'Fenêtre 360°, 6QT, affichage LED', description_ja:'360°ビューウィンドウ、6QT、LEDディスプレイ', description_pt:'Visor 360°, 6QT, display LED', category:'airfryer', icon:'🔍', badge:'New', price:'$59.99', image_url:'', colors:[{name:'Black',hex:'#1a1a1a'},{name:'Stainless',hex:'#c0c0c0'}], specs:{capacity:'6 QT',power:'1700W',presets:'10',temp:'90-400°F'}, sort_order:2, active:true },
   { id:3, sku:'TC-AF-003', name:'Dual Basket Air Fryer 8QT', name_zh:'双篮空气炸锅 8QT', name_es:'Freidora de Aire Doble Cesta 8QT', name_fr:'Friteuse à Air Double Panier 8QT', name_ja:'デュアルバスケットエアフライヤー 8QT', name_pt:'Fritadeira de Ar Cesto Duplo 8QT', description:'DualZone tech, sync finish, 1700W', description_zh:'双区技术，同步完成，1700W', description_es:'Tecnología DualZone, final sincronizado, 1700W', description_fr:'Technologie DualZone, finition synchronisée, 1700W', description_ja:'DualZone技術、同期仕上げ、1700W', description_pt:'Tecnologia DualZone, final sincronizado, 1700W', category:'airfryer', icon:'🍗', badge:'Hot', price:'$79.99', image_url:'', colors:[{name:'Black',hex:'#1a1a1a'},{name:'Silver',hex:'#d4d4d4'}], specs:{capacity:'8 QT',power:'1700W',presets:'6',temp:'90-450°F'}, sort_order:3, active:true },
@@ -23,6 +23,7 @@ const FALLBACK_PRODUCTS = [
   { id:17, sku:'TC-TT-004', name:'Long Slot Toaster 2-Slice', name_zh:'长槽2片烤面包机', name_es:'Tostadora Ranura Larga 2 Rebanadas', name_fr:'Grille-Pain Fente Longue 2 Tranches', name_ja:'ロングスロットトースター 2枚焼き', name_pt:'Torradeira Ranhura Longa 2 Fatias', description:'Artisan bread ready, defrost mode, 900W', description_zh:'适合手工面包，解冻模式，900W', description_es:'Para pan artesanal, modo descongelar, 900W', description_fr:'Pour pain artisanal, mode décongélation, 900W', description_ja:'アーティザンブレッド対応、解凍モード、900W', description_pt:'Para pão artesanal, modo descongelar, 900W', category:'toaster', icon:'🥖', badge:'', price:'$34.99', image_url:'', colors:[{name:'Stainless',hex:'#c0c0c0'},{name:'Black',hex:'#1a1a1a'}], specs:{slices:'2',power:'900W',levels:'7',features:'Long Slot'}, sort_order:17, active:true },
   { id:18, sku:'TC-TT-005', name:'Commercial 4-Slice Toaster', name_zh:'商用4片烤面包机', name_es:'Tostadora Comercial 4 Rebanadas', name_fr:'Grille-Pain Commercial 4 Tranches', name_ja:'業務用4枚焼きトースター', name_pt:'Torradeira Comercial 4 Fatias', description:'Heavy-duty, high-speed, 1800W', description_zh:'重型，高速，1800W', description_es:'Servicio pesado, alta velocidad, 1800W', description_fr:'Usage intensif, haute vitesse, 1800W', description_ja:'ヘビーデューティー、高速、1800W', description_pt:'Serviço pesado, alta velocidade, 1800W', category:'toaster', icon:'🏪', badge:'Commercial', price:'$69.99', image_url:'', colors:[{name:'Stainless',hex:'#c0c0c0'}], specs:{slices:'4',power:'1800W',levels:'9',features:'Heavy Duty'}, sort_order:18, active:true }
 ];
+const FALLBACK_PRODUCTS = [];
 
 // Fallback recipe data — synced from Supabase (10 recipes with 6-language translations)
 const FALLBACK_RECIPES = [
@@ -99,6 +100,10 @@ function getProductImageUrl(product) {
   return addCacheBuster(product.image_url, product.updated_at || product.created_at || product.id);
 }
 
+function createProductImagePlaceholder(name) {
+  return `<span class="placeholder-icon" style="font-size:0.95rem;color:#94a3b8;">${escapeHtml(name || 'No image')}</span>`;
+}
+
 // Get products by category
 function getProductsByCategory(category) {
   if (category === 'all') return products;
@@ -127,7 +132,6 @@ function createScrollCard(product, lang) {
   const name = getLocalizedName(product, lang);
   const desc = getLocalizedDesc(product, lang);
   const badgeText = product.badge || '';
-  const icon = product.icon || '🍳';
   const imageUrl = getProductImageUrl(product);
   const detailUrl = `buy.html?product=${encodeURIComponent(product.id)}`;
 
@@ -144,7 +148,7 @@ function createScrollCard(product, lang) {
 
   const imgContent = imageUrl
     ? `<img src="${imageUrl}" alt="${escapeHtml(name)}" loading="eager" decoding="async">`
-    : `<span class="placeholder-icon">${icon}</span>`;
+    : createProductImagePlaceholder(name);
 
   // Build spec tags
   let specsHtml = '';
@@ -175,7 +179,6 @@ function createProductCard(product, lang) {
   const name = getLocalizedName(product, lang);
   const desc = getLocalizedDesc(product, lang);
   const badgeText = product.badge || '';
-  const icon = product.icon || '🍳';
   const imageUrl = getProductImageUrl(product);
   const detailUrl = `buy.html?product=${encodeURIComponent(product.id)}`;
 
@@ -205,7 +208,7 @@ function createProductCard(product, lang) {
 
   const imgContent = imageUrl
     ? `<img src="${imageUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;" loading="eager" decoding="async">`
-    : `<span style="font-size:4rem;">${icon}</span>`;
+    : createProductImagePlaceholder(name);
 
   return `
     <div class="col-lg-3 col-md-4 col-sm-6 mb-4" data-category="${product.category}">
@@ -429,33 +432,18 @@ async function initProducts() {
       try {
         const supabaseProducts = await fetchProducts(null, getCurrentLang());
         if (supabaseProducts === null) {
-          console.log('Supabase not available, using fallback data');
-          products = [...FALLBACK_PRODUCTS];
+          console.log('Supabase products could not be loaded; showing empty state');
+          products = [];
         } else if (supabaseProducts.length > 0) {
-          products = supabaseProducts.map(p => {
-            const fallback = FALLBACK_PRODUCTS.find(f => f.id === p.id);
-            if (fallback) {
-              for (const lang of ['zh', 'es', 'fr', 'ja', 'pt']) {
-                if (!p['name_' + lang] || !p['name_' + lang].toString().trim()) {
-                  p['name_' + lang] = fallback['name_' + lang];
-                }
-                if (!p['description_' + lang] || !p['description_' + lang].toString().trim()) {
-                  p['description_' + lang] = fallback['description_' + lang];
-                }
-              }
-              if (!p.price) p.price = fallback.price;
-              if (!p.sku) p.sku = fallback.sku;
-            }
-            return p;
-          });
+          products = supabaseProducts;
           console.log('Loaded ' + products.length + ' products from Supabase');
         } else {
           console.log('Supabase returned empty products, showing empty state');
           products = [];
         }
       } catch (e) {
-        console.log('Supabase not available, using fallback data:', e.message);
-        products = [...FALLBACK_PRODUCTS];
+        console.log('Supabase products could not be loaded; showing empty state:', e.message);
+        products = [];
       }
     } else {
       products = [...FALLBACK_PRODUCTS];
