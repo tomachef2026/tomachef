@@ -475,8 +475,15 @@
 
     document.addEventListener('langChanged', onLangChange);
 
+    // Safety net: re-render product selector when products are ready
+    window.addEventListener('productsReady', () => {
+      if (allRecipes && allRecipes.length > 0) {
+        renderProductSelector();
+      }
+    });
+
     document.addEventListener('DOMContentLoaded', async () => {
-      // Ensure products are loaded first
+      // Ensure products are loaded first (now deduplicated in initProducts)
       if (typeof initProducts === 'function') {
         await initProducts();
       }

@@ -388,27 +388,32 @@ function updateHomeProductCards() {
 }
 
 // Initialize with Supabase API (falls back to static data)
+let _initProductsRunning = null;
+
 async function initProducts() {
-  // Try Supabase first
-  if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
-    try {
-      const supabaseProducts = await fetchProducts(null, getCurrentLang());
-      if (supabaseProducts && supabaseProducts.length > 0) {
-        // Use Supabase data as-is (admin panel manages all fields including translations)
-        products = supabaseProducts;
-        console.log('Loaded ' + products.length + ' products from Supabase');
-      } else {
-        // Supabase returned empty — use fallback
-        console.log('Supabase returned empty products, using fallback data');
+  // Prevent duplicate concurrent calls — reuse in-flight promise
+  if (_initProductsRunning) return _initProductsRunning;
+  _initProductsRunning = (async () => {
+    // Try Supabase first
+    if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
+      try {
+        const supabaseProducts = await fetchProducts(null, getCurrentLang());
+        if (supabaseProducts && supabaseProducts.length > 0) {
+          // Use Supabase data as-is (admin panel manages all fields including translations)
+          products = supabaseProducts;
+          console.log('Loaded ' + products.length + ' products from Supabase');
+        } else {
+          // Supabase returned empty — use fallback
+          console.log('Supabase returned empty products, using fallback data');
+          products = [...FALLBACK_PRODUCTS];
+        }
+      } catch (e) {
+        console.log('Supabase not available, using fallback data:', e.message);
         products = [...FALLBACK_PRODUCTS];
       }
-    } catch (e) {
-      console.log('Supabase not available, using fallback data');
+    } else {
       products = [...FALLBACK_PRODUCTS];
     }
-  } else {
-    products = [...FALLBACK_PRODUCTS];
-  }
 
   // Render based on which layout is on this page
   const lang = getCurrentLang();
@@ -442,6 +447,8 @@ async function initProducts() {
 
   // Notify any listeners that products are fully loaded (including Supabase data)
   window.dispatchEvent(new CustomEvent('productsReady'));
+  })();
+  return _initProductsRunning;
 }
 
 // ================================================================
@@ -458,8 +465,8 @@ async function initProducts() {
 })();
 
 // Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  initProducts();
+document.addEventListener('DOMContentLoaded', async () => {
+  await initProducts();
 
   // Filter buttons - scroll to category section
   document.querySelectorAll('.filter-btn').forEach(btn => {
