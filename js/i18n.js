@@ -1027,6 +1027,8 @@ function applyTranslations(lang) {
   const t = translations[lang] || translations['en'];
 
   try {
+    updateBackButtonLabel(lang);
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (t[key] !== undefined && typeof t[key] === 'string') {
@@ -1071,11 +1073,22 @@ function applyTranslations(lang) {
   }
 }
 
+function updateBackButtonLabel(lang) {
+  const t = translations[lang] || translations['en'];
+  const label = t.nav_back || translations.en.nav_back || 'Back';
+  document.querySelectorAll('.subpage-back-btn').forEach(btn => {
+    btn.setAttribute('aria-label', label);
+    const text = btn.querySelector('[data-i18n="nav_back"]') || btn.querySelector('span:last-child');
+    if (text) text.textContent = label;
+  });
+}
+
 // Initialize i18n on page load
 document.addEventListener('DOMContentLoaded', () => {
   const lang = getCurrentLang();
   const sel = document.getElementById('langSelect');
   if (sel) sel.value = lang;
+  updateBackButtonLabel(lang);
   applyTranslations(lang);
 
   // Listen for language change
