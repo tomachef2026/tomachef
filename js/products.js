@@ -129,6 +129,7 @@ function createScrollCard(product, lang) {
   const badgeText = product.badge || '';
   const icon = product.icon || '🍳';
   const imageUrl = getProductImageUrl(product);
+  const detailUrl = `buy.html?product=${product.id}`;
 
   let inquiryText = 'Buy Now';
   if (typeof translations !== 'undefined') {
@@ -138,7 +139,7 @@ function createScrollCard(product, lang) {
 
   const badgeClass = getBadgeClass(badgeText);
   const badgeHtml = badgeText
-    ? `<a href="buy.html?product=${product.id}" class="product-badge ${badgeClass}">${badgeText}</a>`
+    ? `<span class="product-badge ${badgeClass}">${badgeText}</span>`
     : '';
 
   const imgContent = imageUrl
@@ -155,7 +156,7 @@ function createScrollCard(product, lang) {
   }
 
   return `
-    <div class="scroll-card" data-category="${product.category}">
+    <a class="scroll-card product-card-link" href="${detailUrl}" data-category="${product.category}" aria-label="${escapeHtml(name)}">
       <div class="scroll-card-img">
         ${imgContent}
       </div>
@@ -164,9 +165,9 @@ function createScrollCard(product, lang) {
         <h6>${escapeHtml(name)}</h6>
         <p class="scroll-card-desc">${escapeHtml(desc)}</p>
         ${specsHtml ? `<div class="scroll-card-specs">${specsHtml}</div>` : ''}
-        <a href="buy.html?product=${product.id}" class="btn-inquiry">${inquiryText} →</a>
+        <span class="btn-inquiry">${inquiryText} →</span>
       </div>
-    </div>`;
+    </a>`;
 }
 
 // Create product card HTML (for homepage grid, kept for compatibility)
@@ -176,6 +177,7 @@ function createProductCard(product, lang) {
   const badgeText = product.badge || '';
   const icon = product.icon || '🍳';
   const imageUrl = getProductImageUrl(product);
+  const detailUrl = `buy.html?product=${product.id}`;
 
   let inquiryText, catLabel;
   if (typeof translations !== 'undefined') {
@@ -198,7 +200,7 @@ function createProductCard(product, lang) {
 
   const badgeClass = getBadgeClass(badgeText);
   const badgeHtml = badgeText
-    ? `<a href="buy.html?product=${product.id}" class="product-badge ${badgeClass}">${badgeText}</a>`
+    ? `<span class="product-badge ${badgeClass}">${badgeText}</span>`
     : '';
 
   const imgContent = imageUrl
@@ -207,7 +209,7 @@ function createProductCard(product, lang) {
 
   return `
     <div class="col-lg-3 col-md-4 col-sm-6 mb-4" data-category="${product.category}">
-      <div class="product-card">
+      <a class="product-card product-card-link" href="${detailUrl}" aria-label="${escapeHtml(name)}">
         <div class="product-img">
           ${imgContent}
         </div>
@@ -217,9 +219,9 @@ function createProductCard(product, lang) {
           <h6>${escapeHtml(name)}</h6>
           <p class="product-specs">${escapeHtml(desc)}</p>
           ${specsHtml ? `<div style="font-size:0.78rem;color:#94a3b8;margin-bottom:12px;">${specsHtml}</div>` : ''}
-          <a href="buy.html?product=${product.id}" class="btn-inquiry">${inquiryText} →</a>
+          <span class="btn-inquiry">${inquiryText} →</span>
         </div>
-      </div>
+      </a>
     </div>`;
 }
 
