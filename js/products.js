@@ -414,9 +414,9 @@ function updateHomeRecipeCards(lang) {
   };
   if (typeof translations !== 'undefined') {
     const t = translations[lang] || translations['en'] || {};
-    if (t.recipe_tag_airfryer) catLabels.airfryer = t.recipe_tag_airfryer;
-    if (t.recipe_tag_oven) catLabels.airfryeroven = t.recipe_tag_oven;
-    if (t.recipe_tag_toaster) catLabels.toaster = t.recipe_tag_toaster;
+    if (t.cat_airfryer) catLabels.airfryer = t.cat_airfryer;
+    if (t.cat_airfryeroven) catLabels.airfryeroven = t.cat_airfryeroven;
+    if (t.cat_toaster) catLabels.toaster = t.cat_toaster;
   }
 
   grid.innerHTML = recipes.map(r => {

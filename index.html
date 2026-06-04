@@ -88,7 +88,7 @@
                 <img src="images/categories/air-fryer-lineart.png" alt="Air Fryer">
               </div>
               <div class="card-body">
-                <h5 data-i18n="cat_airfryer">Air Fryer</h5>
+                <h5 class="notranslate" data-i18n="cat_airfryer">Air Fryer</h5>
                 <p data-i18n="cat_airfryer_desc">Healthy frying with rapid air circulation technology. Multiple capacities for every kitchen.</p>
                 <span class="btn-cat">Learn More →</span>
               </div>
@@ -103,7 +103,7 @@
                 <img src="images/categories/air-fryer-oven-lineart.png" alt="Air Fryer Oven">
               </div>
               <div class="card-body">
-                <h5 data-i18n="cat_airfryeroven">Air Fryer Oven</h5>
+                <h5 class="notranslate" data-i18n="cat_airfryeroven">Air Fryer Oven</h5>
                 <p data-i18n="cat_airfryeroven_desc">Multi-function cooking: air fry, bake, roast, dehydrate — all in one appliance.</p>
                 <span class="btn-cat">Learn More →</span>
               </div>
@@ -118,7 +118,7 @@
                 <img src="images/categories/toaster-lineart.png" alt="Toaster">
               </div>
               <div class="card-body">
-                <h5 data-i18n="cat_toaster">Toaster</h5>
+                <h5 class="notranslate" data-i18n="cat_toaster">Toaster</h5>
                 <p data-i18n="cat_toaster_desc">Reliable, sleek toasters for perfect results every morning. 2-slice & 4-slice options.</p>
                 <span class="btn-cat">Learn More →</span>
               </div>
@@ -446,9 +446,9 @@
       const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
       if (typeof translations !== 'undefined') {
         const t = translations[lang] || {};
-        if (t.recipe_tag_airfryer) catLabels.airfryer = t.recipe_tag_airfryer;
-        if (t.recipe_tag_oven) catLabels.airfryeroven = t.recipe_tag_oven;
-        if (t.recipe_tag_toaster) catLabels.toaster = t.recipe_tag_toaster;
+        if (t.cat_airfryer) catLabels.airfryer = t.cat_airfryer;
+        if (t.cat_airfryeroven) catLabels.airfryeroven = t.cat_airfryeroven;
+        if (t.cat_toaster) catLabels.toaster = t.cat_toaster;
       }
       const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
         ? translations[lang].recipe_view : 'View Recipe →';
