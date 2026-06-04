@@ -150,7 +150,7 @@
       <!-- Email -->
       <div class="field-group">
         <label><span class="field-icon">📧</span> 电子邮箱</label>
-        <input type="email" class="form-control" id="field_email" placeholder="请输入邮箱地址">
+        <input type="text" class="form-control" id="field_email" placeholder="可留空，也可填写邮箱或其他联系文字">
         <small class="text-muted">客户发送询价和联系的邮箱地址</small>
       </div>
 
@@ -175,7 +175,8 @@
         <small class="text-muted">例如：周一至周五 9:00-18:00 (EST)</small>
       </div>
 
-      <div class="mt-4 d-flex justify-content-end">
+      <div class="mt-4 d-flex justify-content-between gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-danger" onclick="clearEmailAndPhone()">清空邮箱和电话</button>
         <button type="submit" class="btn-save">💾 保存修改</button>
       </div>
     </form>
@@ -204,6 +205,11 @@ async function loadContactInfo() {
   document.getElementById('field_address').value = info.address || '';
   document.getElementById('field_business_hours').value = info.business_hours || '';
   return info;
+}
+
+function clearEmailAndPhone() {
+  document.getElementById('field_email').value = '';
+  document.getElementById('field_phone').value = '';
 }
 
 document.getElementById('contactForm').addEventListener('submit', async (e) => {

@@ -27,6 +27,10 @@ VALUES
   ('business_hours', '')
 ON CONFLICT (key) DO NOTHING;
 
+UPDATE contact_info
+SET value = '', updated_at = NOW()
+WHERE key IN ('email', 'phone');
+
 ALTER TABLE contact_info ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anyone can read contact_info" ON contact_info;
