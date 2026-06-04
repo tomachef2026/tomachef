@@ -21,10 +21,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS contact_info_key_unique
 
 INSERT INTO contact_info (key, value)
 VALUES
-  ('email', 'info@tomachefappliance.com'),
-  ('phone', '+1 (857) 396-6897'),
-  ('address', '244 Madison Avenue, Suite 1666' || E'\n' || 'New York, NY 10016, USA'),
-  ('business_hours', 'Monday - Friday' || E'\n' || '9:00 AM - 6:00 PM (EST)')
+  ('email', ''),
+  ('phone', ''),
+  ('address', ''),
+  ('business_hours', '')
 ON CONFLICT (key) DO NOTHING;
 
 ALTER TABLE contact_info ENABLE ROW LEVEL SECURITY;
