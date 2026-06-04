@@ -125,26 +125,26 @@
           <div class="contact-info-card">
             <div class="info-icon">📍</div>
             <h6 data-i18n="contact_address_label">Head Office</h6>
-            <p id="contactAddress" data-i18n="contact_address">244 Madison Avenue, Suite 1666<br>New York, NY 10016, United States</p>
+            <p id="contactAddress" data-contact-field="address">244 Madison Avenue, Suite 1666<br>New York, NY 10016, United States</p>
           </div>
 
           <div class="contact-info-card">
             <div class="info-icon">📧</div>
             <h6 data-i18n="contact_email_label">Email</h6>
-            <p id="contactEmail" data-i18n="contact_email">info@tomachefappliance.com</p>
+            <p id="contactEmail" data-contact-field="email">info@tomachefappliance.com</p>
           </div>
 
           <div class="contact-info-card">
             <div class="info-icon">📞</div>
             <h6 data-i18n="contact_phone_label">Phone</h6>
-            <p id="contactPhone" data-i18n="contact_phone">+1 (857) 396-6897</p>
+            <p id="contactPhone" data-contact-field="phone">+1 (857) 396-6897</p>
           </div>
 
           <!-- Business Hours -->
           <div class="contact-info-card">
             <div class="info-icon">🕐</div>
             <h6>Business Hours</h6>
-            <p id="contactHours">Monday – Friday<br>9:00 AM – 6:00 PM (EST)</p>
+            <p id="contactHours" data-contact-field="business_hours">Monday – Friday<br>9:00 AM – 6:00 PM (EST)</p>
           </div>
         </div>
       </div>
@@ -190,9 +190,9 @@
         </div>
         <div class="col-lg-4 col-md-4">
           <h5 data-i18n="footer_contact">Contact</h5>
-          <p id="footerEmail">📧 info@tomachefappliance.com</p>
-          <p id="footerPhone">📞 +1 (857) 396-6897</p>
-          <p id="footerAddress">📍 244 Madison Avenue, Suite 1666<br>New York, NY 10016, USA</p>
+          <p id="footerEmail" data-contact-field="email" data-contact-prefix="📧 ">📧 info@tomachefappliance.com</p>
+          <p id="footerPhone" data-contact-field="phone" data-contact-prefix="📞 ">📞 +1 (857) 396-6897</p>
+          <p id="footerAddress" data-contact-field="address" data-contact-prefix="📍 ">📍 244 Madison Avenue, Suite 1666<br>New York, NY 10016, USA</p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -207,45 +207,8 @@
   <link rel="preconnect" href="https://jtrhzphdttralmvdhtva.supabase.co">
   <script src="supabase.js?v=20260603i"></script>
   <script src="js/i18n.js?v=20260603i"></script>
+  <script src="js/contact-info.js?v=20260604a"></script>
   <script src="js/main.js"></script>
-
-  <!-- Load contact info from Supabase -->
-  <script>
-  function escapeContactText(value) {
-    const div = document.createElement('div');
-    div.textContent = value || '';
-    return div.innerHTML;
-  }
-
-  function renderContactMultiline(value) {
-    return escapeContactText(value).replace(/\n/g, '<br>');
-  }
-
-  (async function loadContactInfo() {
-    initSupabase();
-    const info = await fetchContactInfo();
-
-    // If we have Supabase data, override the defaults
-    if (info.email) {
-      document.getElementById('contactEmail').textContent = info.email;
-      const fe = document.getElementById('footerEmail');
-      if (fe) fe.textContent = '📧 ' + info.email;
-    }
-    if (info.phone) {
-      document.getElementById('contactPhone').textContent = info.phone;
-      const fp = document.getElementById('footerPhone');
-      if (fp) fp.textContent = '📞 ' + info.phone;
-    }
-    if (info.address) {
-      document.getElementById('contactAddress').innerHTML = renderContactMultiline(info.address);
-      const fa = document.getElementById('footerAddress');
-      if (fa) fa.innerHTML = '📍 ' + renderContactMultiline(info.address);
-    }
-    if (info.business_hours) {
-      document.getElementById('contactHours').innerHTML = renderContactMultiline(info.business_hours);
-    }
-  })();
-  </script>
 
   <!-- Contact form submission to Supabase -->
   <script>

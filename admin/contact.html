@@ -224,7 +224,7 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
   for (const [key, value] of Object.entries(fields)) {
     const { error } = await updateContactInfo(key, value);
     if (error) {
-      showToast('保存失败：' + error.message, 'error');
+      showToast('保存失败：' + (error.message || error), 'error');
       hasError = true;
       break;
     }
@@ -234,6 +234,7 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
   saveBtn.disabled = false;
 
   if (!hasError) {
+    await loadContactInfo();
     showToast('✅ 联系信息已更新！网站同步生效。', 'success');
   }
 });
