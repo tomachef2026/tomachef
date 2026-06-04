@@ -17,14 +17,14 @@ async function refreshContactInfo() {
 
   document.querySelectorAll('[data-contact-field]').forEach(el => {
     const key = el.getAttribute('data-contact-field');
-    const value = info[key];
-    if (!value) return;
+    if (!Object.prototype.hasOwnProperty.call(info, key)) return;
 
+    const value = info[key] || '';
     const prefix = el.getAttribute('data-contact-prefix') || '';
     if (key === 'address' || key === 'business_hours') {
-      el.innerHTML = prefix + renderContactMultiline(value);
+      el.innerHTML = value ? prefix + renderContactMultiline(value) : '';
     } else {
-      el.textContent = prefix + value;
+      el.textContent = value ? prefix + value : '';
     }
   });
 }

@@ -334,7 +334,11 @@ async function fetchContactInfo() {
 async function updateContactInfo(key, value) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
-  return await sb.from('contact_info').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  return await sb
+    .from('contact_info')
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+    .select('key,value')
+    .single();
 }
 
 // ============================================================
