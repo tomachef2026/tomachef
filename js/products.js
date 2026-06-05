@@ -485,10 +485,16 @@ async function initProducts() {
       const cat = params.get('cat');
       if (cat && ['airfryer', 'airfryeroven', 'toaster'].includes(cat)) {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        const target = document.querySelector(`.filter-btn[data-filter=""]`);
+        const target = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
         if (target) {
           target.classList.add('active');
-          renderProducts(cat, lang);
+          // Scroll to the corresponding category section
+          const section = document.getElementById('section-' + cat);
+          if (section) {
+            setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+          } else {
+            renderProducts(cat, lang);
+          }
         }
       }
     }
