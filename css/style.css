@@ -234,6 +234,24 @@ img { max-width: 100%; height: auto; }
   border-radius: 50%;
 }
 .hero .container { position: relative; z-index: 1; }
+.hero.hero-main-image {
+  background: #fff;
+  color: inherit;
+  padding: 0;
+  overflow: hidden;
+}
+.hero.hero-main-image::before,
+.hero.hero-main-image::after {
+  display: none;
+}
+.hero-main-image picture,
+.hero-main-image img {
+  display: block;
+  width: 100%;
+}
+.hero-main-image img {
+  height: auto;
+}
 .hero h1 {
   font-size: 3.2rem;
   font-weight: 800;
@@ -2210,6 +2228,82 @@ img { max-width: 100%; height: auto; }
 .recipe-product-card:hover .recipe-product-arrow {
   color: #b91c1c;
   transform: translateX(3px);
+}
+
+.recipe-category-card {
+  flex: 1 1 300px;
+  max-width: 360px;
+  min-width: 260px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.recipe-category-card.selected::before {
+  width: 100%;
+  height: 4px;
+  border-radius: 8px 8px 0 0;
+}
+
+.recipe-category-media {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #b91c1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.recipe-category-media img {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  display: block;
+}
+
+.recipe-category-card .recipe-product-info {
+  padding: 22px 24px 24px;
+  text-align: center;
+}
+
+.recipe-category-card .rpp-header {
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.recipe-category-card .recipe-product-info h5 {
+  color: #991b1b;
+  font-size: 1.2rem;
+}
+
+.recipe-category-card .rpp-meta {
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.recipe-category-card .recipe-product-count {
+  margin-left: 0;
+}
+
+.recipe-category-card .recipe-product-desc {
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  min-height: 3.1em;
+}
+
+.recipe-category-card .recipe-product-arrow {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  color: #b91c1c;
 }
 
 /* ============================================

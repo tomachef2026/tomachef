@@ -7,7 +7,7 @@
   <title>TomaChef - Premium Kitchen Appliances for Global Trade</title>
   <meta name="description" content="TomaChef offers premium air fryers, air fryer ovens, and toasters for global distributors and retailers. Certified quality, competitive pricing.">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260603e">
+  <link rel="stylesheet" href="css/style.css?v=20260605b">
 </head>
 <body>
 
@@ -53,22 +53,11 @@
   </nav>
 
   <!-- ========== HERO ========== -->
-  <section class="hero">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-lg-6 fade-in">
-          <h1 data-i18n="hero_title">Premium Kitchen Appliances for <span>Global Trade</span></h1>
-          <p class="lead" data-i18n="hero_subtitle">TomaChef delivers high-quality air fryers, air fryer ovens, and toasters to distributors and retailers worldwide. Certified, reliable, and competitively priced.</p>
-          <a href="products.html" class="btn-hero" data-i18n="hero_btn_products">Explore Products</a>
-          <a href="contact.html" class="btn-outline-hero" data-i18n="hero_btn_contact">Contact Us</a>
-        </div>
-        <div class="col-lg-6 mt-4 mt-lg-0 fade-in">
-          <div class="hero-image">
-            <div class="placeholder-img">🍳</div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <section class="hero hero-main-image" aria-label="TomaChef trusted global partner">
+    <picture>
+      <source srcset="images/hero/home-factory-main.jpg" type="image/jpeg">
+      <img src="images/hero/home-factory-main.png" alt="TomaChef trusted global partner, source factory, advanced equipment, quality assurance, global trade" fetchpriority="high" decoding="async">
+    </picture>
   </section>
 
   <!-- ========== CATEGORIES ========== -->
@@ -328,11 +317,36 @@
   <script src="js/main.js"></script>
   <script src="js/social.js"></script>
   <script>
-    /* ===== Dynamic Home Recipes with Product Selector ===== */
+    /* ===== Dynamic Home Recipes with Category Selector ===== */
     let _homeRecipes = [];
-    let _homeSelectedProduct = null;
+    let _homeSelectedCategory = null;
     let _homeRecipesLoaded = false;
-    const HOME_RECIPE_PRODUCT_SKU = 'TC-AFO-001';
+    const HOME_RECIPE_CATEGORIES = [
+      {
+        key: 'airfryer',
+        labelKey: 'cat_airfryer',
+        descKey: 'cat_airfryer_desc',
+        image: 'images/categories/air-fryer-lineart.png',
+        fallbackLabel: 'Air Fryer',
+        fallbackDesc: 'Healthy frying with rapid air circulation technology. Multiple capacities for every kitchen.'
+      },
+      {
+        key: 'airfryeroven',
+        labelKey: 'cat_airfryeroven',
+        descKey: 'cat_airfryeroven_desc',
+        image: 'images/categories/air-fryer-oven-lineart.png',
+        fallbackLabel: 'Air Fryer Oven',
+        fallbackDesc: 'Multi-function cooking: air fry, bake, roast, dehydrate — all in one appliance.'
+      },
+      {
+        key: 'toaster',
+        labelKey: 'cat_toaster',
+        descKey: 'cat_toaster_desc',
+        image: 'images/categories/toaster-lineart.png',
+        fallbackLabel: 'Toaster',
+        fallbackDesc: 'Reliable, sleek toasters for perfect results every morning. 2-slice & 4-slice options.'
+      }
+    ];
 
     async function loadHomeRecipes() {
       const grid = document.getElementById('homeRecipeGrid');
@@ -363,42 +377,56 @@
       renderHomeProductSelector();
     }
 
-    function getHomeProductsWithRecipes() {
-      const productIds = new Set();
-      _homeRecipes.filter(r => r.is_active !== false).forEach(r => { if (r.product_id) productIds.add(String(r.product_id)); });
-      if (typeof products === 'undefined' || !products.length) return [];
-      const matchedProducts = products.filter(p => productIds.has(String(p.id)) && p.active !== false);
-      const preferredProduct = matchedProducts.find(p => p.sku === HOME_RECIPE_PRODUCT_SKU);
-      return preferredProduct ? [preferredProduct] : matchedProducts;
+    function normalizeHomeRecipeCategory(value) {
+      const raw = String(value || '').toLowerCase().replace(/[^a-z]/g, '');
+      if (!raw) return '';
+      if (raw.includes('toaster') || raw.includes('toast') || raw.includes('bread')) return 'toaster';
+      if (raw.includes('oven') || raw.includes('airfryeroven') || raw.includes('afo')) return 'airfryeroven';
+      if (raw.includes('airfryer') || raw.includes('fryer')) return 'airfryer';
+      return raw;
+    }
+
+    function getHomeProductCategoryById(productId) {
+      if (!productId || typeof products === 'undefined' || !products.length) return '';
+      const product = products.find(p => String(p.id) === String(productId));
+      return product ? normalizeHomeRecipeCategory(product.category) : '';
+    }
+
+    function getHomeRecipeCategory(recipe) {
+      return normalizeHomeRecipeCategory(recipe.category) || getHomeProductCategoryById(recipe.product_id);
+    }
+
+    function getHomeLocalizedCategory(category, lang) {
+      const tx = (typeof translations !== 'undefined') ? (translations[lang] || translations['en'] || {}) : {};
+      return {
+        ...category,
+        label: tx[category.labelKey] || category.fallbackLabel,
+        desc: tx[category.descKey] || category.fallbackDesc
+      };
+    }
+
+    function getHomeRecipeCountByCategory(categoryKey) {
+      return _homeRecipes.filter(r => r.is_active !== false && getHomeRecipeCategory(r) === categoryKey).length;
     }
 
     function renderHomeProductSelector() {
       const container = document.getElementById('homeProductSelector');
       if (!container) return;
       const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'en';
-      const productsWithRecipes = getHomeProductsWithRecipes();
 
-      if (!productsWithRecipes.length) {
-        // Fallback: no products linked → show all recipes directly
-        _homeSelectedProduct = '__all__';
-        renderHomeRecipes();
-        container.innerHTML = '';
-        return;
-      }
+      container.innerHTML = HOME_RECIPE_CATEGORIES.map(rawCategory => {
+        const category = getHomeLocalizedCategory(rawCategory, lang);
+        const isSelected = _homeSelectedCategory === category.key;
+        const recipeCount = getHomeRecipeCountByCategory(category.key);
 
-      container.innerHTML = productsWithRecipes.map(p => {
-        const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
-        const isSelected = String(_homeSelectedProduct) === String(p.id);
-        const recipeCount = _homeRecipes.filter(r => String(r.product_id) === String(p.id) && r.is_active !== false).length;
-        const iconHtml = p.image_url
-          ? '<img src="' + p.image_url + '" alt="' + name + '" class="recipe-product-icon-img" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\';">' +
-            '<span class="recipe-product-emoji" style="display:none;">' + (p.icon || '🍳') + '</span>'
-          : p.icon || '🍳';
-        return '<div class="recipe-product-card' + (isSelected ? ' selected' : '') + '" style="cursor:pointer;" data-product-id="' + p.id + '">' +
-          '<div class="recipe-product-icon">' + iconHtml + '</div>' +
+        return '<div class="recipe-product-card recipe-category-card' + (isSelected ? ' selected' : '') + '" style="cursor:pointer;" data-category="' + category.key + '">' +
+          '<div class="recipe-category-media">' +
+            '<img src="' + category.image + '" alt="' + (typeof escapeHtml === 'function' ? escapeHtml(category.label) : category.label) + '" loading="lazy">' +
+          '</div>' +
           '<div class="recipe-product-info">' +
-            '<div class="rpp-header"><h5>' + (typeof escapeHtml === 'function' ? escapeHtml(name) : name) + '</h5></div>' +
+            '<div class="rpp-header"><h5>' + (typeof escapeHtml === 'function' ? escapeHtml(category.label) : category.label) + '</h5></div>' +
             '<div class="rpp-meta"><span class="recipe-product-count">' + recipeCount + ' ' + (lang === 'zh' ? '个食谱' : 'recipes') + '</span></div>' +
+            '<p class="recipe-product-desc">' + (typeof escapeHtml === 'function' ? escapeHtml(category.desc) : category.desc) + '</p>' +
           '</div>' +
           '<div class="recipe-product-arrow">→</div>' +
         '</div>';
@@ -407,21 +435,22 @@
       // Bind click events
       container.querySelectorAll('.recipe-product-card').forEach(card => {
         card.addEventListener('click', function() {
-          selectHomeProduct(this.dataset.productId);
+          selectHomeCategory(this.dataset.category);
         });
       });
 
-      const selectedStillAvailable = productsWithRecipes.some(p => String(p.id) === String(_homeSelectedProduct));
-      if (!_homeSelectedProduct || !selectedStillAvailable) {
-        selectHomeProduct(productsWithRecipes[0].id);
+      const selectedStillAvailable = HOME_RECIPE_CATEGORIES.some(c => c.key === _homeSelectedCategory);
+      if (!_homeSelectedCategory || !selectedStillAvailable) {
+        const categoryWithRecipes = HOME_RECIPE_CATEGORIES.find(c => getHomeRecipeCountByCategory(c.key) > 0);
+        selectHomeCategory((categoryWithRecipes || HOME_RECIPE_CATEGORIES[0]).key);
       }
     }
 
-    function selectHomeProduct(productId) {
-      _homeSelectedProduct = productId;
+    function selectHomeCategory(categoryKey) {
+      _homeSelectedCategory = categoryKey;
       // Update selector UI
       document.querySelectorAll('#homeProductSelector .recipe-product-card').forEach(card => {
-        card.classList.toggle('selected', String(card.dataset.productId) === String(productId));
+        card.classList.toggle('selected', card.dataset.category === categoryKey);
       });
       renderHomeRecipes();
     }
@@ -431,16 +460,14 @@
       if (!grid) return;
       const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'en';
 
-      if (!_homeSelectedProduct) {
+      if (!_homeSelectedCategory) {
         grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">Select an appliance above</p></div>';
         return;
       }
 
-      const filtered = _homeSelectedProduct === '__all__'
-        ? _homeRecipes.filter(r => r.is_active !== false)
-        : _homeRecipes.filter(r => String(r.product_id) === String(_homeSelectedProduct) && r.is_active !== false);
+      const filtered = _homeRecipes.filter(r => r.is_active !== false && getHomeRecipeCategory(r) === _homeSelectedCategory);
       if (!filtered.length) {
-        grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">No recipes for this product yet.</p></div>';
+        grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">No recipes for this category yet.</p></div>';
         return;
       }
 
@@ -493,7 +520,7 @@
     // Language change handler
     function homeOnLangChange() {
       renderHomeProductSelector();
-      if (_homeSelectedProduct) renderHomeRecipes();
+      if (_homeSelectedCategory) renderHomeRecipes();
     }
     document.addEventListener('langChanged', homeOnLangChange);
 
