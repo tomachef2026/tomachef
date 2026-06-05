@@ -64,11 +64,18 @@
     </div>
   </section>
 
-  <!-- ========== PRODUCT SELECTOR ========== -->
+  <!-- ========== PRODUCT CATEGORY TABS + SCROLL SECTIONS ========== -->
   <section class="section-padding" style="padding-bottom: 0;">
     <div class="container">
       <h3 class="section-title fade-in" data-i18n="recipes_select_product" style="margin-bottom: 24px;">Choose Your Appliance</h3>
-      <div class="recipe-product-selector fade-in" id="recipeProductSelector">
+      <!-- Filter Tabs -->
+      <div class="filter-tabs fade-in" id="recipeFilterTabs">
+        <button class="filter-btn active" data-filter="airfryer" data-i18n="filter_airfryer">Air Fryer</button>
+        <button class="filter-btn" data-filter="airfryeroven" data-i18n="filter_airfryeroven">Air Fryer Oven</button>
+        <button class="filter-btn" data-filter="toaster" data-i18n="filter_toaster">Toaster</button>
+      </div>
+      <!-- Product Scroll Sections -->
+      <div id="recipeProductSections">
         <div class="text-center py-4 w-100">
           <div class="spinner-border spinner-border-sm text-muted mb-2" role="status"></div>
           <p class="text-muted small" data-i18n="loading">Loading…</p>
@@ -209,91 +216,146 @@
       return div.innerHTML;
     }
 
-    /* ===== Product Selector ===== */
-    const RECIPE_PRODUCT_SKU = 'TC-AFO-001';
+    /* ===== Product Selector — Three-Category Layout ===== */
 
     function getProductsWithRecipes() {
-      // Gather all unique product_ids from recipes
-      const productIds = new Set();
-      allRecipes.filter(r => r.is_active !== false).forEach(r => {
-        if (r.product_id) productIds.add(String(r.product_id));
-      });
-
-      // Find matching products from the global `products` array (from products.js)
+      // Return all active products for the category scroll layout
+      // All products in the same category share recipe pools
       if (typeof products === 'undefined' || !products.length) return [];
-
-      const matchedProducts = products.filter(p => productIds.has(String(p.id)) && p.active !== false);
-      const preferredProduct = matchedProducts.find(p => p.sku === RECIPE_PRODUCT_SKU);
-      return preferredProduct ? [preferredProduct] : matchedProducts;
+      return products.filter(p => p.active !== false);
     }
 
     function renderProductSelector() {
-      const container = document.getElementById('recipeProductSelector');
+      const container = document.getElementById('recipeProductSections');
       if (!container) return;
       const lang = getCurrentLang ? getCurrentLang() : 'en';
 
-      const productsWithRecipes = getProductsWithRecipes();
-
-      if (!productsWithRecipes.length) {
-        // Fallback: no products linked → show all recipes directly
+      const allProducts = getProductsWithRecipes();
+      if (!allProducts.length) {
         selectedProductId = '__all__';
         renderRecipes();
         container.innerHTML = '';
         return;
       }
 
-      container.innerHTML = productsWithRecipes.map(p => {
-        const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
-        const desc = (typeof getLocalizedDesc === 'function') ? getLocalizedDesc(p, lang) : (p.description || '');
-        const isSelected = String(selectedProductId) === String(p.id);
-        const recipeCount = allRecipes.filter(r => String(r.product_id) === String(p.id) && r.is_active !== false).length;
-        const icon = p.icon || '🍳';
-        const imageUrl = p.image_url || '';
-        const price = p.price || '';
-        const sku = p.sku || '';
-        const badge = p.badge || '';
+      // Build recipe count lookup from allRecipes
+      const recipeCountByProduct = {};
+      if (allRecipes && allRecipes.length) {
+        allRecipes.filter(r => r.is_active !== false).forEach(r => {
+          if (r.product_id) {
+            const key = String(r.product_id);
+            recipeCountByProduct[key] = (recipeCountByProduct[key] || 0) + 1;
+          }
+        });
+      }
 
-        // Build specs string from specs object
-        let specsHtml = '';
-        if (p.specs && typeof p.specs === 'object') {
-          specsHtml = Object.entries(p.specs).slice(0, 3).map(([k, v]) =>
-            `<span class="rpp-spec-tag">${k}: ${v}</span>`
-          ).join('');
-        }
+      const categories = [
+        { key: 'airfryer', icon: '🍟' },
+        { key: 'airfryeroven', icon: '🔥' },
+        { key: 'toaster', icon: '🍞' }
+      ];
 
-        // Product image or emoji fallback
-        const iconHtml = imageUrl
-          ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" class="recipe-product-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
-          : '';
-        const emojiHtml = imageUrl
-          ? `<div class="recipe-product-icon" style="display:none;">${icon}</div>`
-          : `<div class="recipe-product-icon">${icon}</div>`;
+      const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
 
-        return `<div class="recipe-product-card ${isSelected ? 'selected' : ''}"
-                    onclick="selectProduct('${escapeHtml(String(p.id))}')"
-                    data-product-id="${p.id}">
-          ${iconHtml}
-          ${emojiHtml}
-          <div class="recipe-product-info">
-            <div class="rpp-header">
-              <h5>${escapeHtml(name)}</h5>
-              ${badge ? `<span class="rpp-badge">${badge}</span>` : ''}
-            </div>
-            <div class="rpp-meta">
-              ${sku ? `<span class="rpp-sku">SKU: ${escapeHtml(sku)}</span>` : ''}
-              ${price ? `<span class="rpp-price">${escapeHtml(price)}</span>` : ''}
-              <span class="recipe-product-count">${recipeCount} ${lang === 'zh' ? '个食谱' : 'recipes'}</span>
-            </div>
-            <p class="recipe-product-desc">${escapeHtml(desc)}</p>
-            ${specsHtml ? `<div class="rpp-specs">${specsHtml}</div>` : ''}
+      let html = '';
+      for (const cat of categories) {
+        const catProducts = allProducts.filter(p => p.category === cat.key && p.active !== false);
+        if (catProducts.length === 0) continue;
+
+        const catName = t['filter_' + cat.key] || cat.key;
+
+        html += `<div class="category-scroll-section" id="recipe-section-${cat.key}">
+          <div class="section-header">
+            <h3>${cat.icon} ${catName} <span class="product-count">(${catProducts.length})</span></h3>
           </div>
-          <div class="recipe-product-arrow">→</div>
+          <div class="scroll-wrapper">
+            <button class="scroll-arrow scroll-left" data-target="recipe-scroll-${cat.key}" aria-label="Scroll left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="scroll-container" id="recipe-scroll-${cat.key}">
+              ${catProducts.map(p => {
+                const recipeCount = recipeCountByProduct[String(p.id)] || 0;
+                const isSelected = String(selectedProductId) === String(p.id);
+                // Return modified scroll card (reuse createScrollCard pattern but add selected state + recipe count)
+                const name = (typeof getLocalizedName === 'function') ? getLocalizedName(p, lang) : (p.name || '');
+                const desc = (typeof getLocalizedDesc === 'function') ? getLocalizedDesc(p, lang) : (p.description || '');
+                const badgeText = p.badge || '';
+                const icon = p.icon || '🍳';
+                const imageUrl = p.image_url || '';
+                const badgeClass = (typeof getBadgeClass === 'function') ? getBadgeClass(badgeText) : '';
+                const badgeHtml = badgeText ? '<a href="buy.html?product=' + p.id + '" class="product-badge ' + badgeClass + '" onclick="event.stopPropagation()">' + badgeText + '</a>' : '';
+                const imgContent = imageUrl
+                  ? '<img src="' + imageUrl + '" alt="' + escapeHtml(name) + '">'
+                  : '<span class="placeholder-icon">' + icon + '</span>';
+                let specsHtml = '';
+                const specs = p.specs;
+                if (specs && typeof specs === 'object') {
+                  specsHtml = Object.entries(specs).slice(0, 4).map(([k, v]) => '<span class="spec-tag">' + k + ': ' + v + '</span>').join('');
+                }
+                const inquiryText = (t['btn_inquiry'] || 'Buy Now');
+                return '<div class="scroll-card' + (isSelected ? ' recipe-selected' : '') + '" data-category="' + p.category + '" data-product-id="' + p.id + '">' +
+                  '<div class="scroll-card-img">' + imgContent + '</div>' +
+                  '<div class="scroll-card-body">' + badgeHtml +
+                  '<h6>' + escapeHtml(name) + '</h6>' +
+                  '<p class="scroll-card-desc">' + escapeHtml(desc) + '</p>' +
+                  (specsHtml ? '<div class="scroll-card-specs">' + specsHtml + '</div>' : '') +
+                  (recipeCount > 0 ? '<div class="recipe-product-count" style="font-size:0.75rem;color:#f59e0b;font-weight:600;margin-top:4px;">' + recipeCount + ' ' + (lang === 'zh' ? '个食谱' : 'recipes') + '</div>' : '') +
+                  '<a href="buy.html?product=' + p.id + '" class="btn-inquiry" onclick="event.stopPropagation()">' + inquiryText + ' →</a>' +
+                  '</div></div>';
+              }).join('')}
+            </div>
+            <button class="scroll-arrow scroll-right" data-target="recipe-scroll-${cat.key}" aria-label="Scroll right">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
         </div>`;
-      }).join('');
+      }
 
-      const selectedStillAvailable = productsWithRecipes.some(p => String(p.id) === String(selectedProductId));
-      if (!selectedProductId || !selectedStillAvailable) {
-        selectProduct(productsWithRecipes[0].id);
+      container.innerHTML = html;
+
+      // Bind click events to scroll cards for recipe product selection
+      container.querySelectorAll('.scroll-card').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() {
+          selectProduct(this.dataset.productId);
+        });
+      });
+
+      // Attach scroll arrow handlers
+      container.querySelectorAll('.scroll-arrow').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const targetId = this.getAttribute('data-target');
+          const scrollEl = document.getElementById(targetId);
+          if (!scrollEl) return;
+          const cardWidth = scrollEl.querySelector('.scroll-card')?.offsetWidth || 260;
+          const gap = 20;
+          const scrollAmount = cardWidth + gap;
+          if (this.classList.contains('scroll-left')) {
+            scrollEl.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+          } else {
+            scrollEl.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+          }
+        });
+      });
+
+      // Update arrow visibility on scroll
+      container.querySelectorAll('.scroll-container').forEach(scrollEl => {
+        const updateArrows = () => {
+          const wrapper = scrollEl.parentElement;
+          const leftArrow = wrapper.querySelector('.scroll-left');
+          const rightArrow = wrapper.querySelector('.scroll-right');
+          if (!leftArrow || !rightArrow) return;
+          leftArrow.style.opacity = scrollEl.scrollLeft <= 10 ? '0.3' : '1';
+          rightArrow.style.opacity = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 10 ? '0.3' : '1';
+        };
+        scrollEl.addEventListener('scroll', updateArrows);
+        updateArrows();
+      });
+
+      // Auto-select first product if none selected
+      const firstCard = container.querySelector('.scroll-card');
+      if (firstCard && !selectedProductId) {
+        selectProduct(firstCard.dataset.productId);
       }
     }
 
@@ -301,9 +363,9 @@
       selectedProductId = productId;
       const lang = getCurrentLang ? getCurrentLang() : 'en';
 
-      // Update product selector UI
-      document.querySelectorAll('.recipe-product-card').forEach(card => {
-        card.classList.toggle('selected', String(card.dataset.productId) === String(productId));
+      // Update scroll card selection UI
+      document.querySelectorAll('.scroll-card').forEach(card => {
+        card.classList.toggle('recipe-selected', String(card.dataset.productId) === String(productId));
       });
 
       // Update section header
@@ -499,6 +561,17 @@
       window.addEventListener('storage', e => {
         if (e.key === 'tomachef_lang') onLangChange();
       });
+
+      // Filter tab buttons — scroll to category section
+      document.querySelectorAll('#recipeFilterTabs .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('#recipeFilterTabs .filter-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const section = document.getElementById('recipe-section-' + this.dataset.filter);
+          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
       loadRecipes();
     });
   </script>

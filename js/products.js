@@ -160,7 +160,7 @@ function createScrollCard(product, lang) {
   }
 
   return `
-    <a class="scroll-card product-card-link" href="${detailUrl}" data-href="${detailUrl}" data-category="${product.category}" aria-label="${escapeHtml(name)}">
+    <a class="scroll-card product-card-link" href="${detailUrl}" data-href="${detailUrl}" data-category="${product.category}" data-product-id="${product.id}" aria-label="${escapeHtml(name)}">
       <div class="scroll-card-img">
         ${imgContent}
       </div>

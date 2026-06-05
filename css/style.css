@@ -1104,6 +1104,14 @@ img { max-width: 100%; height: auto; }
   box-shadow: var(--shadow-lg);
   border-color: var(--tomato-200);
 }
+.scroll-card.recipe-selected {
+  border: 2px solid #b91c1c;
+  box-shadow: 0 0 0 3px rgba(185,28,28,0.15), 0 6px 20px rgba(185,28,28,0.15);
+  transform: translateY(-2px);
+}
+.scroll-card.recipe-selected:hover {
+  transform: translateY(-4px);
+}
 
 .scroll-card-img {
   height: 220px;
