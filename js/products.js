@@ -480,22 +480,23 @@ async function initProducts() {
       renderProductSections(lang);
     } else if (productGrid) {
       renderProducts('all', lang);
+    }
 
-      const params = new URLSearchParams(window.location.search);
-      const cat = params.get('cat');
-      if (cat && ['airfryer', 'airfryeroven', 'toaster'].includes(cat)) {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        const target = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
-        if (target) {
-          target.classList.add('active');
-          // Scroll to the corresponding category section
-          const section = document.getElementById('section-' + cat);
-          if (section) {
-            setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
-          } else {
-            renderProducts(cat, lang);
-          }
-        }
+    // Handle ?cat= URL parameter — works for BOTH layouts
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get('cat');
+    if (cat && ['airfryer', 'airfryeroven', 'toaster'].includes(cat)) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      const targetBtn = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
+      if (targetBtn) targetBtn.classList.add('active');
+
+      // Scroll to the corresponding category section if it exists
+      const section = document.getElementById('section-' + cat);
+      if (section) {
+        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+      } else if (productGrid) {
+        // Legacy grid layout: re-render with filter
+        renderProducts(cat, lang);
       }
     }
 
