@@ -255,14 +255,14 @@
         { key: 'toaster', icon: '🍞' }
       ];
 
-      const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
+      const tObj = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
 
       let html = '';
       for (const cat of categories) {
         const catProducts = allProducts.filter(p => p.category === cat.key && p.active !== false);
         if (catProducts.length === 0) continue;
 
-        const catName = t['filter_' + cat.key] || cat.key;
+        const catName = tObj['filter_' + cat.key] || cat.key;
 
         html += `<div class="category-scroll-section" id="recipe-section-${cat.key}">
           <div class="section-header">
@@ -292,7 +292,7 @@
                 if (specs && typeof specs === 'object') {
                   specsHtml = Object.entries(specs).slice(0, 4).map(([k, v]) => '<span class="spec-tag">' + k + ': ' + v + '</span>').join('');
                 }
-                const inquiryText = (t['btn_inquiry'] || 'Buy Now');
+                const inquiryText = (tObj['btn_inquiry'] || 'Buy Now');
                 return '<div class="scroll-card' + (isSelected ? ' recipe-selected' : '') + '" data-category="' + p.category + '" data-product-id="' + p.id + '">' +
                   '<div class="scroll-card-img">' + imgContent + '</div>' +
                   '<div class="scroll-card-body">' + badgeHtml +
