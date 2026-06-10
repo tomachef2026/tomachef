@@ -71,6 +71,9 @@ const FALLBACK_RECIPES = [
 if (Array.isArray(window.AIR_FRYER_RECIPES)) {
   FALLBACK_RECIPES.push(...window.AIR_FRYER_RECIPES);
 }
+if (Array.isArray(window.TOASTER_RECIPES)) {
+  FALLBACK_RECIPES.push(...window.TOASTER_RECIPES);
+}
 
 // Expose products globally — start empty, loaded from Supabase or fallback
 let products = [];

@@ -165,7 +165,8 @@
   <script src="js/contact-info.js?v=20260604b"></script>
   <script src="js/main.js"></script>
   <script src="js/airfryer-recipes.js?v=20260609a"></script>
-  <script src="js/products.js?v=20260609a"></script>
+  <script src="js/toaster-recipes.js?v=20260610a"></script>
+  <script src="js/products.js?v=20260610a"></script>
   <script>
     /* ===== State ===== */
     let allRecipes = [];
@@ -344,6 +345,13 @@
             recipe => !existingIds.has(String(recipe.id))
           );
           allRecipes = [...allRecipes, ...missingAirFryerRecipes];
+        }
+        if (Array.isArray(window.TOASTER_RECIPES)) {
+          const existingIds = new Set(allRecipes.map(recipe => String(recipe.id)));
+          const missingToasterRecipes = window.TOASTER_RECIPES.filter(
+            recipe => !existingIds.has(String(recipe.id))
+          );
+          allRecipes = [...allRecipes, ...missingToasterRecipes];
         }
       } catch(e) {
         console.warn('Supabase fetch failed, using fallback recipes:', e.message);
