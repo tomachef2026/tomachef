@@ -31,7 +31,8 @@
   --gray-800: #1e293b;
   --gray-900: #0f172a;
 
-  --white: #ffffff;
+  --white: #fff8ed;
+  --pure-white: #ffffff;
   --black: #000000;
 
   --primary: var(--tomato-700);
@@ -136,7 +137,7 @@ img { max-width: 100%; height: auto; }
   padding: 0 14px;
   border: 1px solid rgba(185, 28, 28, 0.18);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 248, 237, 0.94);
   color: var(--tomato-700);
   font-size: 0.88rem;
   font-weight: 700;
@@ -188,7 +189,7 @@ img { max-width: 100%; height: auto; }
 /* Navbar CTA */
 .nav-cta {
   background: var(--accent) !important;
-  color: var(--white) !important;
+  color: var(--pure-white) !important;
   border-radius: 50px !important;
   padding: 0.5rem 1.5rem !important;
   font-weight: 600 !important;
@@ -197,7 +198,7 @@ img { max-width: 100%; height: auto; }
 }
 .nav-cta:hover {
   background: var(--accent-hover) !important;
-  color: var(--white) !important;
+  color: var(--pure-white) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(245,158,11,0.35);
 }
@@ -208,7 +209,7 @@ img { max-width: 100%; height: auto; }
    ============================================================ */
 .hero {
   background: linear-gradient(135deg, var(--tomato-950) 0%, var(--tomato-900) 40%, var(--tomato-800) 100%);
-  color: var(--white);
+  color: var(--pure-white);
   padding: 120px 0 100px;
   position: relative;
   overflow: hidden;
@@ -235,7 +236,7 @@ img { max-width: 100%; height: auto; }
 }
 .hero .container { position: relative; z-index: 1; }
 .hero.hero-main-image {
-  background: #fff;
+  background: var(--white);
   color: inherit;
   padding: 0;
   overflow: hidden;
@@ -268,7 +269,7 @@ img { max-width: 100%; height: auto; }
 .hero .btn-hero {
   display: inline-block;
   background: var(--accent);
-  color: var(--white);
+  color: var(--pure-white);
   font-weight: 700;
   font-size: 1.05rem;
   padding: 14px 36px;
@@ -282,12 +283,12 @@ img { max-width: 100%; height: auto; }
   background: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(245,158,11,0.5);
-  color: var(--white);
+  color: var(--pure-white);
 }
 .hero .btn-outline-hero {
   display: inline-block;
   border: 2px solid rgba(255,255,255,0.5);
-  color: var(--white);
+  color: var(--pure-white);
   font-weight: 600;
   font-size: 1.05rem;
   padding: 12px 34px;
@@ -297,8 +298,8 @@ img { max-width: 100%; height: auto; }
 }
 .hero .btn-outline-hero:hover {
   background: rgba(255,255,255,0.12);
-  border-color: var(--white);
-  color: var(--white);
+  border-color: var(--pure-white);
+  color: var(--pure-white);
 }
 
 /* Hero image placeholder */
@@ -561,7 +562,7 @@ img { max-width: 100%; height: auto; }
 .product-card .btn-inquiry {
   display: inline-block;
   background: var(--accent);
-  color: var(--white);
+  color: var(--pure-white);
   font-weight: 600;
   font-size: 0.85rem;
   padding: 8px 20px;
@@ -570,7 +571,7 @@ img { max-width: 100%; height: auto; }
 }
 .product-card .btn-inquiry:hover {
   background: var(--accent-hover);
-  color: var(--white);
+  color: var(--pure-white);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(245,158,11,0.3);
 }
@@ -618,7 +619,7 @@ img { max-width: 100%; height: auto; }
   top: 12px;
   left: 12px;
   background: var(--tomato-600);
-  color: var(--white);
+  color: var(--pure-white);
   font-size: 0.72rem;
   font-weight: 700;
   padding: 4px 12px;
@@ -744,7 +745,7 @@ img { max-width: 100%; height: auto; }
    ============================================================ */
 .cta-section {
   background: linear-gradient(135deg, var(--tomato-800), var(--tomato-700));
-  color: var(--white);
+  color: var(--pure-white);
   padding: 70px 0;
   text-align: center;
 }
@@ -761,7 +762,7 @@ img { max-width: 100%; height: auto; }
 .cta-section .btn-cta {
   display: inline-block;
   background: var(--accent);
-  color: var(--white);
+  color: var(--pure-white);
   font-weight: 700;
   font-size: 1rem;
   padding: 14px 40px;
@@ -773,7 +774,7 @@ img { max-width: 100%; height: auto; }
 }
 .cta-section .btn-cta:hover {
   background: var(--accent-hover);
-  color: var(--white);
+  color: var(--pure-white);
   transform: translateY(-2px);
 }
 
@@ -782,7 +783,7 @@ img { max-width: 100%; height: auto; }
    ============================================================ */
 .about-hero {
   background: linear-gradient(135deg, var(--tomato-950), var(--tomato-800));
-  color: var(--white);
+  color: var(--pure-white);
   padding: 80px 0;
   text-align: center;
 }
@@ -873,7 +874,7 @@ img { max-width: 100%; height: auto; }
   display: inline-block;
   width: 100%;
   background: var(--accent);
-  color: var(--white);
+  color: var(--pure-white);
   font-weight: 700;
   font-size: 1rem;
   border: none;
@@ -1042,7 +1043,7 @@ img { max-width: 100%; height: auto; }
 .filter-tabs .filter-btn:hover,
 .filter-tabs .filter-btn.active {
   background: var(--tomato-700);
-  color: var(--white);
+  color: var(--pure-white);
   border-color: var(--tomato-700);
 }
 
@@ -1195,7 +1196,7 @@ img { max-width: 100%; height: auto; }
 .scroll-card .btn-inquiry {
   display: inline-block;
   background: var(--accent);
-  color: var(--white);
+  color: var(--pure-white);
   font-weight: 600;
   font-size: 0.8rem;
   padding: 7px 18px;
@@ -1204,7 +1205,7 @@ img { max-width: 100%; height: auto; }
 }
 .scroll-card .btn-inquiry:hover {
   background: var(--accent-hover);
-  color: var(--white);
+  color: var(--pure-white);
   box-shadow: 0 4px 12px rgba(245,158,11,0.3);
 }
 
@@ -1229,7 +1230,7 @@ img { max-width: 100%; height: auto; }
 }
 .scroll-arrow:hover {
   background: var(--tomato-700);
-  color: var(--white);
+  color: var(--pure-white);
   border-color: var(--tomato-700);
   box-shadow: 0 6px 20px rgba(185,28,28,0.25);
   transform: translateY(-50%) scale(1.1);
@@ -1278,7 +1279,7 @@ img { max-width: 100%; height: auto; }
   padding: 60px 0 30px;
 }
 .footer h5 {
-  color: var(--white);
+  color: var(--pure-white);
   font-weight: 700;
   margin-bottom: 18px;
   font-size: 1rem;
@@ -1315,7 +1316,7 @@ img { max-width: 100%; height: auto; }
 .footer .footer-brand {
   font-size: 1.4rem;
   font-weight: 800;
-  color: var(--white) !important;
+  color: var(--pure-white) !important;
   margin-bottom: 12px;
   display: inline-block;
 }
@@ -1374,7 +1375,7 @@ img { max-width: 100%; height: auto; }
   bottom: 30px;
   right: 30px;
   background: var(--tomato-700);
-  color: var(--white);
+  color: var(--pure-white);
   padding: 14px 24px;
   border-radius: 8px;
   box-shadow: var(--shadow-lg);
@@ -1508,7 +1509,7 @@ img { max-width: 100%; height: auto; }
 }
 .faq-question:not(.collapsed) .faq-icon {
   background: var(--tomato-600);
-  color: var(--white);
+  color: var(--pure-white);
   transform: rotate(45deg);
 }
 .faq-answer {
@@ -1927,7 +1928,7 @@ img { max-width: 100%; height: auto; }
   scroll-snap-align: start;
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: var(--white);
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -1964,7 +1965,7 @@ img { max-width: 100%; height: auto; }
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,248,237,0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2069,7 +2070,7 @@ img { max-width: 100%; height: auto; }
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #fff;
+  background: var(--white);
   border: 2px solid #e5e7eb;
   border-radius: 16px;
   padding: 20px 24px;
@@ -2087,7 +2088,7 @@ img { max-width: 100%; height: auto; }
 }
 .recipe-product-card.selected {
   border-color: #b91c1c;
-  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+  background: linear-gradient(135deg, #fff5f5 0%, var(--white) 100%);
   box-shadow: 0 4px 20px rgba(185,28,28,0.15);
 }
 .recipe-product-card.selected::before {
@@ -2239,7 +2240,7 @@ img { max-width: 100%; height: auto; }
   gap: 0;
   padding: 0;
   border-radius: 8px;
-  background: #fff;
+  background: var(--white);
 }
 
 .recipe-category-card.selected::before {
@@ -2310,7 +2311,7 @@ img { max-width: 100%; height: auto; }
    UPDATED RECIPE CARDS (with meta badges)
    ============================================ */
 .recipe-card-new {
-  background: #fff;
+  background: var(--white);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -2417,7 +2418,7 @@ img { max-width: 100%; height: auto; }
 }
 
 .recipe-detail-modal {
-  background: #fff;
+  background: var(--white);
   border-radius: 20px;
   max-width: 700px;
   width: 100%;
