@@ -42,7 +42,7 @@
   --accent-hover: var(--amber-600);
   --text: var(--gray-800);
   --text-muted: var(--gray-500);
-  --bg-light: var(--white);
+  --bg-light: var(--gray-50);
   --border: var(--gray-200);
 
   --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
