@@ -396,12 +396,12 @@ img { max-width: 100%; height: auto; }
 }
 .hero-benefit strong {
   margin-bottom: 0.2rem;
-  font-size: clamp(0.9rem, 1.12vw, 1.15rem);
+  font-size: clamp(1rem, 1.12vw, 1.15rem);
   line-height: 1.2;
 }
 .hero-benefit small {
   color: #4b4039;
-  font-size: clamp(0.72rem, 0.9vw, 0.95rem);
+  font-size: clamp(0.82rem, 0.9vw, 0.95rem);
   line-height: 1.4;
 }
 @media (max-width: 767px) {
