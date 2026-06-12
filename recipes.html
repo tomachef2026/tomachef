@@ -159,7 +159,7 @@
   <script src="js/main.js"></script>
   <script src="js/airfryer-recipes.js?v=20260609a"></script>
   <script src="js/toaster-recipes.js?v=20260610a"></script>
-  <script src="js/products.js?v=20260610a"></script>
+  <script src="js/products.js?v=20260612a"></script>
   <script>
     /* ===== State ===== */
     let allRecipes = [];
@@ -298,6 +298,8 @@
       if (!selectedRecipeCategory || !selectedStillAvailable) {
         const categoryWithRecipes = RECIPE_CATEGORIES.find(c => getRecipeCountByCategory(c.key) > 0);
         selectRecipeCategory((categoryWithRecipes || RECIPE_CATEGORIES[0]).key);
+      } else {
+        selectRecipeCategory(selectedRecipeCategory);
       }
     }
 
@@ -326,31 +328,55 @@
     }
 
     /* ===== Recipe Rendering ===== */
+    function getBundledRecipes() {
+      const bundled = [];
+      if (typeof FALLBACK_RECIPES !== 'undefined' && Array.isArray(FALLBACK_RECIPES)) {
+        bundled.push(...FALLBACK_RECIPES);
+      }
+      if (Array.isArray(window.AIR_FRYER_RECIPES)) {
+        bundled.push(...window.AIR_FRYER_RECIPES);
+      }
+      if (Array.isArray(window.TOASTER_RECIPES)) {
+        bundled.push(...window.TOASTER_RECIPES);
+      }
+      return mergeRecipesById([], bundled);
+    }
+
+    function mergeRecipesById(primary, secondary) {
+      const merged = [];
+      const seen = new Set();
+      [...(primary || []), ...(secondary || [])].forEach(recipe => {
+        if (!recipe) return;
+        const key = String(recipe.id || `${recipe.category || ''}:${recipe.title || ''}`);
+        if (seen.has(key)) return;
+        seen.add(key);
+        merged.push(recipe);
+      });
+      return merged;
+    }
+
+    function mergeRemoteWithBundled(remoteRecipes, bundledRecipes) {
+      const remoteCategories = new Set(
+        (remoteRecipes || []).map(recipe => normalizeRecipeCategory(recipe.category)).filter(Boolean)
+      );
+      const missingCategoryFallbacks = (bundledRecipes || []).filter(recipe => {
+        const category = normalizeRecipeCategory(recipe.category);
+        return !category || !remoteCategories.has(category);
+      });
+      return mergeRecipesById(remoteRecipes, missingCategoryFallbacks);
+    }
+
     async function loadRecipes() {
+      const bundledRecipes = getBundledRecipes();
       try {
-        allRecipes = await fetchRecipes();
-        if (!allRecipes || !allRecipes.length) {
+        const remoteRecipes = await fetchRecipes();
+        if (!remoteRecipes || !remoteRecipes.length) {
           throw new Error('Empty result');
         }
-        if (Array.isArray(window.AIR_FRYER_RECIPES)) {
-          const existingIds = new Set(allRecipes.map(recipe => String(recipe.id)));
-          const missingAirFryerRecipes = window.AIR_FRYER_RECIPES.filter(
-            recipe => !existingIds.has(String(recipe.id))
-          );
-          allRecipes = [...allRecipes, ...missingAirFryerRecipes];
-        }
-        if (Array.isArray(window.TOASTER_RECIPES)) {
-          const existingIds = new Set(allRecipes.map(recipe => String(recipe.id)));
-          const missingToasterRecipes = window.TOASTER_RECIPES.filter(
-            recipe => !existingIds.has(String(recipe.id))
-          );
-          allRecipes = [...allRecipes, ...missingToasterRecipes];
-        }
+        allRecipes = mergeRemoteWithBundled(remoteRecipes, bundledRecipes);
       } catch(e) {
         console.warn('Supabase fetch failed, using fallback recipes:', e.message);
-        allRecipes = (typeof FALLBACK_RECIPES !== 'undefined')
-          ? [...FALLBACK_RECIPES]
-          : [];
+        allRecipes = bundledRecipes;
       }
       renderProductSelector();
     }
@@ -491,10 +517,13 @@
       renderProductSelector();
     });
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Ensure products are loaded first (now deduplicated in initProducts)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Render bundled counts immediately; refresh with live data in the background.
+      allRecipes = getBundledRecipes();
+      renderProductSelector();
+
       if (typeof initProducts === 'function') {
-        await initProducts();
+        initProducts().catch(error => console.warn('Product preload failed:', error));
       }
       const sel = document.getElementById('langSelect');
       if (sel) {
