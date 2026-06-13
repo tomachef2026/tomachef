@@ -1004,6 +1004,14 @@ img { max-width: 100%; height: auto; }
   font-size: 4rem;
   color: var(--tomato-300);
 }
+.about-feature-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  object-position: center;
+  border-radius: var(--radius);
+}
 .about-text h3 {
   font-weight: 700;
   color: var(--tomato-800);
