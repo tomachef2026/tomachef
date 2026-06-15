@@ -7,7 +7,7 @@
   <title>Recipe Management - TomaChef Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-  <script src="../supabase.js?v=20260615d"></script>
+  <script src="../supabase.js?v=20260615e"></script>
   <style>
     :root {
       --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
@@ -56,6 +56,77 @@
       padding: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .stat-card:hover { border-color: #f59e0b; transform: translateY(-1px); }
+    .stat-card.active { border-color: var(--tomato-700); box-shadow: 0 0 0 2px rgba(185,28,28,0.08); }
+    .stat-label { color: #64748b; font-size: 0.78rem; font-weight: 600; }
+    .stat-value { color: #0f172a; font-size: 1.65rem; font-weight: 800; line-height: 1.2; margin-top: 5px; }
+    .stat-note { color: #94a3b8; font-size: 0.72rem; margin-top: 3px; }
+    .category-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .category-tab {
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #475569;
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .category-tab:hover { border-color: #f59e0b; color: #b45309; }
+    .category-tab.active { background: var(--tomato-700); border-color: var(--tomato-700); color: #fff; }
+    .category-count {
+      display: inline-flex;
+      min-width: 20px;
+      height: 20px;
+      align-items: center;
+      justify-content: center;
+      margin-left: 5px;
+      padding: 0 5px;
+      border-radius: 10px;
+      background: rgba(148,163,184,0.18);
+      font-size: 0.7rem;
+    }
+    .category-tab.active .category-count { background: rgba(255,255,255,0.2); }
+    .filter-bar {
+      display: grid;
+      grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(150px, 1fr)) auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .search-wrap { position: relative; }
+    .search-wrap .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .search-wrap input { padding-left: 36px; }
+    .btn-clear {
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #64748b;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+    .btn-clear:hover { border-color: #94a3b8; color: #334155; }
     .btn-add { background: var(--amber-500); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
     .btn-add:hover { background: var(--amber-600); }
     .btn-save { background: var(--tomato-700); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
@@ -68,7 +139,70 @@
     .category-airfryeroven { background: #fef3c7; color: #b45309; }
     .category-toaster { background: #dcfce7; color: #166534; }
 
-    .emoji-display { font-size: 1.6rem; }
+    .emoji-display { font-size: 1.35rem; }
+    .recipe-title-en { font-weight: 700; color: #0f172a; font-size: 0.9rem; }
+    .recipe-title-zh { color: #64748b; font-size: 0.78rem; margin-top: 3px; }
+    .status-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+    .quality-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .quality-complete { background: #dcfce7; color: #166534; }
+    .quality-warning { background: #fef3c7; color: #92400e; }
+    .quality-danger { background: #fee2e2; color: #b91c1c; }
+    .translation-badge { background: #eff6ff; color: #1d4ed8; }
+    .recipe-switch {
+      position: relative;
+      width: 42px;
+      height: 23px;
+      flex-shrink: 0;
+    }
+    .recipe-switch input { opacity: 0; width: 0; height: 0; }
+    .recipe-switch-slider {
+      position: absolute;
+      inset: 0;
+      background: #cbd5e1;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .recipe-switch-slider::before {
+      content: '';
+      position: absolute;
+      width: 17px;
+      height: 17px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: 0.2s;
+    }
+    .recipe-switch input:checked + .recipe-switch-slider { background: #16a34a; }
+    .recipe-switch input:checked + .recipe-switch-slider::before { transform: translateX(19px); }
+    .recipe-switch input:disabled + .recipe-switch-slider { opacity: 0.55; cursor: wait; }
+    .action-group { display: flex; gap: 8px; align-items: center; }
+    .action-btn {
+      border: 1px solid #e2e8f0;
+      background: white;
+      border-radius: 7px;
+      padding: 5px 9px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .action-edit { color: var(--tomato-700); }
+    .action-edit:hover { background: #fff7ed; border-color: #fdba74; }
+    .action-delete { color: #dc2626; }
+    .action-delete:hover { background: #fef2f2; border-color: #fca5a5; }
+    #recipeTable thead th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em; border-bottom-width: 1px; }
+    #recipeTable tbody td { padding-top: 12px; padding-bottom: 12px; }
+    #recipeTable tbody tr:hover { background: #fffdf8; }
 
     /* Thumbnail */
     .img-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #f1f5f9; }
@@ -119,8 +253,7 @@
 
     .badge-cat { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
     .form-label { font-weight: 600; font-size: 0.85rem; }
-    .view-tools { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
-    .view-tools .form-select { width: 180px; }
+    .view-tools { display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
     .view-summary { color: #64748b; font-size: 0.86rem; }
     .product-code { display: block; color: #b91c1c; font-weight: 700; }
     .product-label { color: #64748b; }
@@ -131,6 +264,13 @@
       .admin-sidebar .nav-link { display: inline-block; padding: 6px 12px; font-size: 0.8rem; border-left: none; border-bottom: 2px solid transparent; }
       .admin-sidebar .nav-link.active { border-left-color: transparent; border-bottom-color: var(--amber-500); }
       .admin-main { margin-left: 0; padding: 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .filter-bar { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 1100px) and (min-width: 769px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+      .filter-bar { grid-template-columns: repeat(2, 1fr); }
+      .search-wrap { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -160,29 +300,80 @@
     </div>
   </div>
 
+  <div class="stats-grid" id="recipeStats">
+    <button class="stat-card active text-start" type="button" data-stat-filter="all" onclick="setStatFilter('all')">
+      <div class="stat-label">全部食谱</div>
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-note">数据库中的全部内容</div>
+    </button>
+    <button class="stat-card text-start" type="button" data-stat-filter="active" onclick="setStatFilter('active')">
+      <div class="stat-label">已上架</div>
+      <div class="stat-value" id="statActive">0</div>
+      <div class="stat-note">当前前台可见</div>
+    </button>
+    <button class="stat-card text-start" type="button" data-stat-filter="incomplete" onclick="setStatFilter('incomplete')">
+      <div class="stat-label">待完善</div>
+      <div class="stat-value" id="statIncomplete">0</div>
+      <div class="stat-note">图片、内容或翻译缺失</div>
+    </button>
+    <button class="stat-card text-start" type="button" data-stat-filter="unlinked" onclick="setStatFilter('unlinked')">
+      <div class="stat-label">未关联产品</div>
+      <div class="stat-value" id="statUnlinked">0</div>
+      <div class="stat-note">无法按产品精确管理</div>
+    </button>
+    <button class="stat-card text-start" type="button" data-stat-filter="noimage" onclick="setStatFilter('noimage')">
+      <div class="stat-label">缺少图片</div>
+      <div class="stat-value" id="statNoImage">0</div>
+      <div class="stat-note">前台卡片没有主图</div>
+    </button>
+  </div>
+
   <div class="content-card">
-    <div class="view-tools">
-      <div>
-        <select class="form-select form-select-sm" id="recipeViewMode" onchange="setRecipeViewMode(this.value)">
-          <option value="frontend">前台可见</option>
-          <option value="all">全部食谱</option>
-          <option value="inactive">停用/重复</option>
-        </select>
+    <div class="category-tabs" id="recipeCategoryTabs">
+      <button type="button" class="category-tab active" data-category="all" onclick="setCategoryFilter('all')">全部<span class="category-count" id="countAll">0</span></button>
+      <button type="button" class="category-tab" data-category="airfryer" onclick="setCategoryFilter('airfryer')">空气炸锅<span class="category-count" id="countAirfryer">0</span></button>
+      <button type="button" class="category-tab" data-category="airfryeroven" onclick="setCategoryFilter('airfryeroven')">空气炸烤箱<span class="category-count" id="countAirfryeroven">0</span></button>
+      <button type="button" class="category-tab" data-category="toaster" onclick="setCategoryFilter('toaster')">烤面包机<span class="category-count" id="countToaster">0</span></button>
+      <button type="button" class="category-tab" data-category="inactive" onclick="setCategoryFilter('inactive')">已停用<span class="category-count" id="countInactive">0</span></button>
+    </div>
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="form-control form-control-sm" id="recipeSearch" placeholder="搜索中文、英文标题或产品…" oninput="renderRecipes()">
       </div>
+      <select class="form-select form-select-sm" id="recipeProductFilter" onchange="renderRecipes()">
+        <option value="all">全部关联产品</option>
+      </select>
+      <select class="form-select form-select-sm" id="recipeStatusFilter" onchange="renderRecipes()">
+        <option value="all">全部上架状态</option>
+        <option value="active">已上架</option>
+        <option value="inactive">已停用</option>
+      </select>
+      <select class="form-select form-select-sm" id="recipeQualityFilter" onchange="renderRecipes()">
+        <option value="all">全部内容状态</option>
+        <option value="complete">内容完整</option>
+        <option value="incomplete">待完善</option>
+        <option value="translation">翻译不完整</option>
+        <option value="noimage">缺少图片</option>
+        <option value="unlinked">未关联产品</option>
+      </select>
+      <button type="button" class="btn-clear" onclick="clearRecipeFilters()">清除筛选</button>
+    </div>
+    <div class="view-tools">
       <div class="view-summary" id="recipeViewSummary">正在加载数据…</div>
     </div>
     <div class="table-responsive">
       <table class="table table-hover align-middle" id="recipeTable">
         <thead>
           <tr>
-            <th style="width:50px">#</th>
-            <th style="width:60px">图片</th>
-            <th style="width:50px">图标</th>
-            <th>标题 (EN)</th>
+            <th style="width:54px">排序</th>
+            <th style="width:64px">图片</th>
+            <th>食谱标题</th>
             <th style="width:100px">分类</th>
-            <th style="width:130px">关联产品</th>
-            <th style="width:70px">状态</th>
-            <th style="width:120px">操作</th>
+            <th style="width:150px">关联产品</th>
+            <th style="width:150px">内容状态</th>
+            <th style="width:76px">上架</th>
+            <th style="width:145px">操作</th>
           </tr>
         </thead>
         <tbody id="recipeTbody">
@@ -288,7 +479,9 @@
   let editingId = null;
   let allProducts = [];
   let allAdminRecipes = [];
-  let recipeViewMode = 'frontend';
+  let recipeCategoryFilter = 'all';
+  let recipeStatFilter = 'all';
+  const RECIPE_LANGUAGES = ['en', 'zh', 'es', 'fr', 'ja', 'pt'];
 
   // === Modal helpers ===
   function openModal() { document.getElementById('recipeModal').classList.add('show'); }
@@ -307,6 +500,13 @@
         opt.value = p.id;
         opt.textContent = productOptionLabel(p);
         sel.appendChild(opt);
+      });
+      const filter = document.getElementById('recipeProductFilter');
+      allProducts.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = productOptionLabel(p);
+        filter.appendChild(opt);
       });
     } catch (e) { console.warn('Failed to load products for dropdown', e); }
     loadRecipes();
@@ -354,18 +554,19 @@
     const tbody = document.getElementById('recipeTbody');
     tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">加载中…</td></tr>';
     allAdminRecipes = await fetchAllRecipesAdmin();
+    renderRecipeStats();
     renderRecipes();
   }
 
   function renderRecipes() {
     const tbody = document.getElementById('recipeTbody');
     const summary = document.getElementById('recipeViewSummary');
-    const recipes = getRecipesForCurrentView();
+    const recipes = getFilteredRecipes();
     const frontendCount = getFrontendVisibleRecipes().length;
     const inactiveCount = allAdminRecipes.filter(r => r.is_active === false).length;
 
     if (summary) {
-      summary.textContent = `前台可见 ${frontendCount} 条 · 全部 ${allAdminRecipes.length} 条 · 停用/重复 ${inactiveCount} 条`;
+      summary.textContent = `当前显示 ${recipes.length} 条 · 前台可见 ${frontendCount} 条 · 全部 ${allAdminRecipes.length} 条 · 已停用 ${inactiveCount} 条`;
     }
 
     if (!allAdminRecipes.length) {
@@ -383,6 +584,8 @@
     tbody.innerHTML = recipes.map((r, i) => {
       const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
       const title = (t.en && t.en.title) ? t.en.title : '—';
+      const titleZh = (t.zh && t.zh.title) ? t.zh.title : '';
+      const quality = getRecipeQuality(r);
       const imageUrl = getAdminRecipeImageUrl(r.image_url);
       const imgHtml = r.image_url
         ? '<img class="img-thumb" src="'+escHtml(imageUrl)+'" alt="" loading="eager" decoding="async" onerror="this.style.display=\'none\'">'
@@ -391,14 +594,30 @@
       return `<tr>
         <td class="text-muted">${r.display_order ?? 0}</td>
         <td>${imgHtml}</td>
-        <td><span class="emoji-display">${r.emoji || '🍳'}</span></td>
-        <td>${escHtml(title)}</td>
+        <td>
+          <div class="recipe-title-en"><span class="emoji-display">${r.emoji || '🍳'}</span> ${escHtml(title)}</div>
+          ${titleZh ? `<div class="recipe-title-zh">${escHtml(titleZh)}</div>` : ''}
+        </td>
         <td><span class="badge-cat ${catClasses[r.category] || ''}">${catLabels[r.category] || r.category}</span></td>
         <td><small>${productName}</small></td>
-        <td>${r.is_active ? '✅' : '❌'}</td>
         <td>
-          <a class="btn-edit me-3" onclick="openEditModal('${r.id}')">编辑</a>
-          <a class="btn-del" onclick="confirmDelete('${r.id}','${escHtml(title)}')">删除</a>
+          <div class="status-stack">
+            <span class="quality-badge ${quality.complete ? 'quality-complete' : 'quality-warning'}">${quality.complete ? '内容完整' : '待完善'}</span>
+            <span class="quality-badge translation-badge">翻译 ${quality.translationCount}/${RECIPE_LANGUAGES.length}</span>
+            ${quality.issues.length ? `<span class="quality-badge quality-danger">${escHtml(quality.issues.join('、'))}</span>` : ''}
+          </div>
+        </td>
+        <td>
+          <label class="recipe-switch" title="${r.is_active ? '点击下架' : '点击上架'}">
+            <input type="checkbox" ${r.is_active ? 'checked' : ''} onchange="toggleRecipeActive('${r.id}', this)">
+            <span class="recipe-switch-slider"></span>
+          </label>
+        </td>
+        <td>
+          <div class="action-group">
+            <button type="button" class="action-btn action-edit" onclick="openEditModal('${r.id}')">编辑</button>
+            <button type="button" class="action-btn action-delete" onclick="confirmDelete('${r.id}','${escHtml(title)}')">删除</button>
+          </div>
         </td>
       </tr>`;
     }).join('');
@@ -408,15 +627,146 @@
     return allAdminRecipes.filter(r => r.is_active !== false);
   }
 
-  function getRecipesForCurrentView() {
-    if (recipeViewMode === 'frontend') return getFrontendVisibleRecipes();
-    if (recipeViewMode === 'inactive') return allAdminRecipes.filter(r => r.is_active === false);
-    return allAdminRecipes;
+  function parseRecipeTranslations(recipe) {
+    if (!recipe || !recipe.translations) return {};
+    if (typeof recipe.translations === 'string') {
+      try { return JSON.parse(recipe.translations); } catch (e) { return {}; }
+    }
+    return recipe.translations;
   }
 
-  function setRecipeViewMode(mode) {
-    recipeViewMode = mode || 'frontend';
+  function hasRecipeDetails(languageData) {
+    return Boolean(
+      languageData &&
+      String(languageData.title || '').trim() &&
+      (
+        String(languageData.content || '').trim() ||
+        (Array.isArray(languageData.directions) && languageData.directions.length > 0)
+      )
+    );
+  }
+
+  function getRecipeQuality(recipe) {
+    const translations = parseRecipeTranslations(recipe);
+    const translationCount = RECIPE_LANGUAGES.filter(lang =>
+      hasRecipeDetails(translations[lang])
+    ).length;
+    const issues = [];
+    if (!recipe.image_url) issues.push('缺图片');
+    if (!recipe.product_id) issues.push('未关联');
+    if (!hasRecipeDetails(translations.en)) issues.push('缺详情');
+    if (translationCount < RECIPE_LANGUAGES.length) issues.push('缺翻译');
+    return {
+      translationCount,
+      issues,
+      complete: issues.length === 0
+    };
+  }
+
+  function getRecipeSearchText(recipe) {
+    const translations = parseRecipeTranslations(recipe);
+    return [
+      translations.en?.title,
+      translations.zh?.title,
+      recipe.products?.sku,
+      recipe.products?.name,
+      recipe.products?.name_zh,
+      recipe.category
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function getFilteredRecipes() {
+    const search = document.getElementById('recipeSearch').value.trim().toLowerCase();
+    const product = document.getElementById('recipeProductFilter').value;
+    const status = document.getElementById('recipeStatusFilter').value;
+    const quality = document.getElementById('recipeQualityFilter').value;
+
+    return allAdminRecipes.filter(recipe => {
+      const recipeQuality = getRecipeQuality(recipe);
+      if (recipeCategoryFilter === 'inactive' && recipe.is_active !== false) return false;
+      if (!['all', 'inactive'].includes(recipeCategoryFilter) && recipe.category !== recipeCategoryFilter) return false;
+      if (recipeStatFilter === 'active' && recipe.is_active === false) return false;
+      if (recipeStatFilter === 'incomplete' && recipeQuality.complete) return false;
+      if (recipeStatFilter === 'unlinked' && recipe.product_id) return false;
+      if (recipeStatFilter === 'noimage' && recipe.image_url) return false;
+      if (search && !getRecipeSearchText(recipe).includes(search)) return false;
+      if (product !== 'all' && String(recipe.product_id) !== product) return false;
+      if (status === 'active' && recipe.is_active === false) return false;
+      if (status === 'inactive' && recipe.is_active !== false) return false;
+      if (quality === 'complete' && !recipeQuality.complete) return false;
+      if (quality === 'incomplete' && recipeQuality.complete) return false;
+      if (quality === 'translation' && recipeQuality.translationCount === RECIPE_LANGUAGES.length) return false;
+      if (quality === 'noimage' && recipe.image_url) return false;
+      if (quality === 'unlinked' && recipe.product_id) return false;
+      return true;
+    });
+  }
+
+  function renderRecipeStats() {
+    const active = allAdminRecipes.filter(r => r.is_active !== false).length;
+    const incomplete = allAdminRecipes.filter(r => !getRecipeQuality(r).complete).length;
+    const unlinked = allAdminRecipes.filter(r => !r.product_id).length;
+    const noImage = allAdminRecipes.filter(r => !r.image_url).length;
+    document.getElementById('statTotal').textContent = allAdminRecipes.length;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statIncomplete').textContent = incomplete;
+    document.getElementById('statUnlinked').textContent = unlinked;
+    document.getElementById('statNoImage').textContent = noImage;
+    document.getElementById('countAll').textContent = allAdminRecipes.length;
+    document.getElementById('countAirfryer').textContent = allAdminRecipes.filter(r => r.category === 'airfryer').length;
+    document.getElementById('countAirfryeroven').textContent = allAdminRecipes.filter(r => r.category === 'airfryeroven').length;
+    document.getElementById('countToaster').textContent = allAdminRecipes.filter(r => r.category === 'toaster').length;
+    document.getElementById('countInactive').textContent = allAdminRecipes.filter(r => r.is_active === false).length;
+  }
+
+  function setCategoryFilter(category) {
+    recipeCategoryFilter = category || 'all';
+    document.querySelectorAll('.category-tab').forEach(button => {
+      button.classList.toggle('active', button.dataset.category === recipeCategoryFilter);
+    });
     renderRecipes();
+  }
+
+  function setStatFilter(filter) {
+    recipeStatFilter = filter || 'all';
+    document.querySelectorAll('.stat-card').forEach(card => {
+      card.classList.toggle('active', card.dataset.statFilter === recipeStatFilter);
+    });
+    renderRecipes();
+  }
+
+  function clearRecipeFilters() {
+    document.getElementById('recipeSearch').value = '';
+    document.getElementById('recipeProductFilter').value = 'all';
+    document.getElementById('recipeStatusFilter').value = 'all';
+    document.getElementById('recipeQualityFilter').value = 'all';
+    recipeCategoryFilter = 'all';
+    recipeStatFilter = 'all';
+    document.querySelectorAll('.category-tab').forEach(button => {
+      button.classList.toggle('active', button.dataset.category === 'all');
+    });
+    document.querySelectorAll('.stat-card').forEach(card => {
+      card.classList.toggle('active', card.dataset.statFilter === 'all');
+    });
+    renderRecipes();
+  }
+
+  async function toggleRecipeActive(id, input) {
+    const recipe = allAdminRecipes.find(item => String(item.id) === String(id));
+    if (!recipe) return;
+    const nextActive = input.checked;
+    input.disabled = true;
+    const { error } = await updateRecipeActive(recipe.id, nextActive);
+    if (error) {
+      input.checked = !nextActive;
+      input.disabled = false;
+      return toast('状态更新失败: ' + error.message);
+    }
+    recipe.is_active = nextActive;
+    input.disabled = false;
+    renderRecipeStats();
+    renderRecipes();
+    toast(nextActive ? '食谱已上架' : '食谱已下架');
   }
 
   function productOptionLabel(p) {

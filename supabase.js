@@ -451,6 +451,22 @@ async function upsertRecipe(recipe) {
   return result;
 }
 
+async function updateRecipeActive(id, isActive) {
+  const sb = initSupabase();
+  if (!sb) return { error: 'Supabase not initialized' };
+  const result = await sb
+    .from('recipes')
+    .update({
+      is_active: isActive,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select('id,is_active')
+    .single();
+  if (!result.error) cacheClear('recipes_');
+  return result;
+}
+
 async function deleteRecipe(id) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
