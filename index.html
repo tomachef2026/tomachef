@@ -267,7 +267,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://jtrhzphdttralmvdhtva.supabase.co">
-  <script src="supabase.js?v=20260615b"></script>
+  <script src="supabase.js?v=20260615d"></script>
   <script src="js/i18n.js?v=20260611d"></script>
   <script src="js/airfryer-recipes.js?v=20260609a"></script>
   <script src="js/toaster-recipes.js?v=20260610a"></script>
@@ -312,18 +312,20 @@
       if (!grid) return;
       if (_homeRecipesLoaded) return;
       _homeRecipesLoaded = true;
+      let databaseRequestSucceeded = false;
 
       // Fetch recipes from Supabase
       try {
         if (typeof fetchRecipes === 'function') {
           _homeRecipes = await fetchRecipes();
+          databaseRequestSucceeded = true;
         }
       } catch(e) {
         console.error('Home recipes fetch failed:', e);
       }
 
-      // Fallback on error only
-      if (!_homeRecipes || !_homeRecipes.length) {
+      // Static recipes are only a network/database failure fallback.
+      if (!databaseRequestSucceeded) {
         if (typeof FALLBACK_RECIPES !== 'undefined' && FALLBACK_RECIPES.length) {
           _homeRecipes = [...FALLBACK_RECIPES];
         } else {
@@ -332,11 +334,10 @@
         }
       }
 
-      [window.AIR_FRYER_RECIPES, window.TOASTER_RECIPES].forEach(staticRecipes => {
-        if (!Array.isArray(staticRecipes)) return;
-        const existingIds = new Set(_homeRecipes.map(recipe => String(recipe.id)));
-        _homeRecipes.push(...staticRecipes.filter(recipe => !existingIds.has(String(recipe.id))));
-      });
+      if (!_homeRecipes.length) {
+        grid.innerHTML = '<div class="text-center py-4 w-100" style="grid-column: 1 / -1;"><p style="color:#94a3b8;">No recipes yet. Stay tuned!</p></div>';
+        return;
+      }
 
       window._homeRecipes = _homeRecipes;
       renderHomeProductSelector();

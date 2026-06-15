@@ -416,11 +416,6 @@ async function deleteSocialLink(id) {
 // ============================================================
 
 async function fetchRecipes(category = null, productId = null) {
-  // Check cache first
-  const cacheKey = productId ? 'recipes_product_' + productId : (category ? 'recipes_cat_' + category : 'recipes_all');
-  const cached = cacheGet(cacheKey);
-  if (cached) return cached;
-
   const sb = initSupabase();
   if (!sb) return [];
   let query = sb.from('recipes').select('*, products(name)').eq('is_active', true);
@@ -428,8 +423,10 @@ async function fetchRecipes(category = null, productId = null) {
   if (productId) query = query.eq('product_id', productId);
   query = query.order('display_order', { ascending: true });
   const { data, error } = await query;
-  if (error) { console.error('Error fetching recipes:', error); return []; }
-  cacheSet(cacheKey, data);
+  if (error) {
+    console.error('Error fetching recipes:', error);
+    throw error;
+  }
   return data;
 }
 
