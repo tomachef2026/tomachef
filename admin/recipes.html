@@ -7,7 +7,7 @@
   <title>Recipe Management - TomaChef Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-  <script src="../supabase.js?v=20260615e"></script>
+  <script src="../supabase.js?v=20260615f"></script>
   <style>
     :root {
       --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
@@ -129,6 +129,9 @@
     .btn-clear:hover { border-color: #94a3b8; color: #334155; }
     .btn-add { background: var(--amber-500); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
     .btn-add:hover { background: var(--amber-600); }
+    .btn-translate { background: #fff; color: #1d4ed8; font-weight: 600; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 14px; }
+    .btn-translate:hover { background: #eff6ff; }
+    .btn-translate:disabled { color: #64748b; background: #f8fafc; cursor: wait; }
     .btn-save { background: var(--tomato-700); color: white; font-weight: 600; border: none; border-radius: 8px; padding: 8px 20px; }
     .btn-save:hover { background: var(--tomato-800); }
     .btn-edit { color: var(--tomato-700); cursor: pointer; font-size: 0.85rem; }
@@ -140,8 +143,8 @@
     .category-toaster { background: #dcfce7; color: #166534; }
 
     .emoji-display { font-size: 1.35rem; }
-    .recipe-title-en { font-weight: 700; color: #0f172a; font-size: 0.9rem; }
-    .recipe-title-zh { color: #64748b; font-size: 0.78rem; margin-top: 3px; }
+    .recipe-title-primary { font-weight: 700; color: #0f172a; font-size: 0.9rem; }
+    .recipe-title-secondary { color: #64748b; font-size: 0.78rem; margin-top: 3px; }
     .status-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
     .quality-badge {
       display: inline-flex;
@@ -240,6 +243,16 @@
       max-height: 88vh; overflow-y: auto;
     }
     .modal-dialog-custom h5 { font-weight: 700; color: var(--tomato-800); margin-bottom: 20px; }
+    .primary-language-note {
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+      border-radius: 9px;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      margin-bottom: 14px;
+    }
+    .translation-status { min-height: 20px; color: #64748b; font-size: 0.8rem; margin-top: 10px; }
 
     /* Toast */
     .toast-msg {
@@ -295,6 +308,7 @@
   <div class="admin-header">
     <h4>🍳 食谱管理</h4>
     <div>
+      <button class="btn-translate me-2" id="recipeTranslateExistingBtn" onclick="translateExistingRecipes()">自动补全全部翻译</button>
       <button class="btn-add me-3" onclick="openAddModal()">+ 添加食谱</button>
       <a class="btn-signout" href="#" onclick="handleLogout()">退出登录</a>
     </div>
@@ -449,26 +463,36 @@
       </div>
     </div>
 
-    <!-- Recipe Content (English, primary language) -->
+    <!-- Recipe Content (Chinese, primary language) -->
     <div class="mb-3">
-      <h6 class="fw-bold mb-3">食谱内容</h6>
+      <h6 class="fw-bold mb-2">食谱内容（中文主稿）</h6>
+      <div class="primary-language-note">后台统一维护中文。保存后系统会根据中文自动生成英文、西班牙语、法语、日语和葡萄牙语译文。</div>
       <div class="mb-2">
-        <label class="form-label">标题 *</label>
-        <input type="text" class="form-control lang-title" data-lang="en">
+        <label class="form-label">中文标题 *</label>
+        <input type="text" class="form-control lang-title" data-lang="zh">
       </div>
       <div class="mb-2">
-        <label class="form-label">简介</label>
-        <textarea class="form-control lang-desc" data-lang="en" rows="2"></textarea>
+        <label class="form-label">中文简介</label>
+        <textarea class="form-control lang-desc" data-lang="zh" rows="2"></textarea>
       </div>
       <div class="mb-2">
-        <label class="form-label">详细做法</label>
-        <textarea class="form-control lang-content" data-lang="en" rows="4"></textarea>
+        <label class="form-label">食材（每行一项）</label>
+        <textarea class="form-control lang-ingredients" data-lang="zh" rows="4"></textarea>
       </div>
+      <div class="mb-2">
+        <label class="form-label">步骤（每行一步）*</label>
+        <textarea class="form-control lang-directions" data-lang="zh" rows="6"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">小贴士（每行一条）</label>
+        <textarea class="form-control lang-tips" data-lang="zh" rows="3"></textarea>
+      </div>
+      <div class="translation-status" id="recipeTranslationStatus"></div>
     </div>
 
     <div class="mt-4 text-end">
       <button class="btn btn-light me-2" onclick="closeModal()">取消</button>
-      <button class="btn-save" onclick="saveRecipe()">保存</button>
+      <button class="btn-save" id="recipeSaveBtn" onclick="saveRecipe()">翻译并保存</button>
     </div>
   </div>
 </div>
@@ -482,6 +506,13 @@
   let recipeCategoryFilter = 'all';
   let recipeStatFilter = 'all';
   const RECIPE_LANGUAGES = ['en', 'zh', 'es', 'fr', 'ja', 'pt'];
+  const RECIPE_TRANSLATION_TARGETS = [
+    { lang: 'en', label: '英文' },
+    { lang: 'es', label: '西班牙语' },
+    { lang: 'fr', label: '法语' },
+    { lang: 'ja', label: '日语' },
+    { lang: 'pt', label: '葡萄牙语' }
+  ];
 
   // === Modal helpers ===
   function openModal() { document.getElementById('recipeModal').classList.add('show'); }
@@ -583,8 +614,8 @@
     const catClasses = { airfryer: 'category-airfryer', airfryeroven: 'category-airfryeroven', toaster: 'category-toaster' };
     tbody.innerHTML = recipes.map((r, i) => {
       const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
-      const title = (t.en && t.en.title) ? t.en.title : '—';
-      const titleZh = (t.zh && t.zh.title) ? t.zh.title : '';
+      const titleZh = (t.zh && t.zh.title) ? t.zh.title : ((t.en && t.en.title) ? t.en.title : '—');
+      const titleEn = (t.en && t.en.title) ? t.en.title : '';
       const quality = getRecipeQuality(r);
       const imageUrl = getAdminRecipeImageUrl(r.image_url);
       const imgHtml = r.image_url
@@ -595,8 +626,8 @@
         <td class="text-muted">${r.display_order ?? 0}</td>
         <td>${imgHtml}</td>
         <td>
-          <div class="recipe-title-en"><span class="emoji-display">${r.emoji || '🍳'}</span> ${escHtml(title)}</div>
-          ${titleZh ? `<div class="recipe-title-zh">${escHtml(titleZh)}</div>` : ''}
+          <div class="recipe-title-primary"><span class="emoji-display">${r.emoji || '🍳'}</span> ${escHtml(titleZh)}</div>
+          ${titleEn ? `<div class="recipe-title-secondary">${escHtml(titleEn)}</div>` : ''}
         </td>
         <td><span class="badge-cat ${catClasses[r.category] || ''}">${catLabels[r.category] || r.category}</span></td>
         <td><small>${productName}</small></td>
@@ -616,7 +647,7 @@
         <td>
           <div class="action-group">
             <button type="button" class="action-btn action-edit" onclick="openEditModal('${r.id}')">编辑</button>
-            <button type="button" class="action-btn action-delete" onclick="confirmDelete('${r.id}','${escHtml(title)}')">删除</button>
+            <button type="button" class="action-btn action-delete" onclick="confirmDelete('${r.id}','${escHtml(titleZh)}')">删除</button>
           </div>
         </td>
       </tr>`;
@@ -654,7 +685,7 @@
     const issues = [];
     if (!recipe.image_url) issues.push('缺图片');
     if (!recipe.product_id) issues.push('未关联');
-    if (!hasRecipeDetails(translations.en)) issues.push('缺详情');
+    if (!hasRecipeDetails(translations.zh)) issues.push('缺中文详情');
     if (translationCount < RECIPE_LANGUAGES.length) issues.push('缺翻译');
     return {
       translationCount,
@@ -806,8 +837,9 @@
     document.getElementById('recipeMode').value = '';
     document.getElementById('recipeTemp').value = '';
     document.getElementById('recipeTime').value = '';
-    document.querySelectorAll('.lang-title, .lang-desc, .lang-content').forEach(el => el.value = '');
+    document.querySelectorAll('.lang-title, .lang-desc, .lang-ingredients, .lang-directions, .lang-tips').forEach(el => el.value = '');
     document.getElementById('modalTitle').textContent = '添加食谱';
+    setRecipeFormBusy(false, '');
     removeImage();
   }
 
@@ -840,21 +872,135 @@
       document.getElementById('imgUploadArea').classList.add('has-image');
     }
 
-    // Translations (EN only)
+    // Chinese is the primary source content.
     const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
-    const tr = t.en || {};
-    document.querySelector('.lang-title[data-lang="en"]').value = tr.title || '';
-    document.querySelector('.lang-desc[data-lang="en"]').value = tr.description || '';
-    document.querySelector('.lang-content[data-lang="en"]').value = tr.content || '';
+    const tr = t.zh || {};
+    document.querySelector('.lang-title[data-lang="zh"]').value = tr.title || '';
+    document.querySelector('.lang-desc[data-lang="zh"]').value = tr.description || '';
+    document.querySelector('.lang-ingredients[data-lang="zh"]').value = normalizeRecipeList(tr.ingredients).join('\n');
+    document.querySelector('.lang-directions[data-lang="zh"]').value = normalizeRecipeList(tr.directions).length
+      ? normalizeRecipeList(tr.directions).join('\n')
+      : String(tr.content || '');
+    document.querySelector('.lang-tips[data-lang="zh"]').value = normalizeRecipeList(tr.tips).join('\n');
 
     document.getElementById('modalTitle').textContent = '编辑食谱';
     openModal();
   }
 
+  function normalizeRecipeList(value) {
+    if (Array.isArray(value)) return value.map(item => String(item).trim()).filter(Boolean);
+    return String(value || '').split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+  }
+
+  function getChineseRecipeFormData() {
+    const directions = normalizeRecipeList(document.querySelector('.lang-directions[data-lang="zh"]').value);
+    return {
+      title: document.querySelector('.lang-title[data-lang="zh"]').value.trim(),
+      description: document.querySelector('.lang-desc[data-lang="zh"]').value.trim(),
+      ingredients: normalizeRecipeList(document.querySelector('.lang-ingredients[data-lang="zh"]').value),
+      directions,
+      tips: normalizeRecipeList(document.querySelector('.lang-tips[data-lang="zh"]').value),
+      content: directions.join('\n')
+    };
+  }
+
+  function getRecipeSourceSignature(data) {
+    return JSON.stringify({
+      title: String(data?.title || '').trim(),
+      description: String(data?.description || '').trim(),
+      ingredients: normalizeRecipeList(data?.ingredients),
+      directions: normalizeRecipeList(data?.directions || data?.content),
+      tips: normalizeRecipeList(data?.tips)
+    });
+  }
+
+  function createRecipeTranslatorPool(onProgress) {
+    if (!('Translator' in self)) {
+      throw new Error('当前浏览器不支持自动翻译。请使用最新版桌面 Chrome 后重试。');
+    }
+    const progress = {};
+    const promises = RECIPE_TRANSLATION_TARGETS.map(target => {
+      progress[target.lang] = 0;
+      return self.Translator.create({
+        sourceLanguage: 'zh',
+        targetLanguage: target.lang,
+        monitor(monitor) {
+          monitor.addEventListener('downloadprogress', event => {
+            progress[target.lang] = Math.round(event.loaded * 100);
+            const total = Math.round(Object.values(progress).reduce((sum, value) => sum + value, 0) / RECIPE_TRANSLATION_TARGETS.length);
+            onProgress(`正在准备语言包：${total}%`);
+          });
+        }
+      }).then(translator => [target.lang, translator]);
+    });
+    return Promise.all(promises).then(entries => Object.fromEntries(entries));
+  }
+
+  function startRecipeTranslatorPool(onProgress) {
+    if (!('Translator' in self)) return null;
+    let poolPromise;
+    try {
+      // Chrome requires this call to begin inside the click event.
+      poolPromise = createRecipeTranslatorPool(onProgress);
+    } catch (error) {
+      poolPromise = Promise.reject(error);
+    }
+    poolPromise.catch(() => {});
+    return poolPromise;
+  }
+
+  async function translateRecipeList(translator, items) {
+    const translated = [];
+    for (const item of normalizeRecipeList(items)) {
+      translated.push((await translator.translate(item)).trim());
+    }
+    return translated;
+  }
+
+  async function translateRecipeLanguage(source, translator) {
+    const [title, description, ingredients, directions, tips] = await Promise.all([
+      translator.translate(source.title),
+      source.description ? translator.translate(source.description) : '',
+      translateRecipeList(translator, source.ingredients),
+      translateRecipeList(translator, source.directions),
+      translateRecipeList(translator, source.tips)
+    ]);
+    return {
+      title: title.trim(),
+      description: String(description || '').trim(),
+      ingredients,
+      directions,
+      tips,
+      content: directions.join('\n')
+    };
+  }
+
+  async function generateRecipeTranslations(source, translators, languages, onProgress) {
+    const entries = await Promise.all(languages.map(async lang => {
+      const target = RECIPE_TRANSLATION_TARGETS.find(item => item.lang === lang);
+      onProgress(`正在生成${target?.label || lang}译文...`);
+      return [lang, await translateRecipeLanguage(source, translators[lang])];
+    }));
+    return Object.fromEntries(entries);
+  }
+
+  function destroyRecipeTranslators(translators) {
+    Object.values(translators || {}).forEach(translator => translator.destroy?.());
+  }
+
+  function setRecipeFormBusy(isBusy, message = '') {
+    const button = document.getElementById('recipeSaveBtn');
+    button.disabled = isBusy;
+    button.textContent = isBusy ? '正在翻译...' : '翻译并保存';
+    document.getElementById('recipeTranslationStatus').textContent = message;
+  }
+
   async function saveRecipe() {
     const id = editingId || undefined;
+    const source = getChineseRecipeFormData();
+    if (!source.title) return toast('请填写中文标题');
+    if (!source.directions.length) return toast('请填写中文步骤');
 
-    // When editing, fetch existing recipe to preserve multilingual data
     let existingTranslations = {};
     let existingMode = '', existingTemp = '', existingTime = '';
     if (id) {
@@ -871,55 +1017,122 @@
       } catch (e) { console.warn('Failed to fetch existing recipe for merge', e); }
     }
 
-    // Merge English form fields with existing data (preserve ingredients/directions/tips)
-    const existingEn = existingTranslations.en || {};
-    const translations = {
-      ...existingTranslations,  // keep all non-English languages
-      en: {
-        ...existingEn,  // keep ingredients/directions/tips
-        title: document.querySelector('.lang-title[data-lang="en"]').value.trim(),
-        description: document.querySelector('.lang-desc[data-lang="en"]').value.trim(),
-        content: document.querySelector('.lang-content[data-lang="en"]').value.trim()
-      }
-    };
-    if (!translations.en.title) return toast('请填写标题');
-
-    // Upload image if new file selected
-    let imageUrl = document.getElementById('recipeImageUrl').value || null;
-    const file = document.getElementById('imgUploadArea')._file;
-    if (file) {
-      const uploadedUrl = await uploadAndGetUrl();
-      if (uploadedUrl) imageUrl = uploadedUrl;
-      else return;
-    }
-
-    const formMode = document.getElementById('recipeMode').value.trim();
-    const formTemp = document.getElementById('recipeTemp').value.trim();
-    const formTime = document.getElementById('recipeTime').value.trim();
-    const productIdValue = document.getElementById('recipeProduct').value;
-    const productId = productIdValue
-      ? (/^\d+$/.test(productIdValue) ? Number(productIdValue) : productIdValue)
+    const sourceChanged = !id || getRecipeSourceSignature(source) !== getRecipeSourceSignature(existingTranslations.zh || {});
+    const missingLanguages = RECIPE_TRANSLATION_TARGETS
+      .map(target => target.lang)
+      .filter(lang => !hasRecipeDetails(existingTranslations[lang]));
+    const languagesToTranslate = sourceChanged
+      ? RECIPE_TRANSLATION_TARGETS.map(target => target.lang)
+      : missingLanguages;
+    const localPoolPromise = languagesToTranslate.length
+      ? startRecipeTranslatorPool(message => setRecipeFormBusy(true, message))
       : null;
 
-    const recipe = {
-      id,
-      translations,
-      category: document.getElementById('recipeCat').value,
-      product_id: productId,
-      emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
-      image_url: imageUrl,
-      display_order: parseInt(document.getElementById('recipeOrder').value) || 0,
-      is_active: document.getElementById('recipeActive').value === 'true',
-      mode: formMode || existingMode || null,
-      temp: formTemp || existingTemp || null,
-      time: formTime || existingTime || null
-    };
+    try {
+      setRecipeFormBusy(true, languagesToTranslate.length ? '正在准备自动翻译...' : '正在保存...');
+      let translated = {};
+      if (languagesToTranslate.length) {
+        if (!localPoolPromise) throw new Error('当前浏览器不支持自动翻译，请使用最新版桌面 Chrome。');
+        const translators = await localPoolPromise;
+        translated = await generateRecipeTranslations(
+          source,
+          translators,
+          languagesToTranslate,
+          message => setRecipeFormBusy(true, message)
+        );
+      }
+      const translations = { ...existingTranslations, ...translated, zh: source };
 
-    const { error } = await upsertRecipe(recipe);
-    if (error) return toast('保存失败: ' + error.message);
-    toast(editingId ? '已更新' : '已创建');
-    closeModal();
-    loadRecipes();
+      let imageUrl = document.getElementById('recipeImageUrl').value || null;
+      const file = document.getElementById('imgUploadArea')._file;
+      if (file) {
+        const uploadedUrl = await uploadAndGetUrl();
+        if (uploadedUrl) imageUrl = uploadedUrl;
+        else return;
+      }
+
+      const formMode = document.getElementById('recipeMode').value.trim();
+      const formTemp = document.getElementById('recipeTemp').value.trim();
+      const formTime = document.getElementById('recipeTime').value.trim();
+      const productIdValue = document.getElementById('recipeProduct').value;
+      const productId = productIdValue
+        ? (/^\d+$/.test(productIdValue) ? Number(productIdValue) : productIdValue)
+        : null;
+
+      const recipe = {
+        id,
+        translations,
+        category: document.getElementById('recipeCat').value,
+        product_id: productId,
+        emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
+        image_url: imageUrl,
+        display_order: parseInt(document.getElementById('recipeOrder').value) || 0,
+        is_active: document.getElementById('recipeActive').value === 'true',
+        mode: formMode || existingMode || null,
+        temp: formTemp || existingTemp || null,
+        time: formTime || existingTime || null
+      };
+
+      const { error } = await upsertRecipe(recipe);
+      if (error) throw error;
+      toast(editingId ? '已更新并同步翻译' : '已创建并完成翻译');
+      closeModal();
+      await loadRecipes();
+    } catch (error) {
+      setRecipeFormBusy(false, '翻译或保存失败，请重试。');
+      toast('保存失败: ' + (error.message || error));
+    } finally {
+      if (localPoolPromise) localPoolPromise.then(destroyRecipeTranslators).catch(() => {});
+      if (document.getElementById('recipeModal').classList.contains('show')) {
+        setRecipeFormBusy(false, document.getElementById('recipeTranslationStatus').textContent);
+      }
+    }
+  }
+
+  async function translateExistingRecipes() {
+    const button = document.getElementById('recipeTranslateExistingBtn');
+    const candidates = allAdminRecipes.filter(recipe => {
+      const translations = parseRecipeTranslations(recipe);
+      return hasRecipeDetails(translations.zh) &&
+        RECIPE_TRANSLATION_TARGETS.some(target => !hasRecipeDetails(translations[target.lang]));
+    });
+    if (!candidates.length) return toast('全部食谱翻译已经完整');
+
+    button.disabled = true;
+    button.textContent = '正在准备翻译...';
+    const localPoolPromise = startRecipeTranslatorPool(message => { button.textContent = message; });
+    try {
+      if (!localPoolPromise) throw new Error('当前浏览器不支持自动翻译，请使用最新版桌面 Chrome。');
+      const translators = await localPoolPromise;
+      for (let index = 0; index < candidates.length; index++) {
+        const recipe = candidates[index];
+        const translations = parseRecipeTranslations(recipe);
+        const missing = RECIPE_TRANSLATION_TARGETS
+          .map(target => target.lang)
+          .filter(lang => !hasRecipeDetails(translations[lang]));
+        button.textContent = `正在翻译 ${index + 1}/${candidates.length}`;
+        const translated = await generateRecipeTranslations(
+          translations.zh,
+          translators,
+          missing,
+          message => { button.textContent = `${index + 1}/${candidates.length} ${message}`; }
+        );
+        const { error } = await updateRecipeTranslations(recipe.id, {
+          ...translations,
+          ...translated,
+          zh: translations.zh
+        });
+        if (error) throw error;
+      }
+      await loadRecipes();
+      toast(`已补全 ${candidates.length} 条食谱的多语言译文`);
+    } catch (error) {
+      toast('自动翻译失败: ' + (error.message || error));
+    } finally {
+      if (localPoolPromise) localPoolPromise.then(destroyRecipeTranslators).catch(() => {});
+      button.disabled = false;
+      button.textContent = '自动补全全部翻译';
+    }
   }
 
   // === Delete ===
