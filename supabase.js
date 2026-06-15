@@ -5,7 +5,7 @@
 // ============================================================
 // Cache Layer — avoids re-fetching on every page navigation
 // ============================================================
-const CACHE_VERSION = 'v5'; // bump to invalidate all old caches
+const CACHE_VERSION = 'v6'; // bump to invalidate all old caches
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function cacheGet(key) {

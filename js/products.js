@@ -254,12 +254,25 @@ function bindProductCardLinks(root) {
   });
 }
 
+function createProductLoadingState() {
+  return `
+    <div class="product-loading-state" role="status" aria-live="polite">
+      <div class="product-loading-card"></div>
+      <div class="product-loading-card"></div>
+      <div class="product-loading-card"></div>
+    </div>`;
+}
+
 // Render category scroll sections
 function renderProductSections(lang) {
   const container = document.getElementById('productSections');
   if (!container) return;
 
   if (products.length === 0) {
+    if (!productsLoaded) {
+      container.innerHTML = createProductLoadingState();
+      return;
+    }
     container.innerHTML = '<div class="text-center py-5"><div class="empty-state" style="font-size:3rem;margin-bottom:1rem;">📦</div><h4 style="color:#94a3b8;">' + ((typeof translations !== 'undefined' && translations[lang] && translations[lang].prod_no_results) || 'No products yet') + '</h4><p style="color:#cbd5e1;">' + ((typeof translations !== 'undefined' && translations[lang] && translations[lang].prod_coming_soon) || 'New products coming soon. Stay tuned!') + '</p></div>';
     return;
   }
@@ -341,6 +354,10 @@ function renderProducts(category, lang) {
 
   const filtered = getProductsByCategory(category);
   if (filtered.length === 0) {
+    if (!productsLoaded) {
+      container.innerHTML = `<div class="col-12">${createProductLoadingState()}</div>`;
+      return;
+    }
     const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
     container.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted">${t['prod_no_results'] || 'No products found.'}</p></div>`;
     return;
@@ -361,6 +378,10 @@ function renderHomeProducts(category, lang) {
     .slice(0, 3);
 
   if (display.length === 0) {
+    if (!productsLoaded) {
+      container.innerHTML = `<div class="col-12">${createProductLoadingState()}</div>`;
+      return;
+    }
     const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
     container.innerHTML = `<div class="col-12 text-center py-4"><p class="text-muted">${t['prod_no_results'] || 'No featured products yet.'}</p></div>`;
     return;
@@ -508,6 +529,8 @@ async function initProducts() {
       products = [...FALLBACK_PRODUCTS];
     }
 
+    productsLoaded = true;
+    window.productsLoaded = true;
     renderCurrentProductSurfaces();
 
     const sectionsContainer = document.getElementById('productSections');
@@ -527,7 +550,7 @@ async function initProducts() {
         setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
       } else if (productGrid) {
         // Legacy grid layout: re-render with filter
-        renderProducts(cat, lang);
+        renderProducts(cat, getCurrentLang());
       }
     }
 
