@@ -1149,6 +1149,21 @@ function createFaqTranslatorPool(onProgress) {
   return Promise.all(translatorPromises).then(entries => Object.fromEntries(entries));
 }
 
+function startFaqTranslatorPool(onProgress) {
+  if (!('Translator' in self)) return null;
+
+  let poolPromise;
+  try {
+    // This must run directly inside the click/submit event. Chrome requires
+    // a user gesture before it can download a missing translation model.
+    poolPromise = createFaqTranslatorPool(onProgress);
+  } catch (error) {
+    poolPromise = Promise.reject(error);
+  }
+  poolPromise.catch(() => {});
+  return poolPromise;
+}
+
 async function translateFaqWithServer(questionZh, answerZh) {
   const sb = initSupabase();
   const { data: { session } } = await sb.auth.getSession();
@@ -1191,20 +1206,22 @@ async function translateFaqContent(questionZh, answerZh, translators, onProgress
   return Object.assign({}, ...translatedEntries);
 }
 
-async function generateFaqTranslations(questionZh, answerZh, onProgress) {
+async function generateFaqTranslations(questionZh, answerZh, onProgress, localPoolPromise) {
   onProgress('正在通过网站服务生成多语言译文...');
   try {
     return await translateFaqWithServer(questionZh, answerZh);
   } catch (serverError) {
-    if (!('Translator' in self)) throw serverError;
+    if (!localPoolPromise) throw serverError;
 
     onProgress('网站翻译服务暂时不可用，正在尝试浏览器本地翻译...');
-    let translators = {};
     try {
-      translators = await createFaqTranslatorPool(onProgress);
+      const translators = await localPoolPromise;
       return await translateFaqContent(questionZh, answerZh, translators, onProgress);
-    } finally {
-      destroyFaqTranslators(translators);
+    } catch (browserError) {
+      throw new Error(
+        `网站翻译失败：${serverError.message || serverError}；` +
+        `浏览器翻译失败：${browserError.message || browserError}`
+      );
     }
   }
 }
@@ -1234,6 +1251,9 @@ async function translateExistingFaqs() {
 
   button.disabled = true;
   button.textContent = '正在准备翻译...';
+  const localPoolPromise = startFaqTranslatorPool(message => {
+    button.textContent = message;
+  });
 
   try {
     for (let index = 0; index < candidates.length; index++) {
@@ -1242,7 +1262,8 @@ async function translateExistingFaqs() {
       const translated = await generateFaqTranslations(
         faq.question_zh,
         faq.answer_zh,
-        message => { button.textContent = `${index + 1}/${candidates.length} ${message}`; }
+        message => { button.textContent = `${index + 1}/${candidates.length} ${message}`; },
+        localPoolPromise
       );
       const { error } = await upsertFaq({
         id: faq.id,
@@ -1260,6 +1281,9 @@ async function translateExistingFaqs() {
   } catch (error) {
     alert('自动翻译失败：' + (error.message || error));
   } finally {
+    if (localPoolPromise) {
+      localPoolPromise.then(destroyFaqTranslators).catch(() => {});
+    }
     button.disabled = false;
     button.textContent = '自动补全已有翻译';
   }
@@ -1274,15 +1298,21 @@ document.getElementById('faqForm').addEventListener('submit', async (e) => {
   const sourceChanged = !editingFaqOriginal ||
     questionZh !== String(editingFaqOriginal.question_zh || editingFaqOriginal.question || '').trim() ||
     answerZh !== String(editingFaqOriginal.answer_zh || editingFaqOriginal.answer || '').trim();
+  const needsTranslation = sourceChanged || !hasCompleteFaqTranslations(editingFaqOriginal || {});
+  const localPoolPromise = needsTranslation
+    ? startFaqTranslatorPool(message => setFaqFormBusy(true, message))
+    : null;
+
   try {
     setFaqFormBusy(true, '正在准备自动翻译...');
     let translated = {};
 
-    if (sourceChanged || !hasCompleteFaqTranslations(editingFaqOriginal || {})) {
+    if (needsTranslation) {
       translated = await generateFaqTranslations(
         questionZh,
         answerZh,
-        message => setFaqFormBusy(true, message)
+        message => setFaqFormBusy(true, message),
+        localPoolPromise
       );
     } else {
       FAQ_TRANSLATION_TARGETS.forEach(target => {
@@ -1309,6 +1339,9 @@ document.getElementById('faqForm').addEventListener('submit', async (e) => {
     alert('保存失败：' + (error.message || error));
     return;
   } finally {
+    if (localPoolPromise) {
+      localPoolPromise.then(destroyFaqTranslators).catch(() => {});
+    }
     if (document.getElementById('faqModal').classList.contains('show')) {
       setFaqFormBusy(false, document.getElementById('faqTranslationStatus').textContent);
     }
