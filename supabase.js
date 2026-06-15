@@ -481,9 +481,24 @@ async function fetchFaqs(lang = 'en') {
 function getLocalizedFaq(faq, lang) {
   const qKey = lang === 'en' ? 'question' : 'question_' + lang;
   const aKey = lang === 'en' ? 'answer' : 'answer_' + lang;
+  let question = faq[qKey];
+  let answer = faq[aKey];
+
+  // The original eight FAQs already exist in the site translation catalog.
+  // Use those translations while legacy database rows are being backfilled.
+  const index = Number(faq.sort_order);
+  const catalog = typeof translations !== 'undefined' ? translations : null;
+  const englishCatalogQuestion = catalog?.en?.['faq_q' + index];
+  const isCatalogFaq = englishCatalogQuestion && faq.question === englishCatalogQuestion;
+  if ((!question || !answer) && isCatalogFaq) {
+    const localizedCatalog = catalog[lang] || catalog.en;
+    question = question || localizedCatalog?.['faq_q' + index];
+    answer = answer || localizedCatalog?.['faq_a' + index];
+  }
+
   return {
-    question: faq[qKey] || faq.question,
-    answer: faq[aKey] || faq.answer
+    question: question || faq.question_zh || faq.question || '',
+    answer: answer || faq.answer_zh || faq.answer || ''
   };
 }
 

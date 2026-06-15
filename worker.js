@@ -49,6 +49,86 @@ async function insertSupabase(env, table, row) {
   }
 }
 
+async function requireAdminAuth(request, env) {
+  const authorization = request.headers.get('Authorization') || '';
+  if (!authorization.startsWith('Bearer ')) {
+    return jsonResponse({ error: 'Authentication required.' }, 401);
+  }
+
+  const response = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: authorization
+    }
+  });
+
+  if (!response.ok) {
+    return jsonResponse({ error: 'Invalid or expired session.' }, 401);
+  }
+
+  return null;
+}
+
+function getTranslatedText(result) {
+  if (typeof result === 'string') return result.trim();
+  return String(
+    result?.translated_text ||
+    result?.translation ||
+    result?.response ||
+    ''
+  ).trim();
+}
+
+async function translateText(env, text, targetLang) {
+  const result = await env.AI.run('@cf/meta/m2m100-1.2b', {
+    text,
+    source_lang: 'zh',
+    target_lang: targetLang
+  });
+  const translated = getTranslatedText(result);
+  if (!translated) {
+    throw new Error(`Translation returned no text for ${targetLang}.`);
+  }
+  return translated;
+}
+
+async function handleTranslateFaq(request, env) {
+  if (request.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed.' }, 405);
+  }
+  if (!env.AI) {
+    return jsonResponse({ error: 'Translation service is not configured.' }, 500);
+  }
+
+  const authError = await requireAdminAuth(request, env);
+  if (authError) return authError;
+
+  const payload = await request.json();
+  const questionZh = sanitizeText(payload.question_zh, 1000);
+  const answerZh = sanitizeText(payload.answer_zh, 6000);
+  if (!questionZh || !answerZh) {
+    return jsonResponse({ error: 'Chinese question and answer are required.' }, 400);
+  }
+
+  const targets = [
+    ['en', 'question', 'answer'],
+    ['es', 'question_es', 'answer_es'],
+    ['fr', 'question_fr', 'answer_fr'],
+    ['ja', 'question_ja', 'answer_ja'],
+    ['pt', 'question_pt', 'answer_pt']
+  ];
+
+  const translatedPairs = await Promise.all(targets.map(async ([lang, questionKey, answerKey]) => {
+    const [question, answer] = await Promise.all([
+      translateText(env, questionZh, lang),
+      translateText(env, answerZh, lang)
+    ]);
+    return { [questionKey]: question, [answerKey]: answer };
+  }));
+
+  return jsonResponse(Object.assign({}, ...translatedPairs));
+}
+
 async function requireVerifiedRequest(request, env) {
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
     return { error: jsonResponse({ error: 'Server is not configured.' }, 500) };
@@ -138,6 +218,10 @@ export default {
 
       if (url.pathname === '/api/submit-order') {
         return handleSubmitOrder(request, env);
+      }
+
+      if (url.pathname === '/api/translate-faq') {
+        return handleTranslateFaq(request, env);
       }
 
       return env.ASSETS.fetch(request);
