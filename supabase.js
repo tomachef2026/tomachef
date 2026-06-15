@@ -9,8 +9,19 @@ const CACHE_VERSION = 'v5'; // bump to invalidate all old caches
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function cacheGet(key) {
-  // Cache disabled — always fetch live from Supabase for instant sync with admin panel
-  return null;
+  try {
+    const raw = localStorage.getItem(CACHE_VERSION + '_' + key);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (!cached || !Array.isArray(cached.data) || !cached.ts) return null;
+    if (Date.now() - cached.ts > CACHE_TTL) {
+      localStorage.removeItem(CACHE_VERSION + '_' + key);
+      return null;
+    }
+    return cached.data;
+  } catch (e) {
+    return null;
+  }
 }
 
 function cacheSet(key, data) {
@@ -49,6 +60,17 @@ function initSupabase() {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return supabase;
+}
+
+async function waitForSupabase(timeoutMs = 5000) {
+  if (typeof window.supabase !== 'undefined') return true;
+
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    if (typeof window.supabase !== 'undefined') return true;
+  }
+  return false;
 }
 
 // ============================================================
@@ -108,12 +130,15 @@ async function requireAuth() {
 // Product API (Public)
 // ============================================================
 
-async function fetchProducts(category = null, lang = 'en') {
+async function fetchProducts(category = null, lang = 'en', forceRefresh = false) {
   // Check cache first
   const cacheKey = category ? 'products_' + category : 'products_all';
-  const cached = cacheGet(cacheKey);
+  const cached = forceRefresh ? null : cacheGet(cacheKey);
   if (cached) return cached;
 
+  if (typeof window.supabase === 'undefined') {
+    await waitForSupabase();
+  }
   const sb = initSupabase();
   if (!sb) return null;
 

@@ -451,17 +451,49 @@ function updateHomeProductCards() {
   renderHomeProducts('all', lang);
 }
 
+function renderCurrentProductSurfaces() {
+  const lang = getCurrentLang();
+  const sectionsContainer = document.getElementById('productSections');
+  const productGrid = document.getElementById('productGrid');
+  const homeGrid = document.getElementById('homeProductGrid');
+
+  if (sectionsContainer) {
+    renderProductSections(lang);
+  } else if (productGrid) {
+    renderProducts('all', lang);
+  }
+
+  if (homeGrid) {
+    renderHomeProducts('all', lang);
+    enforceHomepageBestsellersOnly();
+  }
+}
+
+function notifyProductsReady(source) {
+  productsLoaded = true;
+  window.productsLoaded = true;
+  window.dispatchEvent(new CustomEvent('productsReady', {
+    detail: { source, count: products.length }
+  }));
+}
+
 // Initialize with Supabase API (falls back to static data only when Supabase is unavailable)
 async function initProducts() {
   if (productsLoadPromise) return productsLoadPromise;
 
   productsLoadPromise = (async () => {
+    const cachedProducts = typeof cacheGet === 'function' ? cacheGet('products_all') : null;
+    if (Array.isArray(cachedProducts) && cachedProducts.length > 0) {
+      products = cachedProducts;
+      renderCurrentProductSurfaces();
+      notifyProductsReady('cache');
+    }
+
     if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
       try {
-        const supabaseProducts = await fetchProducts(null, getCurrentLang());
+        const supabaseProducts = await fetchProducts(null, getCurrentLang(), true);
         if (supabaseProducts === null) {
-          console.log('Supabase products could not be loaded; showing empty state');
-          products = [];
+          console.log('Supabase products could not be loaded; keeping cached products');
         } else if (supabaseProducts.length > 0) {
           products = supabaseProducts;
           console.log('Loaded ' + products.length + ' products from Supabase');
@@ -470,23 +502,16 @@ async function initProducts() {
           products = [];
         }
       } catch (e) {
-        console.log('Supabase products could not be loaded; showing empty state:', e.message);
-        products = [];
+        console.log('Supabase products could not be loaded; keeping cached products:', e.message);
       }
     } else {
       products = [...FALLBACK_PRODUCTS];
     }
 
-    const lang = getCurrentLang();
+    renderCurrentProductSurfaces();
+
     const sectionsContainer = document.getElementById('productSections');
     const productGrid = document.getElementById('productGrid');
-    const homeGrid = document.getElementById('homeProductGrid');
-
-    if (sectionsContainer) {
-      renderProductSections(lang);
-    } else if (productGrid) {
-      renderProducts('all', lang);
-    }
 
     // Handle ?cat= URL parameter — works for BOTH layouts
     const params = new URLSearchParams(window.location.search);
@@ -506,14 +531,7 @@ async function initProducts() {
       }
     }
 
-    if (homeGrid) {
-      renderHomeProducts('all', lang);
-      enforceHomepageBestsellersOnly();
-    }
-
-    productsLoaded = true;
-    window.productsLoaded = true;
-    window.dispatchEvent(new CustomEvent('productsReady'));
+    notifyProductsReady('network');
     return products;
   })();
 
