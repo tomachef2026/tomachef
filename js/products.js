@@ -134,6 +134,92 @@ function getBadgeClass(badgeText) {
   return map[badgeText.toLowerCase().trim()] || '';
 }
 
+const PRODUCT_CATEGORY_ORDER = ['airfryer', 'airfryeroven', 'toaster'];
+const PRODUCT_CATEGORY_META = {
+  airfryer: { icon: '🍟', fallbackLabel: 'Air Fryer', translationKey: 'filter_airfryer' },
+  airfryeroven: { icon: '🔥', fallbackLabel: 'Air Fryer Oven', translationKey: 'filter_airfryeroven' },
+  toaster: { icon: '🍞', fallbackLabel: 'Toaster', translationKey: 'filter_toaster' }
+};
+
+function formatProductCategoryLabel(categoryKey) {
+  return String(categoryKey || '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function getProductCategories() {
+  const categories = new Set();
+  products
+    .filter(product => product && product.active !== false && product.category)
+    .forEach(product => categories.add(product.category));
+
+  return Array.from(categories).sort((a, b) => {
+    const ai = PRODUCT_CATEGORY_ORDER.indexOf(a);
+    const bi = PRODUCT_CATEGORY_ORDER.indexOf(b);
+    if (ai !== -1 || bi !== -1) {
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    }
+    return formatProductCategoryLabel(a).localeCompare(formatProductCategoryLabel(b));
+  });
+}
+
+function getProductCategoryMeta(categoryKey, lang) {
+  const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en'] || {}) : {};
+  const meta = PRODUCT_CATEGORY_META[categoryKey] || {};
+  const label = (meta.translationKey && t[meta.translationKey])
+    || meta.fallbackLabel
+    || formatProductCategoryLabel(categoryKey);
+
+  return {
+    icon: meta.icon || '🍽️',
+    label
+  };
+}
+
+function bindProductFilterTabs(tabs) {
+  if (!tabs || tabs.dataset.bound === 'true') return;
+  tabs.dataset.bound = 'true';
+  tabs.addEventListener('click', event => {
+    const btn = event.target.closest('.filter-btn');
+    if (!btn || !tabs.contains(btn)) return;
+
+    const category = btn.getAttribute('data-filter');
+    if (!category) return;
+
+    document.querySelectorAll('.filter-btn').forEach(item => item.classList.remove('active'));
+    btn.classList.add('active');
+
+    if (category === 'all') {
+      renderProducts('all', getCurrentLang());
+      return;
+    }
+
+    const section = document.getElementById('section-' + category);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      renderProducts(category, getCurrentLang());
+    }
+  });
+}
+
+function renderProductFilterTabs(lang) {
+  const tabs = document.querySelector('.filter-tabs');
+  if (!tabs) return;
+
+  const categories = getProductCategories();
+  const activeCategory = tabs.querySelector('.filter-btn.active')?.getAttribute('data-filter') || categories[0] || '';
+  tabs.innerHTML = categories.map(categoryKey => {
+    const meta = getProductCategoryMeta(categoryKey, lang);
+    const activeClass = categoryKey === activeCategory ? ' active' : '';
+    return `<button class="filter-btn${activeClass}" data-filter="${escapeHtml(categoryKey)}">${escapeHtml(meta.label)}</button>`;
+  }).join('');
+
+  bindProductFilterTabs(tabs);
+}
+
 // Create scroll card (for horizontal scroll layout)
 function createScrollCard(product, lang) {
   const name = getLocalizedName(product, lang);
@@ -278,35 +364,31 @@ function renderProductSections(lang) {
     return;
   }
 
-  const categories = [
-    { key: 'airfryer', icon: '🍟' },
-    { key: 'airfryeroven', icon: '🔥' },
-    { key: 'toaster', icon: '🍞' }
-  ];
-
   const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en']) : {};
+  const categories = getProductCategories();
+  renderProductFilterTabs(lang);
 
   let html = '';
-  for (const cat of categories) {
-    const catProducts = products.filter(p => p.category === cat.key && p.active !== false);
+  for (const categoryKey of categories) {
+    const catProducts = products.filter(p => p.category === categoryKey && p.active !== false);
     if (catProducts.length === 0) continue;
 
-    const catName = t['filter_' + cat.key] || cat.key;
+    const cat = getProductCategoryMeta(categoryKey, lang);
 
     html += `
-      <div class="category-scroll-section" id="section-${cat.key}">
+      <div class="category-scroll-section" id="section-${categoryKey}">
         <div class="section-header">
-          <h3>${cat.icon} ${catName} <span class="product-count">(${catProducts.length})</span></h3>
+          <h3>${cat.icon} ${cat.label} <span class="product-count">(${catProducts.length})</span></h3>
           <a href="buy.html" class="view-all-link">${t['btn_inquiry'] || 'Buy Now'} →</a>
         </div>
         <div class="scroll-wrapper">
-          <button class="scroll-arrow scroll-left" data-target="scroll-${cat.key}" aria-label="Scroll left">
+          <button class="scroll-arrow scroll-left" data-target="scroll-${categoryKey}" aria-label="Scroll left">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <div class="scroll-container" id="scroll-${cat.key}">
+          <div class="scroll-container" id="scroll-${categoryKey}">
             ${catProducts.map(p => createScrollCard(p, lang)).join('')}
           </div>
-          <button class="scroll-arrow scroll-right" data-target="scroll-${cat.key}" aria-label="Scroll right">
+          <button class="scroll-arrow scroll-right" data-target="scroll-${categoryKey}" aria-label="Scroll right">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
@@ -541,9 +623,10 @@ async function initProducts() {
     // Handle ?cat= URL parameter — works for BOTH layouts
     const params = new URLSearchParams(window.location.search);
     const cat = params.get('cat');
-    if (cat && ['airfryer', 'airfryeroven', 'toaster'].includes(cat)) {
+    if (cat && getProductCategories().includes(cat)) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      const targetBtn = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
+      const targetBtn = Array.from(document.querySelectorAll('.filter-btn'))
+        .find(button => button.getAttribute('data-filter') === cat);
       if (targetBtn) targetBtn.classList.add('active');
 
       // Scroll to the corresponding category section if it exists
@@ -566,32 +649,5 @@ async function initProducts() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
   await initProducts();
-
-  // Filter buttons - scroll to category section
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const category = this.getAttribute('data-filter');
-      if (category === 'all') {
-        // Legacy: re-render grid
-        renderProducts('all', getCurrentLang());
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        return;
-      }
-      // New: scroll to section
-      const section = document.getElementById('section-' + category);
-      if (section) {
-        // Highlight active filter
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        // Smooth scroll
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        // Legacy filter behavior
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        renderProducts(category, getCurrentLang());
-      }
-    });
-  });
+  bindProductFilterTabs(document.querySelector('.filter-tabs'));
 });

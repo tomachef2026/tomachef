@@ -7,7 +7,7 @@
   <title>Recipe Management - TomaChef Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-  <script src="../supabase.js?v=20260615f"></script>
+  <script src="../supabase.js?v=20260616b"></script>
   <style>
     :root {
       --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
@@ -141,6 +141,7 @@
     .category-airfryer { background: #fee2e2; color: #b91c1c; }
     .category-airfryeroven { background: #fef3c7; color: #b45309; }
     .category-toaster { background: #dcfce7; color: #166534; }
+    .category-generic { background: #e0f2fe; color: #075985; }
 
     .emoji-display { font-size: 1.35rem; }
     .recipe-title-primary { font-weight: 700; color: #0f172a; font-size: 0.9rem; }
@@ -189,7 +190,7 @@
     .recipe-switch input:checked + .recipe-switch-slider { background: #16a34a; }
     .recipe-switch input:checked + .recipe-switch-slider::before { transform: translateX(19px); }
     .recipe-switch input:disabled + .recipe-switch-slider { opacity: 0.55; cursor: wait; }
-    .action-group { display: flex; gap: 8px; align-items: center; }
+    .action-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .action-btn {
       border: 1px solid #e2e8f0;
       background: white;
@@ -203,6 +204,50 @@
     .action-edit:hover { background: #fff7ed; border-color: #fdba74; }
     .action-delete { color: #dc2626; }
     .action-delete:hover { background: #fef2f2; border-color: #fca5a5; }
+    .action-sort { color: #475569; }
+    .action-sort:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
+    .action-sort:disabled { opacity: 0.35; cursor: not-allowed; }
+    .sort-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      margin-right: 6px;
+      border-radius: 7px;
+      background: #f8fafc;
+      color: #64748b;
+      cursor: grab;
+      font-weight: 800;
+    }
+    .sort-row[draggable="true"] { cursor: grab; }
+    .sort-row.dragging { opacity: 0.45; }
+    .sort-row.drop-target { outline: 2px dashed #f59e0b; outline-offset: -3px; }
+    .sort-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fffdf8;
+      flex-wrap: wrap;
+    }
+    .sort-toolbar-info { color: #64748b; font-size: 0.84rem; }
+    .sort-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-sort-mode {
+      border: 1px solid #fde68a;
+      background: #fff;
+      color: #92400e;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .btn-sort-mode.active { background: var(--tomato-700); border-color: var(--tomato-700); color: #fff; }
+    .btn-sort-mode:disabled { opacity: 0.5; cursor: not-allowed; }
     #recipeTable thead th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em; border-bottom-width: 1px; }
     #recipeTable tbody td { padding-top: 12px; padding-bottom: 12px; }
     #recipeTable tbody tr:hover { background: #fffdf8; }
@@ -270,6 +315,7 @@
     .view-summary { color: #64748b; font-size: 0.86rem; }
     .product-code { display: block; color: #b91c1c; font-weight: 700; }
     .product-label { color: #64748b; }
+    .form-text-compact { color: #94a3b8; font-size: 0.72rem; margin-top: 4px; }
 
     @media (max-width: 768px) {
       .admin-sidebar { width: 100%; height: auto; position: static; min-height: auto; padding: 8px 0; }
@@ -343,12 +389,13 @@
   </div>
 
   <div class="content-card">
-    <div class="category-tabs" id="recipeCategoryTabs">
-      <button type="button" class="category-tab active" data-category="all" onclick="setCategoryFilter('all')">全部<span class="category-count" id="countAll">0</span></button>
-      <button type="button" class="category-tab" data-category="airfryer" onclick="setCategoryFilter('airfryer')">空气炸锅<span class="category-count" id="countAirfryer">0</span></button>
-      <button type="button" class="category-tab" data-category="airfryeroven" onclick="setCategoryFilter('airfryeroven')">空气炸烤箱<span class="category-count" id="countAirfryeroven">0</span></button>
-      <button type="button" class="category-tab" data-category="toaster" onclick="setCategoryFilter('toaster')">烤面包机<span class="category-count" id="countToaster">0</span></button>
-      <button type="button" class="category-tab" data-category="inactive" onclick="setCategoryFilter('inactive')">已停用<span class="category-count" id="countInactive">0</span></button>
+    <div class="category-tabs" id="recipeCategoryTabs"></div>
+    <div class="sort-toolbar" id="recipeSortToolbar">
+      <div class="sort-toolbar-info" id="recipeSortInfo">选择一个分类后可以进入排序模式。</div>
+      <div class="sort-toolbar-actions">
+        <button type="button" class="btn-sort-mode" id="recipeSortModeBtn" onclick="toggleRecipeSortMode()">排序模式</button>
+        <button type="button" class="btn-clear" id="normalizeSortBtn" onclick="normalizeCurrentCategoryOrders()">整理当前分类排序</button>
+      </div>
     </div>
     <div class="filter-bar">
       <div class="search-wrap">
@@ -416,10 +463,9 @@
       <div class="col-md-2">
         <label class="form-label">分类</label>
         <select class="form-control" id="recipeCat">
-          <option value="airfryer">Air Fryer</option>
-          <option value="airfryeroven">Air Fryer Oven</option>
-          <option value="toaster">Toaster</option>
         </select>
+        <input type="text" class="form-control form-control-sm mt-2" id="recipeCatCustom" placeholder="新增品类 key（可选）">
+        <div class="form-text-compact">已有产品品类会自动出现；新增品类建议用英文小写。</div>
       </div>
       <div class="col-md-2">
         <label class="form-label">关联产品</label>
@@ -505,7 +551,15 @@
   let allAdminRecipes = [];
   let recipeCategoryFilter = 'all';
   let recipeStatFilter = 'all';
+  let recipeSortMode = false;
+  let draggedRecipeId = null;
   const RECIPE_LANGUAGES = ['en', 'zh', 'es', 'fr', 'ja', 'pt'];
+  const DEFAULT_CATEGORY_ORDER = ['airfryer', 'airfryeroven', 'toaster'];
+  const CATEGORY_META = {
+    airfryer: { label: '空气炸锅', en: 'Air Fryer', className: 'category-airfryer' },
+    airfryeroven: { label: '空气炸烤箱', en: 'Air Fryer Oven', className: 'category-airfryeroven' },
+    toaster: { label: '烤面包机', en: 'Toaster', className: 'category-toaster' }
+  };
   const RECIPE_TRANSLATION_TARGETS = [
     { lang: 'en', label: '英文' },
     { lang: 'es', label: '西班牙语' },
@@ -585,6 +639,7 @@
     const tbody = document.getElementById('recipeTbody');
     tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">加载中…</td></tr>';
     allAdminRecipes = await fetchAllRecipesAdmin();
+    renderCategoryControls();
     renderRecipeStats();
     renderRecipes();
   }
@@ -610,8 +665,9 @@
       return;
     }
 
-    const catLabels = { airfryer: 'Air Fryer', airfryeroven: 'Air Fryer Oven', toaster: 'Toaster' };
-    const catClasses = { airfryer: 'category-airfryer', airfryeroven: 'category-airfryeroven', toaster: 'category-toaster' };
+    const sortableIds = recipeSortMode && isSortableCategoryFilter()
+      ? getSortedRecipesForCategory(recipeCategoryFilter).map(recipe => String(recipe.id))
+      : [];
     tbody.innerHTML = recipes.map((r, i) => {
       const t = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
       const titleZh = (t.zh && t.zh.title) ? t.zh.title : ((t.en && t.en.title) ? t.en.title : '—');
@@ -622,14 +678,18 @@
         ? '<img class="img-thumb" src="'+escHtml(imageUrl)+'" alt="" loading="eager" decoding="async" onerror="this.style.display=\'none\'">'
         : '<span class="text-muted" style="font-size:0.75rem">—</span>';
       const productName = productDisplayHtml(r);
-      return `<tr>
-        <td class="text-muted">${r.display_order ?? 0}</td>
+      const sortIndex = sortableIds.indexOf(String(r.id));
+      const canMoveUp = recipeSortMode && sortIndex > 0;
+      const canMoveDown = recipeSortMode && sortIndex >= 0 && sortIndex < sortableIds.length - 1;
+      const sortHandle = recipeSortMode ? '<span class="sort-handle" title="拖拽调整顺序">☰</span>' : '';
+      return `<tr class="${recipeSortMode ? 'sort-row' : ''}" data-recipe-id="${escHtml(r.id)}" draggable="${recipeSortMode ? 'true' : 'false'}">
+        <td class="text-muted">${sortHandle}${r.display_order ?? 0}</td>
         <td>${imgHtml}</td>
         <td>
           <div class="recipe-title-primary"><span class="emoji-display">${r.emoji || '🍳'}</span> ${escHtml(titleZh)}</div>
           ${titleEn ? `<div class="recipe-title-secondary">${escHtml(titleEn)}</div>` : ''}
         </td>
-        <td><span class="badge-cat ${catClasses[r.category] || ''}">${catLabels[r.category] || r.category}</span></td>
+        <td><span class="badge-cat ${getCategoryClass(r.category)}">${escHtml(getCategoryDisplayName(r.category))}</span></td>
         <td><small>${productName}</small></td>
         <td>
           <div class="status-stack">
@@ -646,12 +706,18 @@
         </td>
         <td>
           <div class="action-group">
+            ${recipeSortMode ? `
+              <button type="button" class="action-btn action-sort" ${canMoveUp ? '' : 'disabled'} onclick="moveRecipe('${r.id}', -1)">↑</button>
+              <button type="button" class="action-btn action-sort" ${canMoveDown ? '' : 'disabled'} onclick="moveRecipe('${r.id}', 1)">↓</button>
+            ` : ''}
             <button type="button" class="action-btn action-edit" onclick="openEditModal('${r.id}')">编辑</button>
             <button type="button" class="action-btn action-delete" onclick="confirmDelete('${r.id}','${escHtml(titleZh)}')">删除</button>
           </div>
         </td>
       </tr>`;
     }).join('');
+    bindRecipeSortRows();
+    updateSortToolbar();
   }
 
   function getFrontendVisibleRecipes() {
@@ -730,7 +796,7 @@
       if (quality === 'noimage' && recipe.image_url) return false;
       if (quality === 'unlinked' && recipe.product_id) return false;
       return true;
-    });
+    }).sort(compareRecipesForDisplay);
   }
 
   function renderRecipeStats() {
@@ -743,15 +809,12 @@
     document.getElementById('statIncomplete').textContent = incomplete;
     document.getElementById('statUnlinked').textContent = unlinked;
     document.getElementById('statNoImage').textContent = noImage;
-    document.getElementById('countAll').textContent = allAdminRecipes.length;
-    document.getElementById('countAirfryer').textContent = allAdminRecipes.filter(r => r.category === 'airfryer').length;
-    document.getElementById('countAirfryeroven').textContent = allAdminRecipes.filter(r => r.category === 'airfryeroven').length;
-    document.getElementById('countToaster').textContent = allAdminRecipes.filter(r => r.category === 'toaster').length;
-    document.getElementById('countInactive').textContent = allAdminRecipes.filter(r => r.is_active === false).length;
+    renderCategoryControls();
   }
 
   function setCategoryFilter(category) {
     recipeCategoryFilter = category || 'all';
+    if (!isSortableCategoryFilter()) recipeSortMode = false;
     document.querySelectorAll('.category-tab').forEach(button => {
       button.classList.toggle('active', button.dataset.category === recipeCategoryFilter);
     });
@@ -773,6 +836,7 @@
     document.getElementById('recipeQualityFilter').value = 'all';
     recipeCategoryFilter = 'all';
     recipeStatFilter = 'all';
+    recipeSortMode = false;
     document.querySelectorAll('.category-tab').forEach(button => {
       button.classList.toggle('active', button.dataset.category === 'all');
     });
@@ -780,6 +844,204 @@
       card.classList.toggle('active', card.dataset.statFilter === 'all');
     });
     renderRecipes();
+  }
+
+  function getAllRecipeCategories() {
+    const categories = new Set();
+    allProducts.forEach(product => { if (product.category) categories.add(String(product.category)); });
+    allAdminRecipes.forEach(recipe => { if (recipe.category) categories.add(String(recipe.category)); });
+    return [...categories].sort((a, b) => {
+      const ai = DEFAULT_CATEGORY_ORDER.indexOf(a);
+      const bi = DEFAULT_CATEGORY_ORDER.indexOf(b);
+      if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      return getCategoryDisplayName(a).localeCompare(getCategoryDisplayName(b), 'zh-Hans-CN');
+    });
+  }
+
+  function getCategoryDisplayName(category) {
+    const key = String(category || '').trim();
+    const meta = CATEGORY_META[key];
+    if (meta) return meta.label;
+    const matchedProduct = allProducts.find(product => product.category === key);
+    if (matchedProduct) return matchedProduct.category_label_zh || matchedProduct.category_name_zh || key;
+    return key || '未分类';
+  }
+
+  function getCategoryClass(category) {
+    return CATEGORY_META[String(category || '')]?.className || 'category-generic';
+  }
+
+  function renderCategoryControls() {
+    const categories = getAllRecipeCategories();
+    const tabs = document.getElementById('recipeCategoryTabs');
+    if (tabs) {
+      const tabItems = [
+        { key: 'all', label: '全部', count: allAdminRecipes.length },
+        ...categories.map(category => ({
+          key: category,
+          label: getCategoryDisplayName(category),
+          count: allAdminRecipes.filter(recipe => recipe.category === category).length
+        })),
+        { key: 'inactive', label: '已停用', count: allAdminRecipes.filter(recipe => recipe.is_active === false).length }
+      ];
+      tabs.innerHTML = tabItems.map(item =>
+        `<button type="button" class="category-tab ${item.key === recipeCategoryFilter ? 'active' : ''}" data-category="${escHtml(item.key)}" onclick="setCategoryFilter('${escHtml(item.key)}')">${escHtml(item.label)}<span class="category-count">${item.count}</span></button>`
+      ).join('');
+    }
+
+    const select = document.getElementById('recipeCat');
+    if (select) {
+      const currentValue = select.value;
+      select.innerHTML = categories.map(category =>
+        `<option value="${escHtml(category)}">${escHtml(getCategoryDisplayName(category))} (${escHtml(category)})</option>`
+      ).join('');
+      if (categories.includes(currentValue)) {
+        select.value = currentValue;
+      } else if (categories.length) {
+        select.value = categories[0];
+      }
+    }
+    updateSortToolbar();
+  }
+
+  function isSortableCategoryFilter() {
+    return Boolean(recipeCategoryFilter && !['all', 'inactive'].includes(recipeCategoryFilter));
+  }
+
+  function updateSortToolbar() {
+    const info = document.getElementById('recipeSortInfo');
+    const modeBtn = document.getElementById('recipeSortModeBtn');
+    const normalizeBtn = document.getElementById('normalizeSortBtn');
+    if (!info || !modeBtn || !normalizeBtn) return;
+    const canSort = isSortableCategoryFilter();
+    modeBtn.disabled = !canSort;
+    normalizeBtn.disabled = !canSort;
+    modeBtn.classList.toggle('active', recipeSortMode);
+    modeBtn.textContent = recipeSortMode ? '退出排序模式' : '排序模式';
+    if (!canSort) {
+      info.textContent = '选择一个具体分类后，可以拖拽排序、上移下移或一键整理排序。';
+    } else {
+      const count = getSortedRecipesForCategory(recipeCategoryFilter).length;
+      info.textContent = `${getCategoryDisplayName(recipeCategoryFilter)}：共 ${count} 条。${recipeSortMode ? '可拖拽行或使用 ↑ ↓ 调整顺序，保存会立即生效。' : '进入排序模式后可更直观地调整。'}`;
+    }
+  }
+
+  function toggleRecipeSortMode() {
+    if (!isSortableCategoryFilter()) {
+      const firstCategory = getAllRecipeCategories()[0];
+      if (!firstCategory) return toast('暂无可排序分类');
+      recipeCategoryFilter = firstCategory;
+    }
+    recipeSortMode = !recipeSortMode;
+    if (recipeSortMode) {
+      document.getElementById('recipeSearch').value = '';
+      document.getElementById('recipeProductFilter').value = 'all';
+      document.getElementById('recipeStatusFilter').value = 'all';
+      document.getElementById('recipeQualityFilter').value = 'all';
+      recipeStatFilter = 'all';
+    }
+    renderCategoryControls();
+    renderRecipes();
+  }
+
+  function compareRecipesForDisplay(a, b) {
+    const activeDelta = Number(b.is_active !== false) - Number(a.is_active !== false);
+    if (recipeCategoryFilter === 'all' && activeDelta) return activeDelta;
+    const categoryDelta = String(a.category || '').localeCompare(String(b.category || ''));
+    if (recipeCategoryFilter === 'all' && categoryDelta) return categoryDelta;
+    const orderDelta = (Number(a.display_order) || 0) - (Number(b.display_order) || 0);
+    if (orderDelta) return orderDelta;
+    return getRecipeSortTitle(a).localeCompare(getRecipeSortTitle(b), 'zh-Hans-CN');
+  }
+
+  function getRecipeSortTitle(recipe) {
+    const translations = parseRecipeTranslations(recipe);
+    return translations.zh?.title || translations.en?.title || '';
+  }
+
+  function getSortedRecipesForCategory(category) {
+    return allAdminRecipes
+      .filter(recipe => recipe.category === category)
+      .sort((a, b) => {
+        const orderDelta = (Number(a.display_order) || 0) - (Number(b.display_order) || 0);
+        if (orderDelta) return orderDelta;
+        return getRecipeSortTitle(a).localeCompare(getRecipeSortTitle(b), 'zh-Hans-CN');
+      });
+  }
+
+  async function saveCategoryOrder(category, orderedRecipes, message = '排序已保存') {
+    const updates = orderedRecipes.map((recipe, index) => ({
+      id: recipe.id,
+      display_order: index + 1
+    }));
+    updates.forEach(update => {
+      const recipe = allAdminRecipes.find(item => String(item.id) === String(update.id));
+      if (recipe) recipe.display_order = update.display_order;
+    });
+    renderRecipes();
+    const { error } = await updateRecipeSortOrders(updates);
+    if (error) {
+      toast('排序保存失败: ' + error.message);
+      await loadRecipes();
+      return;
+    }
+    toast(message);
+    renderRecipeStats();
+    renderRecipes();
+  }
+
+  async function moveRecipe(id, direction) {
+    if (!isSortableCategoryFilter()) return toast('请先选择一个分类');
+    const list = getSortedRecipesForCategory(recipeCategoryFilter);
+    const index = list.findIndex(recipe => String(recipe.id) === String(id));
+    const nextIndex = index + direction;
+    if (index < 0 || nextIndex < 0 || nextIndex >= list.length) return;
+    const reordered = [...list];
+    const [item] = reordered.splice(index, 1);
+    reordered.splice(nextIndex, 0, item);
+    await saveCategoryOrder(recipeCategoryFilter, reordered);
+  }
+
+  async function normalizeCurrentCategoryOrders() {
+    if (!isSortableCategoryFilter()) return toast('请先选择一个分类');
+    const list = getSortedRecipesForCategory(recipeCategoryFilter);
+    if (!list.length) return toast('当前分类没有食谱');
+    await saveCategoryOrder(recipeCategoryFilter, list, '当前分类排序已整理为 1、2、3…');
+  }
+
+  function bindRecipeSortRows() {
+    if (!recipeSortMode) return;
+    document.querySelectorAll('#recipeTbody .sort-row').forEach(row => {
+      row.addEventListener('dragstart', event => {
+        draggedRecipeId = row.dataset.recipeId;
+        row.classList.add('dragging');
+        event.dataTransfer.effectAllowed = 'move';
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        document.querySelectorAll('#recipeTbody .drop-target').forEach(item => item.classList.remove('drop-target'));
+        draggedRecipeId = null;
+      });
+      row.addEventListener('dragover', event => {
+        event.preventDefault();
+        if (row.dataset.recipeId !== draggedRecipeId) row.classList.add('drop-target');
+      });
+      row.addEventListener('dragleave', () => row.classList.remove('drop-target'));
+      row.addEventListener('drop', async event => {
+        event.preventDefault();
+        row.classList.remove('drop-target');
+        const targetId = row.dataset.recipeId;
+        if (!draggedRecipeId || draggedRecipeId === targetId) return;
+        const list = getSortedRecipesForCategory(recipeCategoryFilter);
+        const fromIndex = list.findIndex(recipe => String(recipe.id) === String(draggedRecipeId));
+        const toIndex = list.findIndex(recipe => String(recipe.id) === String(targetId));
+        if (fromIndex < 0 || toIndex < 0) return;
+        const reordered = [...list];
+        const [item] = reordered.splice(fromIndex, 1);
+        reordered.splice(toIndex, 0, item);
+        await saveCategoryOrder(recipeCategoryFilter, reordered);
+      });
+    });
   }
 
   async function toggleRecipeActive(id, input) {
@@ -830,7 +1092,9 @@
     document.getElementById('recipeId').value = '';
     document.getElementById('recipeImageUrl').value = '';
     document.getElementById('recipeEmoji').value = '';
-    document.getElementById('recipeCat').value = 'airfryer';
+    renderCategoryControls();
+    document.getElementById('recipeCat').value = getAllRecipeCategories()[0] || 'airfryer';
+    document.getElementById('recipeCatCustom').value = '';
     document.getElementById('recipeProduct').value = '';
     document.getElementById('recipeOrder').value = '0';
     document.getElementById('recipeActive').value = 'true';
@@ -855,7 +1119,13 @@
     editingId = id;
     document.getElementById('recipeId').value = id;
     document.getElementById('recipeEmoji').value = r.emoji || '';
-    document.getElementById('recipeCat').value = r.category || 'airfryer';
+    renderCategoryControls();
+    if (getAllRecipeCategories().includes(r.category)) {
+      document.getElementById('recipeCat').value = r.category;
+      document.getElementById('recipeCatCustom').value = '';
+    } else {
+      document.getElementById('recipeCatCustom').value = r.category || '';
+    }
     document.getElementById('recipeProduct').value = r.product_id || '';
     document.getElementById('recipeOrder').value = r.display_order ?? 0;
     document.getElementById('recipeActive').value = r.is_active ? 'true' : 'false';
@@ -912,6 +1182,22 @@
       directions: normalizeRecipeList(data?.directions || data?.content),
       tips: normalizeRecipeList(data?.tips)
     });
+  }
+
+  function getRecipeCategoryFromForm() {
+    const custom = document.getElementById('recipeCatCustom').value
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9_-]/g, '');
+    return custom || document.getElementById('recipeCat').value || 'airfryer';
+  }
+
+  function getNextOrderForCategory(category) {
+    const orders = allAdminRecipes
+      .filter(recipe => recipe.category === category)
+      .map(recipe => Number(recipe.display_order) || 0);
+    return orders.length ? Math.max(...orders) + 1 : 1;
   }
 
   function createRecipeTranslatorPool(onProgress) {
@@ -1059,14 +1345,20 @@
         ? (/^\d+$/.test(productIdValue) ? Number(productIdValue) : productIdValue)
         : null;
 
+      const categoryValue = getRecipeCategoryFromForm();
+      const rawOrder = parseInt(document.getElementById('recipeOrder').value, 10);
+      const displayOrder = Number.isFinite(rawOrder) && rawOrder > 0
+        ? rawOrder
+        : getNextOrderForCategory(categoryValue);
+
       const recipe = {
         id,
         translations,
-        category: document.getElementById('recipeCat').value,
+        category: categoryValue,
         product_id: productId,
         emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
         image_url: imageUrl,
-        display_order: parseInt(document.getElementById('recipeOrder').value) || 0,
+        display_order: displayOrder,
         is_active: document.getElementById('recipeActive').value === 'true',
         mode: formMode || existingMode || null,
         temp: formTemp || existingTemp || null,

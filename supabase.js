@@ -421,7 +421,10 @@ async function fetchRecipes(category = null, productId = null) {
   let query = sb.from('recipes').select('*, products(name)').eq('is_active', true);
   if (category && category !== 'all') query = query.eq('category', category);
   if (productId) query = query.eq('product_id', productId);
-  query = query.order('display_order', { ascending: true });
+  query = query
+    .order('category', { ascending: true })
+    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: true });
   const { data, error } = await query;
   if (error) {
     console.error('Error fetching recipes:', error);
@@ -437,6 +440,7 @@ async function fetchAllRecipesAdmin() {
     .from('recipes')
     .select('*, products(id, sku, name, name_zh)')
     .order('is_active', { ascending: false })
+    .order('category', { ascending: true })
     .order('display_order', { ascending: true });
   if (error) { console.error('Error fetching recipes admin:', error); return []; }
   return data;
@@ -481,6 +485,34 @@ async function updateRecipeActive(id, isActive) {
     .single();
   if (!result.error) cacheClear('recipes_');
   return result;
+}
+
+async function updateRecipeSortOrders(updates) {
+  const sb = initSupabase();
+  if (!sb) return { error: 'Supabase not initialized' };
+  const rows = (updates || [])
+    .filter(item => item && item.id)
+    .map(item => ({
+      id: item.id,
+      display_order: Number.parseInt(item.display_order, 10) || 0,
+      updated_at: new Date().toISOString()
+    }));
+  if (!rows.length) return { data: [] };
+  const results = await Promise.all(rows.map(row =>
+    sb
+      .from('recipes')
+      .update({
+        display_order: row.display_order,
+        updated_at: row.updated_at
+      })
+      .eq('id', row.id)
+      .select('id,display_order')
+      .single()
+  ));
+  const errorResult = results.find(result => result.error);
+  if (errorResult) return errorResult;
+  cacheClear('recipes_');
+  return { data: results.map(result => result.data) };
 }
 
 async function deleteRecipe(id) {
