@@ -79,6 +79,7 @@ if (Array.isArray(window.TOASTER_RECIPES)) {
 let products = [];
 let productsLoadPromise = null;
 let productsLoaded = false;
+let productCategoriesConfig = [];
 
 // Get localized name for a product
 function getLocalizedName(product, lang) {
@@ -148,12 +149,19 @@ function formatProductCategoryLabel(categoryKey) {
 }
 
 function getProductCategories() {
-  const categories = new Set();
+  const configMap = new Map(productCategoriesConfig.map(category => [category.key, category]));
+  const categories = new Set(productCategoriesConfig.map(category => category.key));
   products
     .filter(product => product && product.active !== false && product.category)
     .forEach(product => categories.add(product.category));
 
-  return Array.from(categories).sort((a, b) => {
+  return Array.from(categories).filter(categoryKey => {
+    const config = configMap.get(categoryKey);
+    return !config || config.active !== false;
+  }).sort((a, b) => {
+    const ac = configMap.get(a);
+    const bc = configMap.get(b);
+    if (ac || bc) return (ac?.sort_order || 999) - (bc?.sort_order || 999);
     const ai = PRODUCT_CATEGORY_ORDER.indexOf(a);
     const bi = PRODUCT_CATEGORY_ORDER.indexOf(b);
     if (ai !== -1 || bi !== -1) {
@@ -167,6 +175,14 @@ function getProductCategories() {
 
 function getProductCategoryMeta(categoryKey, lang) {
   const t = (typeof translations !== 'undefined') ? (translations[lang] || translations['en'] || {}) : {};
+  const configured = productCategoriesConfig.find(category => category.key === categoryKey);
+  if (configured) {
+    return {
+      icon: configured.icon || '🍽️',
+      label: configured['name_' + lang] || configured.name_en || configured.name_zh || formatProductCategoryLabel(categoryKey),
+      desc: configured['desc_' + lang] || configured.desc_en || configured.desc_zh || ''
+    };
+  }
   const meta = PRODUCT_CATEGORY_META[categoryKey] || {};
   const label = (meta.translationKey && t[meta.translationKey])
     || meta.fallbackLabel
@@ -174,8 +190,13 @@ function getProductCategoryMeta(categoryKey, lang) {
 
   return {
     icon: meta.icon || '🍽️',
-    label
+    label,
+    desc: ''
   };
+}
+
+function getProductCategoryConfig(categoryKey) {
+  return productCategoriesConfig.find(category => category.key === categoryKey) || null;
 }
 
 function bindProductFilterTabs(tabs) {
@@ -596,7 +617,12 @@ async function initProducts() {
 
     if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
       try {
-        const supabaseProducts = await fetchProducts(null, getCurrentLang(), true);
+        const [supabaseProducts, categories] = await Promise.all([
+          fetchProducts(null, getCurrentLang(), true),
+          (typeof fetchProductCategories === 'function' ? fetchProductCategories(true) : Promise.resolve([]))
+        ]);
+        productCategoriesConfig = Array.isArray(categories) ? categories : [];
+        window.productCategoriesConfig = productCategoriesConfig;
         if (supabaseProducts === null) {
           console.log('Supabase products could not be loaded; keeping cached products');
         } else if (supabaseProducts.length > 0) {

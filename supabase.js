@@ -327,15 +327,105 @@ async function fetchSiteSettings() {
 async function updateSiteSetting(key, value) {
   const sb = initSupabase();
   if (!sb) return { error: 'Supabase not initialized' };
-  return await sb.from('site_settings').upsert(
+  const result = await sb.from('site_settings').upsert(
     { key, value, updated_at: new Date().toISOString() },
     { onConflict: 'key' }
   );
+  if (!result.error) cacheClear('settings_');
+  return result;
 }
 
 async function getNotificationEmail() {
   const settings = await fetchSiteSettings();
   return settings['notification_email'] || '';
+}
+
+const DEFAULT_PRODUCT_CATEGORIES = [
+  {
+    key: 'airfryer',
+    icon: '🍟',
+    sort_order: 1,
+    active: true,
+    name_en: 'Air Fryer',
+    name_zh: '空气炸锅',
+    name_es: 'Freidora de Aire',
+    name_fr: 'Friteuse à Air',
+    name_ja: 'エアフライヤー',
+    name_pt: 'Fritadeira de Ar',
+    desc_en: 'Healthy frying with rapid air circulation technology.',
+    desc_zh: '快速空气循环技术，健康油炸。'
+  },
+  {
+    key: 'airfryeroven',
+    icon: '🔥',
+    sort_order: 2,
+    active: true,
+    name_en: 'Air Fryer Oven',
+    name_zh: '空气炸烤箱',
+    name_es: 'Horno Freidor de Aire',
+    name_fr: 'Four Friteuse à Air',
+    name_ja: 'エアフライヤーオーブン',
+    name_pt: 'Forno Fritadeira de Ar',
+    desc_en: 'Air fry, bake, roast, dehydrate — all in one appliance.',
+    desc_zh: '空气炸、烘焙、烤制、脱水，一机多用。'
+  },
+  {
+    key: 'toaster',
+    icon: '🍞',
+    sort_order: 3,
+    active: true,
+    name_en: 'Toaster',
+    name_zh: '烤面包机',
+    name_es: 'Tostadora',
+    name_fr: 'Grille-Pain',
+    name_ja: 'トースター',
+    name_pt: 'Torradeira',
+    desc_en: 'Reliable toasters for perfect results every morning.',
+    desc_zh: '可靠的时尚烤面包机，每天早晨完美出品。'
+  }
+];
+
+function parseProductCategoriesSetting(value) {
+  if (!value) return [];
+  try {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    return Array.isArray(parsed) ? parsed.filter(item => item && item.key) : [];
+  } catch (e) {
+    console.warn('Invalid product_categories setting:', e);
+    return [];
+  }
+}
+
+async function fetchProductCategories(forceRefresh = false) {
+  const cached = forceRefresh ? null : cacheGet('settings_product_categories');
+  if (cached) return cached;
+  const settings = await fetchSiteSettings();
+  const configured = parseProductCategoriesSetting(settings.product_categories);
+  const categories = configured.length ? configured : DEFAULT_PRODUCT_CATEGORIES;
+  cacheSet('settings_product_categories', categories);
+  return categories;
+}
+
+async function saveProductCategories(categories) {
+  const clean = (categories || [])
+    .filter(item => item && item.key)
+    .map((item, index) => ({
+      key: String(item.key || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, ''),
+      icon: String(item.icon || '🍽️').trim() || '🍽️',
+      sort_order: Number.parseInt(item.sort_order, 10) || index + 1,
+      active: item.active !== false,
+      name_en: String(item.name_en || '').trim(),
+      name_zh: String(item.name_zh || '').trim(),
+      name_es: String(item.name_es || '').trim(),
+      name_fr: String(item.name_fr || '').trim(),
+      name_ja: String(item.name_ja || '').trim(),
+      name_pt: String(item.name_pt || '').trim(),
+      desc_en: String(item.desc_en || '').trim(),
+      desc_zh: String(item.desc_zh || '').trim(),
+      image_url: String(item.image_url || '').trim()
+    }))
+    .filter(item => item.key);
+  return await updateSiteSetting('product_categories', JSON.stringify(clean));
 }
 
 // ============================================================

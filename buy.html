@@ -267,9 +267,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://jtrhzphdttralmvdhtva.supabase.co">
-  <script src="supabase.js?v=20260616b"></script>
+  <script src="supabase.js?v=20260617a"></script>
   <script src="js/i18n.js?v=20260603i"></script>
-  <script src="js/products.js?v=20260616b"></script>
+  <script src="js/products.js?v=20260617a"></script>
   <script src="js/contact-info.js?v=20260604b"></script>
   <script src="js/main.js?v=20260616a"></script>
 
@@ -437,6 +437,8 @@
     }
 
     function getCategoryLabel(cat, lang) {
+      const configured = typeof getProductCategoryConfig === 'function' ? getProductCategoryConfig(cat) : null;
+      if (configured) return configured['name_' + lang] || configured.name_en || configured.name_zh || cat;
       const t = (translations && translations[lang]) ? translations[lang] : {};
       const map = { airfryer: t['filter_airfryer'] || 'Air Fryer', airfryeroven: t['filter_airfryeroven'] || 'Air Fryer Oven', toaster: t['filter_toaster'] || 'Toaster' };
       return map[cat] || cat;

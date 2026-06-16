@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category Management - TomaChef Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+  <script src="../supabase.js?v=20260617a"></script>
+  <style>
+    :root { --tomato-700:#b91c1c; --tomato-800:#991b1b; --tomato-950:#450a0a; --amber-500:#f59e0b; --amber-600:#d97706; }
+    body { background:#f1f5f9; font-family:'Segoe UI', system-ui, sans-serif; }
+    .admin-sidebar { background:var(--tomato-950); min-height:100vh; padding:24px 0; position:fixed; width:240px; }
+    .admin-sidebar .brand { color:white; font-weight:800; font-size:1.2rem; padding:0 24px 24px; border-bottom:1px solid rgba(255,255,255,.1); margin-bottom:16px; }
+    .admin-sidebar .nav-link { color:rgba(255,255,255,.6); padding:10px 24px; font-size:.95rem; border-left:3px solid transparent; display:block; text-decoration:none; }
+    .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active { color:white; background:rgba(255,255,255,.05); border-left-color:var(--amber-500); }
+    .admin-main { margin-left:240px; padding:32px; }
+    .admin-header, .content-card { background:white; border-radius:12px; padding:20px 24px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+    .admin-header { margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; }
+    .admin-header h4 { font-weight:700; color:var(--tomato-800); margin:0; }
+    .btn-add, .btn-save { background:var(--amber-500); color:white; font-weight:700; border:0; border-radius:8px; padding:8px 18px; }
+    .btn-save { background:var(--tomato-700); }
+    .btn-add:hover { background:var(--amber-600); }
+    .btn-save:hover { background:var(--tomato-800); }
+    .btn-signout { color:#64748b; font-size:.85rem; text-decoration:none; }
+    .category-key { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; color:#64748b; font-size:.82rem; }
+    .category-icon { font-size:1.45rem; width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; background:#fff7ed; border-radius:10px; }
+    .status-pill { display:inline-flex; align-items:center; padding:3px 9px; border-radius:999px; font-size:.75rem; font-weight:700; }
+    .status-on { background:#dcfce7; color:#166534; }
+    .status-off { background:#e2e8f0; color:#475569; }
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.show { display:flex; }
+    .modal-content { background:white; border-radius:16px; padding:28px; width:100%; max-width:780px; max-height:88vh; overflow:auto; }
+    .modal-content h5 { color:var(--tomato-800); font-weight:800; margin-bottom:18px; }
+    .form-label { font-weight:700; font-size:.84rem; color:#334155; }
+    .hint { color:#94a3b8; font-size:.78rem; margin-top:4px; }
+    .toast-msg { display:none; position:fixed; top:22px; right:22px; z-index:9999; color:white; padding:12px 18px; border-radius:10px; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,.16); }
+    .toast-msg.success { background:#16a34a; }
+    .toast-msg.error { background:#dc2626; }
+    @media (max-width:768px) { .admin-sidebar{position:static;width:100%;min-height:auto;} .admin-main{margin-left:0;padding:16px;} }
+  </style>
+</head>
+<body>
+<div class="admin-sidebar">
+  <div class="brand"><img src="../images/logo.jpg" alt="TomaChef" style="height:36px;width:auto;margin-bottom:8px;"><br>TomaChef Admin</div>
+  <nav class="nav flex-column">
+    <a class="nav-link" href="dashboard.html">📊 仪表盘</a>
+    <a class="nav-link" href="products.html">📦 产品管理</a>
+    <a class="nav-link active" href="categories.html">🧩 品类管理</a>
+    <a class="nav-link" href="inquiries.html">📧 订购咨询</a>
+    <a class="nav-link" href="channels.html">🛒 购买渠道</a>
+    <a class="nav-link" href="recipes.html">🍳 食谱管理</a>
+    <a class="nav-link" href="contact.html">📇 联系信息</a>
+    <a class="nav-link" href="social.html">📱 社交媒体</a>
+    <a class="nav-link" href="settings.html">⚙️ 系统设置</a>
+    <a class="nav-link" href="../index.html" target="_blank">🌐 查看网站</a>
+  </nav>
+</div>
+
+<div class="admin-main">
+  <div class="admin-header">
+    <h4>🧩 品类管理</h4>
+    <div>
+      <button class="btn-add me-3" onclick="openCategoryModal()">+ 添加品类</button>
+      <a class="btn-signout" href="#" onclick="handleSignOut()">退出登录</a>
+    </div>
+  </div>
+
+  <div class="content-card">
+    <p class="text-muted" style="font-size:.86rem;">
+      这里控制产品中心、食谱分类卡片和首页食谱分类的品类名称、排序与前台显示状态。产品里已经使用过的品类会自动出现在列表中。
+    </p>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th style="width:70px;">排序</th>
+            <th>品类</th>
+            <th>中文 / English</th>
+            <th>产品数</th>
+            <th>前台</th>
+            <th style="width:150px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="categoryTableBody">
+          <tr><td colspan="6" class="text-center text-muted py-4">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal-content">
+    <h5 id="modalTitle">添加品类</h5>
+    <form id="categoryForm">
+      <input type="hidden" id="originalKey">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">品类 key *</label>
+          <input class="form-control" id="catKey" required placeholder="rice-cooker">
+          <div class="hint">用于 URL 和产品关联，建议英文小写加短横线。</div>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">图标</label>
+          <input class="form-control" id="catIcon" placeholder="🍚">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">排序</label>
+          <input type="number" class="form-control" id="catSort" value="99">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">前台显示</label>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="catActive" checked>
+            <label class="form-check-label">显示这个品类</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">中文名称 *</label>
+          <input class="form-control" id="catNameZh" required placeholder="电饭煲">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">English Name *</label>
+          <input class="form-control" id="catNameEn" required placeholder="Rice Cooker">
+        </div>
+        <div class="col-md-4"><label class="form-label">Español</label><input class="form-control" id="catNameEs"></div>
+        <div class="col-md-4"><label class="form-label">Français</label><input class="form-control" id="catNameFr"></div>
+        <div class="col-md-4"><label class="form-label">日本語</label><input class="form-control" id="catNameJa"></div>
+        <div class="col-md-4"><label class="form-label">Português</label><input class="form-control" id="catNamePt"></div>
+        <div class="col-md-8">
+          <label class="form-label">分类图片 URL（可选）</label>
+          <input class="form-control" id="catImageUrl" placeholder="https://...">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">中文简介</label>
+          <textarea class="form-control" id="catDescZh" rows="2"></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">English Description</label>
+          <textarea class="form-control" id="catDescEn" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="mt-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" onclick="closeCategoryModal()">取消</button>
+        <button type="submit" class="btn-save">保存品类</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-msg" id="toast"></div>
+
+<script>
+let configuredCategories = [];
+let allProducts = [];
+
+(async () => {
+  initSupabase();
+  const session = await requireAuth();
+  if (!session) return;
+  await loadCategories();
+})();
+
+function cleanCategoryKey(value) {
+  return String(value || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '');
+}
+
+function formatLabel(key) {
+  return String(key || '').replace(/[-_]+/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+}
+
+function getMergedCategories() {
+  const map = new Map();
+  configuredCategories.forEach((category, index) => {
+    map.set(category.key, { ...category, sort_order: Number(category.sort_order) || index + 1, inferred: false });
+  });
+  allProducts.forEach(product => {
+    const key = cleanCategoryKey(product.category);
+    if (!key || map.has(key)) return;
+    map.set(key, {
+      key,
+      icon: product.icon || '🍽️',
+      sort_order: 99,
+      active: true,
+      name_en: formatLabel(key),
+      name_zh: product.category || formatLabel(key),
+      inferred: true
+    });
+  });
+  return [...map.values()].sort((a, b) => (Number(a.sort_order) || 999) - (Number(b.sort_order) || 999) || a.key.localeCompare(b.key));
+}
+
+async function loadCategories() {
+  configuredCategories = await fetchProductCategories(true);
+  allProducts = await fetchAllProductsAdmin();
+  renderCategories();
+}
+
+function renderCategories() {
+  const tbody = document.getElementById('categoryTableBody');
+  const categories = getMergedCategories();
+  if (!categories.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">暂无品类</td></tr>';
+    return;
+  }
+  tbody.innerHTML = categories.map(category => {
+    const count = allProducts.filter(product => cleanCategoryKey(product.category) === category.key).length;
+    return `<tr>
+      <td>${category.sort_order || 0}</td>
+      <td><span class="category-icon">${escapeHtml(category.icon || '🍽️')}</span> <span class="category-key">${escapeHtml(category.key)}</span>${category.inferred ? '<div class="text-muted" style="font-size:.75rem;">来自产品数据，保存后成为正式品类</div>' : ''}</td>
+      <td><strong>${escapeHtml(category.name_zh || formatLabel(category.key))}</strong><br><small class="text-muted">${escapeHtml(category.name_en || formatLabel(category.key))}</small></td>
+      <td>${count}</td>
+      <td><span class="status-pill ${category.active !== false ? 'status-on' : 'status-off'}">${category.active !== false ? '显示' : '隐藏'}</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary me-2" onclick="openCategoryModal('${escapeHtml(category.key)}')">编辑</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="removeCategory('${escapeHtml(category.key)}')">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openCategoryModal(key = '') {
+  const form = document.getElementById('categoryForm');
+  form.reset();
+  const category = key ? getMergedCategories().find(item => item.key === key) : null;
+  document.getElementById('modalTitle').textContent = category ? '编辑品类' : '添加品类';
+  document.getElementById('originalKey').value = category?.key || '';
+  document.getElementById('catKey').value = category?.key || '';
+  document.getElementById('catIcon').value = category?.icon || '';
+  document.getElementById('catSort').value = category?.sort_order || getMergedCategories().length + 1;
+  document.getElementById('catActive').checked = category?.active !== false;
+  document.getElementById('catNameZh').value = category?.name_zh || '';
+  document.getElementById('catNameEn').value = category?.name_en || '';
+  document.getElementById('catNameEs').value = category?.name_es || '';
+  document.getElementById('catNameFr').value = category?.name_fr || '';
+  document.getElementById('catNameJa').value = category?.name_ja || '';
+  document.getElementById('catNamePt').value = category?.name_pt || '';
+  document.getElementById('catImageUrl').value = category?.image_url || '';
+  document.getElementById('catDescZh').value = category?.desc_zh || '';
+  document.getElementById('catDescEn').value = category?.desc_en || '';
+  document.getElementById('categoryModal').classList.add('show');
+}
+
+function closeCategoryModal() {
+  document.getElementById('categoryModal').classList.remove('show');
+}
+
+document.getElementById('categoryForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const originalKey = document.getElementById('originalKey').value;
+  const key = cleanCategoryKey(document.getElementById('catKey').value);
+  if (!key) { toast('请填写有效的品类 key', 'error'); return; }
+  const category = {
+    key,
+    icon: document.getElementById('catIcon').value.trim() || '🍽️',
+    sort_order: parseInt(document.getElementById('catSort').value, 10) || 99,
+    active: document.getElementById('catActive').checked,
+    name_zh: document.getElementById('catNameZh').value.trim(),
+    name_en: document.getElementById('catNameEn').value.trim(),
+    name_es: document.getElementById('catNameEs').value.trim(),
+    name_fr: document.getElementById('catNameFr').value.trim(),
+    name_ja: document.getElementById('catNameJa').value.trim(),
+    name_pt: document.getElementById('catNamePt').value.trim(),
+    image_url: document.getElementById('catImageUrl').value.trim(),
+    desc_zh: document.getElementById('catDescZh').value.trim(),
+    desc_en: document.getElementById('catDescEn').value.trim()
+  };
+  if (!category.name_zh || !category.name_en) {
+    toast('中文名称和英文名称必填', 'error');
+    return;
+  }
+  const next = getMergedCategories().filter(item => item.key !== originalKey && item.key !== key).map(({ inferred, ...item }) => item);
+  next.push(category);
+  const { error } = await saveProductCategories(next.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)));
+  if (error) { toast('保存失败：' + error.message, 'error'); return; }
+  closeCategoryModal();
+  toast('品类已保存');
+  await loadCategories();
+});
+
+async function removeCategory(key) {
+  const count = allProducts.filter(product => cleanCategoryKey(product.category) === key).length;
+  const message = count
+    ? `这个品类下还有 ${count} 个产品。删除配置后仍会从产品数据中自动出现；如果要前台不显示，请改为“隐藏”。确定删除配置吗？`
+    : '确定删除这个品类配置吗？';
+  if (!confirm(message)) return;
+  const next = configuredCategories.filter(item => item.key !== key);
+  const { error } = await saveProductCategories(next);
+  if (error) { toast('删除失败：' + error.message, 'error'); return; }
+  toast('品类配置已删除');
+  await loadCategories();
+}
+
+async function handleSignOut() {
+  await signOut();
+  window.location.href = 'login.html';
+}
+
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
+}
+
+function toast(message, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.className = 'toast-msg ' + type;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 2600);
+}
+</script>
+</body>
+</html>
