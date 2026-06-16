@@ -1,0 +1,34 @@
+User-agent: *
+Allow: /
+
+# AI / LLM 爬虫白名单（方便被 ChatGPT/Claude/Perplexity 引用品牌信息）
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# 屏蔽 admin 后台
+Disallow: /admin/
+Disallow: /api/
+Disallow: /functions/
+
+Sitemap: https://tomachefappliance.com/sitemap.xml
