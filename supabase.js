@@ -508,7 +508,7 @@ async function deleteSocialLink(id) {
 async function fetchRecipes(category = null, productId = null) {
   const sb = initSupabase();
   if (!sb) return [];
-  let query = sb.from('recipes').select('*, products(name)').eq('is_active', true);
+  let query = sb.from('recipes').select('*').eq('is_active', true);
   if (category && category !== 'all') query = query.eq('category', category);
   if (productId) query = query.eq('product_id', productId);
   query = query
@@ -528,7 +528,7 @@ async function fetchAllRecipesAdmin() {
   if (!sb) return [];
   const { data, error } = await sb
     .from('recipes')
-    .select('*, products(id, sku, name, name_zh)')
+    .select('*')
     .order('is_active', { ascending: false })
     .order('category', { ascending: true })
     .order('display_order', { ascending: true });

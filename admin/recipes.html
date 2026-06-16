@@ -7,7 +7,7 @@
   <title>Recipe Management - TomaChef Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-  <script src="../supabase.js?v=20260617a"></script>
+  <script src="../supabase.js?v=20260617b"></script>
   <style>
     :root {
       --tomato-700: #b91c1c; --tomato-800: #991b1b; --tomato-950: #450a0a;
@@ -376,11 +376,6 @@
       <div class="stat-value" id="statIncomplete">0</div>
       <div class="stat-note">图片、内容或翻译缺失</div>
     </button>
-    <button class="stat-card text-start" type="button" data-stat-filter="unlinked" onclick="setStatFilter('unlinked')">
-      <div class="stat-label">未关联产品</div>
-      <div class="stat-value" id="statUnlinked">0</div>
-      <div class="stat-note">无法按产品精确管理</div>
-    </button>
     <button class="stat-card text-start" type="button" data-stat-filter="noimage" onclick="setStatFilter('noimage')">
       <div class="stat-label">缺少图片</div>
       <div class="stat-value" id="statNoImage">0</div>
@@ -402,9 +397,6 @@
         <span class="search-icon">⌕</span>
         <input class="form-control form-control-sm" id="recipeSearch" placeholder="搜索中文、英文标题或产品…" oninput="renderRecipes()">
       </div>
-      <select class="form-select form-select-sm" id="recipeProductFilter" onchange="renderRecipes()">
-        <option value="all">全部关联产品</option>
-      </select>
       <select class="form-select form-select-sm" id="recipeStatusFilter" onchange="renderRecipes()">
         <option value="all">全部上架状态</option>
         <option value="active">已上架</option>
@@ -416,7 +408,6 @@
         <option value="incomplete">待完善</option>
         <option value="translation">翻译不完整</option>
         <option value="noimage">缺少图片</option>
-        <option value="unlinked">未关联产品</option>
       </select>
       <button type="button" class="btn-clear" onclick="clearRecipeFilters()">清除筛选</button>
     </div>
@@ -431,14 +422,13 @@
             <th style="width:64px">图片</th>
             <th>食谱标题</th>
             <th style="width:100px">分类</th>
-            <th style="width:150px">关联产品</th>
             <th style="width:150px">内容状态</th>
             <th style="width:76px">上架</th>
             <th style="width:145px">操作</th>
           </tr>
         </thead>
         <tbody id="recipeTbody">
-          <tr><td colspan="8" class="text-center text-muted py-4">加载中…</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-4">加载中…</td></tr>
         </tbody>
       </table>
     </div>
@@ -466,12 +456,6 @@
         </select>
         <input type="text" class="form-control form-control-sm mt-2" id="recipeCatCustom" placeholder="新增品类 key（可选）">
         <div class="form-text-compact">已有产品品类会自动出现；新增品类建议用英文小写。</div>
-      </div>
-      <div class="col-md-2">
-        <label class="form-label">关联产品</label>
-        <select class="form-control" id="recipeProduct">
-          <option value="">— 无 —</option>
-        </select>
       </div>
       <div class="col-md-2">
         <label class="form-label">排序</label>
@@ -583,21 +567,7 @@
         fetchAllProductsAdmin(),
         typeof fetchProductCategories === 'function' ? fetchProductCategories(true) : Promise.resolve([])
       ]);
-      const sel = document.getElementById('recipeProduct');
-      allProducts.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = productOptionLabel(p);
-        sel.appendChild(opt);
-      });
-      const filter = document.getElementById('recipeProductFilter');
-      allProducts.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = productOptionLabel(p);
-        filter.appendChild(opt);
-      });
-    } catch (e) { console.warn('Failed to load products for dropdown', e); }
+    } catch (e) { console.warn('Failed to load product categories', e); }
     loadRecipes();
   }
 
@@ -641,7 +611,7 @@
   // === Load ===
   async function loadRecipes() {
     const tbody = document.getElementById('recipeTbody');
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">加载中…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">加载中…</td></tr>';
     allAdminRecipes = await fetchAllRecipesAdmin();
     renderCategoryControls();
     renderRecipeStats();
@@ -660,12 +630,12 @@
     }
 
     if (!allAdminRecipes.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无食谱，点击「+ 添加食谱」创建</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">暂无食谱，点击「+ 添加食谱」创建</td></tr>';
       return;
     }
 
     if (!recipes.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">当前视图没有食谱记录</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">当前视图没有食谱记录</td></tr>';
       return;
     }
 
@@ -681,7 +651,6 @@
       const imgHtml = r.image_url
         ? '<img class="img-thumb" src="'+escHtml(imageUrl)+'" alt="" loading="eager" decoding="async" onerror="this.style.display=\'none\'">'
         : '<span class="text-muted" style="font-size:0.75rem">—</span>';
-      const productName = productDisplayHtml(r);
       const sortIndex = sortableIds.indexOf(String(r.id));
       const canMoveUp = recipeSortMode && sortIndex > 0;
       const canMoveDown = recipeSortMode && sortIndex >= 0 && sortIndex < sortableIds.length - 1;
@@ -694,7 +663,6 @@
           ${titleEn ? `<div class="recipe-title-secondary">${escHtml(titleEn)}</div>` : ''}
         </td>
         <td><span class="badge-cat ${getCategoryClass(r.category)}">${escHtml(getCategoryDisplayName(r.category))}</span></td>
-        <td><small>${productName}</small></td>
         <td>
           <div class="status-stack">
             <span class="quality-badge ${quality.complete ? 'quality-complete' : 'quality-warning'}">${quality.complete ? '内容完整' : '待完善'}</span>
@@ -754,7 +722,6 @@
     ).length;
     const issues = [];
     if (!recipe.image_url) issues.push('缺图片');
-    if (!recipe.product_id) issues.push('未关联');
     if (!hasRecipeDetails(translations.zh)) issues.push('缺中文详情');
     if (translationCount < RECIPE_LANGUAGES.length) issues.push('缺翻译');
     return {
@@ -769,16 +736,12 @@
     return [
       translations.en?.title,
       translations.zh?.title,
-      recipe.products?.sku,
-      recipe.products?.name,
-      recipe.products?.name_zh,
       recipe.category
     ].filter(Boolean).join(' ').toLowerCase();
   }
 
   function getFilteredRecipes() {
     const search = document.getElementById('recipeSearch').value.trim().toLowerCase();
-    const product = document.getElementById('recipeProductFilter').value;
     const status = document.getElementById('recipeStatusFilter').value;
     const quality = document.getElementById('recipeQualityFilter').value;
 
@@ -788,17 +751,14 @@
       if (!['all', 'inactive'].includes(recipeCategoryFilter) && recipe.category !== recipeCategoryFilter) return false;
       if (recipeStatFilter === 'active' && recipe.is_active === false) return false;
       if (recipeStatFilter === 'incomplete' && recipeQuality.complete) return false;
-      if (recipeStatFilter === 'unlinked' && recipe.product_id) return false;
       if (recipeStatFilter === 'noimage' && recipe.image_url) return false;
       if (search && !getRecipeSearchText(recipe).includes(search)) return false;
-      if (product !== 'all' && String(recipe.product_id) !== product) return false;
       if (status === 'active' && recipe.is_active === false) return false;
       if (status === 'inactive' && recipe.is_active !== false) return false;
       if (quality === 'complete' && !recipeQuality.complete) return false;
       if (quality === 'incomplete' && recipeQuality.complete) return false;
       if (quality === 'translation' && recipeQuality.translationCount === RECIPE_LANGUAGES.length) return false;
       if (quality === 'noimage' && recipe.image_url) return false;
-      if (quality === 'unlinked' && recipe.product_id) return false;
       return true;
     }).sort(compareRecipesForDisplay);
   }
@@ -806,12 +766,10 @@
   function renderRecipeStats() {
     const active = allAdminRecipes.filter(r => r.is_active !== false).length;
     const incomplete = allAdminRecipes.filter(r => !getRecipeQuality(r).complete).length;
-    const unlinked = allAdminRecipes.filter(r => !r.product_id).length;
     const noImage = allAdminRecipes.filter(r => !r.image_url).length;
     document.getElementById('statTotal').textContent = allAdminRecipes.length;
     document.getElementById('statActive').textContent = active;
     document.getElementById('statIncomplete').textContent = incomplete;
-    document.getElementById('statUnlinked').textContent = unlinked;
     document.getElementById('statNoImage').textContent = noImage;
     renderCategoryControls();
   }
@@ -835,7 +793,6 @@
 
   function clearRecipeFilters() {
     document.getElementById('recipeSearch').value = '';
-    document.getElementById('recipeProductFilter').value = 'all';
     document.getElementById('recipeStatusFilter').value = 'all';
     document.getElementById('recipeQualityFilter').value = 'all';
     recipeCategoryFilter = 'all';
@@ -942,7 +899,6 @@
     recipeSortMode = !recipeSortMode;
     if (recipeSortMode) {
       document.getElementById('recipeSearch').value = '';
-      document.getElementById('recipeProductFilter').value = 'all';
       document.getElementById('recipeStatusFilter').value = 'all';
       document.getElementById('recipeQualityFilter').value = 'all';
       recipeStatFilter = 'all';
@@ -1069,18 +1025,6 @@
     toast(nextActive ? '食谱已上架' : '食谱已下架');
   }
 
-  function productOptionLabel(p) {
-    return p.name_zh || p.name || p.name_en || 'Product #' + p.id;
-  }
-
-  function productDisplayHtml(recipe) {
-    if (recipe.products) {
-      const name = recipe.products.name_zh || recipe.products.name || '';
-      return `<span class="product-label">${escHtml(name || '未命名产品')}</span>`;
-    }
-    return recipe.product_id ? `<span class="product-label">#${escHtml(recipe.product_id)}</span>` : '<span class="product-label">—</span>';
-  }
-
   function getAdminRecipeImageUrl(imageUrl) {
     const value = String(imageUrl || '').trim();
     if (!value || /^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('/')) {
@@ -1100,7 +1044,6 @@
     renderCategoryControls();
     document.getElementById('recipeCat').value = getAllRecipeCategories()[0] || 'airfryer';
     document.getElementById('recipeCatCustom').value = '';
-    document.getElementById('recipeProduct').value = '';
     document.getElementById('recipeOrder').value = '0';
     document.getElementById('recipeActive').value = 'true';
     document.getElementById('recipeMode').value = '';
@@ -1131,7 +1074,6 @@
     } else {
       document.getElementById('recipeCatCustom').value = r.category || '';
     }
-    document.getElementById('recipeProduct').value = r.product_id || '';
     document.getElementById('recipeOrder').value = r.display_order ?? 0;
     document.getElementById('recipeActive').value = r.is_active ? 'true' : 'false';
     document.getElementById('recipeMode').value = r.mode || '';
@@ -1345,11 +1287,6 @@
       const formMode = document.getElementById('recipeMode').value.trim();
       const formTemp = document.getElementById('recipeTemp').value.trim();
       const formTime = document.getElementById('recipeTime').value.trim();
-      const productIdValue = document.getElementById('recipeProduct').value;
-      const productId = productIdValue
-        ? (/^\d+$/.test(productIdValue) ? Number(productIdValue) : productIdValue)
-        : null;
-
       const categoryValue = getRecipeCategoryFromForm();
       const rawOrder = parseInt(document.getElementById('recipeOrder').value, 10);
       const displayOrder = Number.isFinite(rawOrder) && rawOrder > 0
@@ -1360,7 +1297,7 @@
         id,
         translations,
         category: categoryValue,
-        product_id: productId,
+        product_id: null,
         emoji: document.getElementById('recipeEmoji').value.trim() || '🍳',
         image_url: imageUrl,
         display_order: displayOrder,
