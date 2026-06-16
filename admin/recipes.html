@@ -313,7 +313,6 @@
     .form-label { font-weight: 600; font-size: 0.85rem; }
     .view-tools { display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
     .view-summary { color: #64748b; font-size: 0.86rem; }
-    .product-code { display: block; color: #b91c1c; font-weight: 700; }
     .product-label { color: #64748b; }
     .form-text-compact { color: #94a3b8; font-size: 0.72rem; margin-top: 4px; }
 
@@ -1071,15 +1070,13 @@
   }
 
   function productOptionLabel(p) {
-    const code = p.sku ? p.sku + ' · ' : '';
-    return code + (p.name_zh || p.name || p.name_en || 'Product #' + p.id);
+    return p.name_zh || p.name || p.name_en || 'Product #' + p.id;
   }
 
   function productDisplayHtml(recipe) {
     if (recipe.products) {
-      const sku = recipe.products.sku || '';
       const name = recipe.products.name_zh || recipe.products.name || '';
-      return `${sku ? `<span class="product-code">${escHtml(sku)}</span>` : ''}<span class="product-label">${escHtml(name || '未命名产品')}</span>`;
+      return `<span class="product-label">${escHtml(name || '未命名产品')}</span>`;
     }
     return recipe.product_id ? `<span class="product-label">#${escHtml(recipe.product_id)}</span>` : '<span class="product-label">—</span>';
   }
