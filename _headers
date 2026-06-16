@@ -8,3 +8,8 @@
 
 /admin/*
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/images/*
+  Cross-Origin-Resource-Policy: same-origin
+  X-Robots-Tag: noimageindex, noarchive
+  Content-Disposition: inline

@@ -271,9 +271,9 @@
   <script src="js/i18n.js?v=20260611d"></script>
   <script src="js/airfryer-recipes.js?v=20260609a"></script>
   <script src="js/toaster-recipes.js?v=20260610a"></script>
-  <script src="js/products.js?v=20260615b"></script>
+  <script src="js/products.js?v=20260616a"></script>
   <script src="js/contact-info.js?v=20260604b"></script>
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=20260616a"></script>
   <script src="js/social.js"></script>
   <script>
     /* ===== Dynamic Home Recipes with Category Selector ===== */
@@ -466,8 +466,9 @@
           metaHtml += '</div>';
         }
 
-        const imgHtml = r.image_url && r.image_url.trim()
-          ? '<img src="' + r.image_url + '" alt="" loading="eager" decoding="async" onerror="this.remove()">'
+        const imageUrl = typeof getProtectedImageUrl === 'function' ? getProtectedImageUrl(r.image_url) : r.image_url;
+        const imgHtml = imageUrl && imageUrl.trim()
+          ? '<img src="' + imageUrl + '" alt="" loading="eager" decoding="async" onerror="this.remove()">'
           : '';
         const emojiHtml = imgHtml ? '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>' : '';
 

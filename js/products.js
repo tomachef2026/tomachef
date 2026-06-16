@@ -103,7 +103,8 @@ function addCacheBuster(url, token) {
 
 function getProductImageUrl(product) {
   if (!product || !product.image_url) return '';
-  return addCacheBuster(product.image_url, product.updated_at || product.created_at || product.id);
+  const imageUrl = addCacheBuster(product.image_url, product.updated_at || product.created_at || product.id);
+  return typeof getProtectedImageUrl === 'function' ? getProtectedImageUrl(imageUrl) : imageUrl;
 }
 
 function createProductImagePlaceholder(name) {
@@ -449,8 +450,9 @@ function updateHomeRecipeCards(lang) {
   grid.innerHTML = recipes.map(r => {
     const trData = (typeof r.translations === 'string') ? JSON.parse(r.translations) : (r.translations || {});
     const tr = trData[lang] || trData.en || {};
-    const imgHtml = r.image_url
-      ? '<img src="' + r.image_url + '" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">'
+    const recipeImageUrl = typeof getProtectedImageUrl === 'function' ? getProtectedImageUrl(r.image_url) : r.image_url;
+    const imgHtml = recipeImageUrl
+      ? '<img src="' + recipeImageUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">'
       : '<span class="recipe-emoji">' + (r.emoji || '🍳') + '</span>';
     const viewText = (typeof translations !== 'undefined' && translations[lang] && translations[lang].recipe_view)
       ? translations[lang].recipe_view : 'View Recipe →';

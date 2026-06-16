@@ -3,7 +3,64 @@
    Navbar scroll, animations, contact form, smooth scroll
    ============================================================ */
 
+function getProtectedImageUrl(url) {
+  const raw = String(url || '').trim();
+  if (!raw || raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
+
+  try {
+    const parsed = new URL(raw, window.location.origin);
+    const isSupabaseAsset = parsed.origin === 'https://jtrhzphdttralmvdhtva.supabase.co' &&
+      parsed.pathname.startsWith('/storage/v1/object/public/tomachef-assets/');
+
+    const canUseImageProxy = /(^|\.)tomachefappliance\.com$/i.test(window.location.hostname);
+    if (isSupabaseAsset && canUseImageProxy) {
+      return '/protected-image?src=' + encodeURIComponent(parsed.href);
+    }
+
+    return raw;
+  } catch (error) {
+    return raw;
+  }
+}
+
+window.getProtectedImageUrl = getProtectedImageUrl;
+
+function protectDisplayedImages(root = document) {
+  root.querySelectorAll('img').forEach(img => {
+    img.setAttribute('draggable', 'false');
+    img.setAttribute('data-image-protected', 'true');
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  protectDisplayedImages();
+
+  const imageObserver = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        if (node.tagName === 'IMG') {
+          node.setAttribute('draggable', 'false');
+          node.setAttribute('data-image-protected', 'true');
+        } else {
+          protectDisplayedImages(node);
+        }
+      });
+    });
+  });
+  imageObserver.observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener('contextmenu', event => {
+    if (event.target.closest('img, [data-image-protected="true"]')) {
+      event.preventDefault();
+    }
+  });
+
+  document.addEventListener('dragstart', event => {
+    if (event.target.closest('img, [data-image-protected="true"]')) {
+      event.preventDefault();
+    }
+  });
 
   // Navbar scroll effect
   const navbar = document.querySelector('.navbar');

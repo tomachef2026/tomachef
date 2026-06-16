@@ -1,4 +1,6 @@
 const RECAPTCHA_VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify';
+const IMAGE_EXTENSIONS = new Set(['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webp']);
+const SUPABASE_STORAGE_ORIGIN = 'https://jtrhzphdttralmvdhtva.supabase.co';
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -12,6 +14,103 @@ function jsonResponse(body, status = 200) {
 
 function sanitizeText(value, maxLength = 1000) {
   return String(value || '').trim().slice(0, maxLength);
+}
+
+function isImagePath(pathname) {
+  const lower = pathname.toLowerCase();
+  return [...IMAGE_EXTENSIONS].some(ext => lower.endsWith(ext));
+}
+
+function isProtectedLocalImage(url) {
+  return url.pathname.startsWith('/images/') && isImagePath(url.pathname);
+}
+
+function isSuspiciousImageClient(request) {
+  const userAgent = (request.headers.get('User-Agent') || '').toLowerCase();
+  const accept = (request.headers.get('Accept') || '').toLowerCase();
+  return (
+    /\b(curl|wget|python-requests|scrapy|httpclient|libwww|go-http-client|java|php)\b/.test(userAgent) ||
+    (accept && !accept.includes('image/') && !accept.includes('*/*'))
+  );
+}
+
+function hasAllowedImageReferer(request, requestUrl) {
+  const referer = request.headers.get('Referer');
+  if (!referer) return false;
+  try {
+    return new URL(referer).hostname === requestUrl.hostname;
+  } catch (error) {
+    return false;
+  }
+}
+
+function forbiddenImageResponse() {
+  return new Response('Image access is restricted.', {
+    status: 403,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, noimageindex, noarchive'
+    }
+  });
+}
+
+function withImageProtectionHeaders(response) {
+  const protectedResponse = new Response(response.body, response);
+  protectedResponse.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  protectedResponse.headers.set('X-Robots-Tag', 'noimageindex, noarchive');
+  protectedResponse.headers.set('Content-Disposition', 'inline');
+  return protectedResponse;
+}
+
+function isAllowedSupabaseImage(src) {
+  try {
+    const url = new URL(src);
+    return (
+      url.origin === SUPABASE_STORAGE_ORIGIN &&
+      url.pathname.startsWith('/storage/v1/object/public/tomachef-assets/') &&
+      isImagePath(url.pathname)
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
+async function handleProtectedImage(request, env, url) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    return forbiddenImageResponse();
+  }
+  if (!hasAllowedImageReferer(request, url) || isSuspiciousImageClient(request)) {
+    return forbiddenImageResponse();
+  }
+
+  const src = url.searchParams.get('src') || '';
+  if (!isAllowedSupabaseImage(src)) {
+    return forbiddenImageResponse();
+  }
+
+  const upstream = await fetch(src, {
+    headers: {
+      Accept: request.headers.get('Accept') || 'image/avif,image/webp,image/*,*/*;q=0.8'
+    }
+  });
+
+  if (!upstream.ok) {
+    return new Response('Image not found.', { status: upstream.status });
+  }
+
+  return withImageProtectionHeaders(upstream);
+}
+
+async function handleLocalImageAsset(request, env, url) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    return forbiddenImageResponse();
+  }
+  if (!hasAllowedImageReferer(request, url) || isSuspiciousImageClient(request)) {
+    return forbiddenImageResponse();
+  }
+  const response = await env.ASSETS.fetch(request);
+  return withImageProtectionHeaders(response);
 }
 
 async function verifyRecaptcha(token, secret, remoteIp) {
@@ -212,6 +311,14 @@ export default {
     const url = new URL(request.url);
 
     try {
+      if (url.pathname === '/protected-image') {
+        return handleProtectedImage(request, env, url);
+      }
+
+      if (isProtectedLocalImage(url)) {
+        return handleLocalImageAsset(request, env, url);
+      }
+
       if (url.pathname === '/api/submit-inquiry') {
         return handleSubmitInquiry(request, env);
       }
