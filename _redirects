@@ -1,8 +1,0 @@
-# Cloudflare Pages redirects
-# 1. Force HTTPS
-http://tomachefappliance.com/* https://tomachefappliance.com/:splat 301!
-http://www.tomachefappliance.com/* https://tomachefappliance.com/:splat 301!
-https://www.tomachefappliance.com/* https://tomachefappliance.com/:splat 301!
-
-# 2. Force non-www (already covered above, but keep as safety net)
-https://www.tomachefappliance.com/ https://tomachefappliance.com/ 301
